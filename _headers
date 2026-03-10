@@ -1,0 +1,67 @@
+# ================================================================
+# HTTP Response Headers — Security Hardening
+# ================================================================
+#
+# This file configures HTTP response headers for static hosting
+# platforms like Netlify and Cloudflare Pages. GitHub Pages does
+# NOT natively support custom _headers files, so we also set
+# equivalent <meta> tags in index.html as a fallback.
+#
+# If you later deploy to Netlify or Cloudflare Pages instead of
+# GitHub Pages, this file will be picked up automatically.
+#
+# ----------------------------------------------------------------
+# CYBERSECURITY LEARNING MOMENT:
+#
+# HTTP headers are instructions the *server* sends to the *browser*
+# before the page even loads. Security headers tell the browser
+# what the page is allowed to do — like a bouncer checking an
+# invite list.
+#
+# These headers form part of a "defense in depth" strategy:
+# even if an attacker injects malicious content, the browser
+# will refuse to execute it because the headers say "not allowed."
+# ================================================================
+
+/*
+  # ---- Content Security Policy (CSP) ----
+  # CSP is the single most powerful browser security header.
+  # It whitelists exactly which sources can provide scripts,
+  # styles, fonts, images, etc.
+  #
+  # Breaking down each directive:
+  #   default-src 'self'       → by default, only load from our own domain
+  #   script-src  'self'       → JS only from our /libs and /js folders (no CDNs, no inline)
+  #   style-src   'self' ...   → CSS from us + Google Fonts
+  #   font-src    ...          → font files from Google's CDN
+  #   img-src     'self' data: → images from us + inline SVG data URIs
+  #   connect-src 'self'       → fetch/XHR only to our own domain
+  #   frame-src   'none'       → no iframes allowed (prevents clickjacking)
+  #   object-src  'none'       → no Flash/Java plugins (legacy attack vector)
+  #   base-uri    'self'       → prevents <base> tag hijacking
+  #   form-action 'self'       → forms can only submit to our own domain
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+
+  # ---- Prevent MIME type sniffing ----
+  # Without this, browsers might "guess" a file's type and execute
+  # a text file as JavaScript. This is a classic attack vector.
+  X-Content-Type-Options: nosniff
+
+  # ---- Clickjacking protection ----
+  # DENY means our page cannot be loaded inside an <iframe> on ANY
+  # other site. This prevents clickjacking attacks where an attacker
+  # overlays invisible frames to trick users into clicking things.
+  X-Frame-Options: DENY
+
+  # ---- Referrer Policy ----
+  # Controls what URL info is sent in the Referer header when
+  # navigating to another site. "strict-origin-when-cross-origin"
+  # means: send full URL for same-origin requests, only the origin
+  # (domain) for cross-origin, and nothing if downgrading HTTPS→HTTP.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # ---- Permissions Policy (formerly Feature Policy) ----
+  # Explicitly disable browser features we don't use. This prevents
+  # any injected scripts from accessing the camera, microphone,
+  # geolocation, etc. — even if the browser would normally allow it.
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()

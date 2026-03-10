@@ -1,0 +1,2159 @@
+/* ================================================================
+   STYLE.CSS — Ang Kian Siang Portfolio
+   Mobile-first: base styles target small screens.
+   Larger breakpoints are added with @media (min-width: ...) below.
+================================================================ */
+
+
+/* ----------------------------------------------------------------
+   1. CSS CUSTOM PROPERTIES (variables)
+   Define once here; reference everywhere with var(--name).
+   Change a colour in one place and it updates across the whole site.
+---------------------------------------------------------------- */
+:root {
+  /* --- Colour Palette --- */
+  --clr-bg:         #E8E0D0;   /* Warm parchment — aged paper feel     */
+  --clr-blue:       #A8C8E8;   /* Muted sky blue — primary accent      */
+  --clr-green:      #B8D4B8;   /* Sage green — secondary accent        */
+  --clr-peach:      #F0C8A0;   /* Warm peach — highlights / CTA        */
+  --clr-navy:       #1A2744;   /* Deep navy — primary text             */
+  --clr-navy-light: #2E4070;   /* Lighter navy — headings              */
+  --clr-white:      #F0EBE0;   /* Soft warm cream — alternating sections */
+
+  /* Semi-transparent overlays used by cards and navbar */
+  --clr-card-bg:    rgba(255, 255, 255, 0.55);
+  --clr-navbar-bg:  rgba(232, 224, 208, 0.75);
+
+  /* --- Typography --- */
+  --font-body:  'Nunito', sans-serif;        /* Friendly, rounded        */
+  --font-mono:  'Space Mono', monospace;     /* Code / terminal elements */
+
+  /* --- Font Sizes (mobile-first, relative units) --- */
+  --fs-xs:   0.75rem;   /*  12px */
+  --fs-sm:   0.875rem;  /*  14px */
+  --fs-base: 1rem;      /*  16px */
+  --fs-md:   1.125rem;  /*  18px */
+  --fs-lg:   1.5rem;    /*  24px */
+  --fs-xl:   2rem;      /*  32px */
+  --fs-2xl:  2.75rem;   /*  44px */
+  --fs-3xl:  3.5rem;    /*  56px */
+
+  /* --- Spacing scale --- */
+  --space-xs:  0.5rem;
+  --space-sm:  1rem;
+  --space-md:  2rem;
+  --space-lg:  4rem;
+  --space-xl:  6rem;
+
+  /* --- Borders & Shadows --- */
+  --radius-sm:  0.5rem;
+  --radius-md:  1rem;
+  --radius-lg:  1.5rem;
+  --radius-pill: 99px;
+
+  --shadow-sm:  0 2px 8px rgba(26, 39, 68, 0.08);
+  --shadow-md:  0 4px 20px rgba(26, 39, 68, 0.12);
+  --shadow-lg:  0 8px 32px rgba(26, 39, 68, 0.16);
+
+  /* Glow for project card hover — uses the blue accent */
+  --shadow-glow: 0 8px 30px rgba(168, 200, 232, 0.55);
+
+  /* --- Transitions --- */
+  --transition-fast:   150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow:   500ms ease;
+}
+
+
+/* ----------------------------------------------------------------
+   2. RESET & BASE
+   A minimal CSS reset so browsers start from the same baseline.
+---------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Smooth scrolling when clicking nav links */
+  scroll-behavior: smooth;
+
+  /* ---- SCROLL SNAP: page-by-page navigation ----
+     mandatory = browser always snaps to the nearest snap point.
+     Combined with scroll-snap-align: start on each section, this
+     makes each section feel like turning a page in a book.
+
+     NOTE: overflow-x: hidden is on <body> only (not here).
+     Having it on both html AND body confuses the browser about
+     which element is the viewport scroll container, breaking
+     scroll-snap. Keeping html clean lets it act as the snap
+     scroll container. */
+  scroll-snap-type: y mandatory;
+}
+
+body {
+  background-color: var(--clr-bg);
+  color: var(--clr-navy);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  overflow-x: hidden;
+
+  /* ---- BACKGROUND: Ghibli sunset mountain landscape ----
+     Warm, layered mountain silhouettes in purple / mauve /
+     terracotta gradients with a soft sun glow — evoking a
+     Studio Ghibli twilight scene. Inline SVG data URI for
+     zero network cost. Fixed attachment creates parallax. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23E8E0D0' stop-opacity='0'/%3E%3Cstop offset='35%25' stop-color='%23f0c8a0' stop-opacity='0.32'/%3E%3Cstop offset='65%25' stop-color='%23e8a0a0' stop-opacity='0.40'/%3E%3Cstop offset='100%25' stop-color='%23d08070' stop-opacity='0.32'/%3E%3C/linearGradient%3E%3CradialGradient id='sun' cx='75%25' cy='55%25' r='22%25'%3E%3Cstop offset='0%25' stop-color='%23f0d0a0' stop-opacity='0.45'/%3E%3Cstop offset='50%25' stop-color='%23f0c090' stop-opacity='0.25'/%3E%3Cstop offset='100%25' stop-color='%23f0c090' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1440' height='900' fill='url(%23sky)'/%3E%3Crect width='1440' height='900' fill='url(%23sun)'/%3E%3Cpath d='M-50 500 Q100 320 200 400 Q300 280 420 350 Q520 240 680 340 Q800 220 920 310 Q1050 230 1180 320 Q1300 260 1490 380 L1490 900 L-50 900Z' fill='%23605078' opacity='0.40'/%3E%3Cpath d='M-50 560 Q120 420 280 490 Q400 380 560 460 Q700 360 860 440 Q1000 370 1150 450 Q1300 390 1490 470 L1490 900 L-50 900Z' fill='%23886080' opacity='0.35'/%3E%3Cpath d='M-50 640 Q100 540 260 590 Q400 500 560 560 Q720 480 880 540 Q1040 470 1200 530 Q1350 490 1490 550 L1490 900 L-50 900Z' fill='%23b07060' opacity='0.30'/%3E%3Cpath d='M-50 720 Q180 660 360 700 Q540 640 720 680 Q900 620 1080 670 Q1260 630 1490 680 L1490 900 L-50 900Z' fill='%23906050' opacity='0.25'/%3E%3Cellipse cx='400' cy='530' rx='300' ry='20' fill='%23f0e0d0' opacity='0.28'/%3E%3Cellipse cx='1000' cy='480' rx='250' ry='15' fill='%23f0e0d0' opacity='0.22'/%3E%3Cellipse cx='700' cy='600' rx='350' ry='18' fill='%23f0e0d0' opacity='0.25'/%3E%3Cellipse cx='250' cy='350' rx='120' ry='12' fill='%23f0e8e0' opacity='0.28'/%3E%3Cellipse cx='800' cy='300' rx='100' ry='10' fill='%23f0e8e0' opacity='0.25'/%3E%3Cpath d='M350 280 Q355 274 360 280' fill='none' stroke='%23604050' stroke-width='1.8' opacity='0.22'/%3E%3Cpath d='M370 270 Q375 264 380 270' fill='none' stroke='%23604050' stroke-width='1.8' opacity='0.18'/%3E%3Cpath d='M390 276 Q395 270 400 276' fill='none' stroke='%23604050' stroke-width='1.5' opacity='0.15'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+
+/* ----------------------------------------------------------------
+   3. UTILITY CLASSES
+   Small reusable helpers; applied directly in HTML.
+---------------------------------------------------------------- */
+
+/* Constrain content width and centre it */
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin-inline: auto; /* shorthand for margin-left + margin-right: auto */
+}
+
+/* Section spacing — consistent vertical rhythm */
+/* ---- SECTION: each section is a "page" in the book ----
+   min-height: 100vh makes each section a full viewport page.
+   scroll-snap-align: start snaps the top of the section to
+   the top of the viewport — works reliably with sections
+   that may be taller than 100vh.
+   Flexbox centres content vertically for shorter sections. */
+.section {
+  padding-block: var(--space-xl);
+  min-height: 100vh;
+  scroll-snap-align: start;
+
+  /* Vertical content centering */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* Positioning context for pseudo-elements (page edge shadows) */
+  position: relative;
+}
+
+/* ---- SECTION REVEAL: content-only staggered animation ----
+   The SECTION itself is always visible (background always shows).
+   Only the CONTENT inside animates — children slide up from
+   below with a blur-to-focus "rack focus" effect in a staggered
+   cascade (title first, then each content block).
+
+   Why content-only (not whole-section):
+   1. No blank screens — section backgrounds are always visible
+   2. Animation is always seen — it plays on the content the user
+      is actively looking at, not on an off-screen section
+   3. Works with or without scroll-snap
+
+   Uses @keyframes (not transitions) because transitions can be
+   silently skipped when the initial render and class-addition
+   happen in the same frame (IntersectionObserver + scroll-snap).
+
+   JS adds .page-flip--active via Intersection Observer. */
+
+/* --- SAKURA PETAL WIPE ---
+   When a section enters the viewport, a wave of large sakura petals
+   flies across the full screen from left to right, covering the old
+   scene like a curtain. As the petals pass, the new content is
+   revealed underneath.
+
+   System:
+     1. JS spawns ~25-30 large .bloom-petal elements across the section
+        — each flies from off-screen left to off-screen right
+     2. Content starts hidden, fades in after the petal wave passes */
+
+.page-flip {
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- PETAL WIPE: large petals that fly across the full section --- */
+.bloom-petal {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6;
+  border-radius: 50% 0 50% 50%;
+  opacity: 0;
+  animation: petalWipe var(--duration) ease-in-out forwards;
+  animation-delay: var(--delay);
+}
+
+/* Four petal colour variants — vibrant and large enough to see */
+.bloom-petal--1 { background: rgba(255, 170, 190, 0.92); }
+.bloom-petal--2 { background: rgba(255, 195, 210, 0.88); }
+.bloom-petal--3 { background: rgba(255, 145, 175, 0.85); }
+.bloom-petal--4 { background: rgba(255, 210, 225, 0.80); }
+
+[data-theme="dark"] .bloom-petal--1 { background: rgba(255, 170, 190, 0.75); }
+[data-theme="dark"] .bloom-petal--2 { background: rgba(255, 195, 210, 0.65); }
+[data-theme="dark"] .bloom-petal--3 { background: rgba(255, 145, 175, 0.60); }
+[data-theme="dark"] .bloom-petal--4 { background: rgba(255, 210, 225, 0.55); }
+
+/* Each petal reads --start-y, --wobble, --rot, --size set by JS.
+   Flies from left edge to right edge, wobbling vertically,
+   spinning, and fading out as it exits. */
+@keyframes petalWipe {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-80px, var(--start-y))
+      rotate(0deg)
+      scale(var(--size));
+  }
+  8% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+    transform:
+      translate(50vw, calc(var(--start-y) + var(--wobble)))
+      rotate(var(--rot))
+      scale(var(--size));
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(110vw, var(--start-y))
+      rotate(calc(var(--rot) * 2))
+      scale(calc(var(--size) * 0.7));
+  }
+}
+
+/* --- REVERSE: petals fly right-to-left when scrolling back up --- */
+@keyframes petalWipeReverse {
+  0% {
+    opacity: 0;
+    transform:
+      translate(calc(100vw + 80px), var(--start-y))
+      rotate(0deg)
+      scale(var(--size));
+  }
+  8% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+    transform:
+      translate(50vw, calc(var(--start-y) + var(--wobble)))
+      rotate(calc(var(--rot) * -1))
+      scale(var(--size));
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-80px, var(--start-y))
+      rotate(calc(var(--rot) * -2))
+      scale(calc(var(--size) * 0.7));
+  }
+}
+
+.bloom-petal--reverse {
+  animation-name: petalWipeReverse !important;
+}
+
+/* --- CHILDREN: hidden until petal wave passes --- */
+.page-flip .container > * {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+/* Scroll-down reveal: content slides up */
+@keyframes contentReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Scroll-up reveal: content slides down */
+@keyframes contentRevealUp {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Content emerges after the petal wave passes midpoint.
+   Staggered so elements appear one by one. */
+.page-flip--active .container > *:nth-child(1) { animation: contentReveal 0.35s ease-out 0.2s forwards; }
+.page-flip--active .container > *:nth-child(2) { animation: contentReveal 0.35s ease-out 0.28s forwards; }
+.page-flip--active .container > *:nth-child(3) { animation: contentReveal 0.35s ease-out 0.36s forwards; }
+.page-flip--active .container > *:nth-child(4) { animation: contentReveal 0.35s ease-out 0.44s forwards; }
+.page-flip--active .container > *:nth-child(5) { animation: contentReveal 0.35s ease-out 0.52s forwards; }
+
+/* When scrolling UP, use the reverse content reveal direction */
+.page-flip--active.page-flip--up .container > *:nth-child(1) { animation-name: contentRevealUp; }
+.page-flip--active.page-flip--up .container > *:nth-child(2) { animation-name: contentRevealUp; }
+.page-flip--active.page-flip--up .container > *:nth-child(3) { animation-name: contentRevealUp; }
+.page-flip--active.page-flip--up .container > *:nth-child(4) { animation-name: contentRevealUp; }
+.page-flip--active.page-flip--up .container > *:nth-child(5) { animation-name: contentRevealUp; }
+
+/* Sections already in view on load — no animation */
+.page-flip--no-anim .container > * {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Page edge shadow — thin gradient at the bottom of each section
+   that mimics the shadow between stacked pages in a book. */
+.section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 6px;
+  background: linear-gradient(to bottom,
+    rgba(26, 39, 68, 0.06),
+    rgba(26, 39, 68, 0.02),
+    transparent
+  );
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* (Page fold line removed — ink wash ::before handles the visual) */
+
+/* Section headings */
+.section-title {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  color: var(--clr-navy-light);
+  margin-bottom: var(--space-md);
+  text-align: center;
+}
+
+/* Soft underline accent below section titles */
+.section-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--clr-blue), var(--clr-green));
+  border-radius: var(--radius-pill);
+  margin: 0.5rem auto 0;
+}
+
+/* Fade-in animation class (toggled by Intersection Observer in Phase 7) */
+.fade-in {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--transition-slow), transform var(--transition-slow);
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Inside page-flip sections, the page-flip @keyframes handle
+   all animation. Disable the fade-in transition so the two
+   systems don't fight. The base opacity:0 / transform from
+   .page-flip .container > * still applies (higher specificity). */
+.page-flip .fade-in {
+  transition: none;
+}
+
+
+/* ----------------------------------------------------------------
+   4. NAVBAR
+---------------------------------------------------------------- */
+
+/* --- Outer nav bar strip --- */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 64px;
+
+  /* Frosted-glass effect:
+     backdrop-filter blurs whatever is BEHIND this element.
+     The semi-transparent background lets the blur show through. */
+  background: var(--clr-navbar-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
+
+  border-bottom: 1px solid rgba(168, 200, 232, 0.2);
+  box-shadow: var(--shadow-sm);
+
+  /* Smooth background transition when JS adds .scrolled in Phase 7 */
+  transition: background var(--transition-normal),
+              box-shadow  var(--transition-normal);
+}
+
+/* Phase 7 will add this class via JS when the user scrolls down.
+   We define it now so the CSS is ready. */
+.navbar.scrolled {
+  background: rgba(232, 224, 208, 0.95);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Inner wrapper: flex row, logo left / toggle+hamburger right --- */
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  position: relative; /* anchor for the mobile dropdown */
+}
+
+/* --- Logo (home icon) --- */
+.navbar__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-navy);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.navbar__logo:hover {
+  opacity: 0.75;
+  background: rgba(168, 200, 232, 0.15);
+}
+
+/* ---- CSS CHECKBOX HACK ----
+   This is a pure-CSS technique for toggling mobile menus without JS.
+
+   How it works:
+   1. A hidden <input type="checkbox"> holds the open/closed STATE.
+   2. A <label for="nav-toggle"> is the VISIBLE button — clicking a
+      label automatically checks/unchecks its linked checkbox.
+   3. CSS selects the sibling elements using the ~ (general sibling)
+      combinator: #nav-toggle:checked ~ .target { ... }
+   4. When checked = open menu; when unchecked = closed menu.
+
+   The ORDER of elements in the HTML matters — ~ only selects
+   siblings that come AFTER the checkbox in the DOM.
+------------------------------ */
+
+/* Hide the checkbox itself — it's invisible infrastructure */
+.nav-toggle {
+  display: none;
+}
+
+/* --- Hamburger button (label) --- */
+.nav-toggle-label {
+  display: flex;          /* visible on mobile by default */
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.nav-toggle-label:hover {
+  background: rgba(168, 200, 232, 0.2);
+}
+
+/* Three bars that form the hamburger icon */
+.nav-toggle-label span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--clr-navy);
+  border-radius: var(--radius-pill);
+  /* Each span transitions independently for the X animation */
+  transition: transform var(--transition-normal),
+              opacity   var(--transition-fast);
+}
+
+/* --- Hamburger → X animation when menu is open ---
+   When #nav-toggle is checked, target the SIBLING label's spans. */
+#nav-toggle:checked ~ .nav-toggle-label span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+#nav-toggle:checked ~ .nav-toggle-label span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+#nav-toggle:checked ~ .nav-toggle-label span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* --- Mobile nav menu (dropdown) ---
+   Hidden by default; revealed when checkbox is checked. */
+.navbar__links {
+  /* Absolute dropdown below the navbar */
+  position: absolute;
+  top: 64px;       /* flush with the bottom of the 64px navbar */
+  left: -5%;       /* bleed to full width, matching .container's 90% */
+  right: -5%;
+  width: 110%;
+
+  flex-direction: column;
+  gap: 0;
+
+  background: rgba(232, 224, 208, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(168, 200, 232, 0.3);
+  box-shadow: var(--shadow-md);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+
+  /* Hidden state — invisible and shifted up slightly */
+  display: flex;
+  opacity: 0;
+  pointer-events: none;     /* non-clickable when hidden */
+  transform: translateY(-8px);
+  transition: opacity      var(--transition-normal),
+              transform    var(--transition-normal);
+}
+
+/* Shown state — checkbox is checked */
+#nav-toggle:checked ~ .navbar__links {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* --- Individual nav links --- */
+.navbar__link {
+  display: block;
+  padding: var(--space-sm) var(--space-md);
+  font-weight: 600;
+  font-size: var(--fs-base);
+  color: var(--clr-navy);
+  border-bottom: 1px solid rgba(168, 200, 232, 0.15);
+  transition: color var(--transition-fast),
+              background var(--transition-fast),
+              padding-left var(--transition-fast);
+}
+
+.navbar__link:hover {
+  color: var(--clr-navy-light);
+  background: rgba(168, 200, 232, 0.12);
+  padding-left: calc(var(--space-md) + 6px); /* subtle indent on hover */
+}
+
+/* Remove bottom border from last link */
+.navbar__links li:last-child .navbar__link {
+  border-bottom: none;
+}
+
+
+/* ----------------------------------------------------------------
+   5. HERO SECTION
+---------------------------------------------------------------- */
+
+.hero {
+  min-height: 100vh;
+  background-color: rgba(232, 224, 208, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Offset for the fixed navbar */
+  padding-top: 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- SAKURA PETAL BACKGROUND ----
+   A full-page container for falling sakura petals.
+   position: fixed + inset: 0 covers the entire viewport.
+   pointer-events: none ensures petals don't block clicks.
+   z-index: 1 puts petals behind most content but visible. */
+.sakura-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Individual petal — a small rounded div with a soft pink
+   radial gradient. The asymmetric border-radius makes each
+   petal look organic rather than a perfect circle. */
+.sakura-petal {
+  position: absolute;
+  top: -20px;
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    rgba(255, 220, 230, 0.9) 0%,
+    rgba(255, 183, 197, 0.7) 50%,
+    rgba(255, 160, 180, 0.4) 100%
+  );
+  /* Asymmetric border-radius = petal shape, not a circle */
+  border-radius: 50% 80% 50% 80%;
+  /* The fall animation handles vertical movement + rotation.
+     ease-in-out gives a natural floating feel. */
+  animation: sakura-fall linear forwards;
+}
+
+/* @keyframes sakura-fall
+   Moves the petal from top: -20px to top: 110vh (below viewport).
+   translateX(var(--sway)) drifts the petal horizontally — each
+   petal gets a different --sway value set by JS.
+   rotate() spins the petal as it falls for a natural tumble. */
+@keyframes sakura-fall {
+  0% {
+    top: -20px;
+    transform: translateX(0) rotate(0deg) scale(var(--base-scale, 1));
+  }
+  25% {
+    transform: translateX(calc(var(--sway) * 0.3)) rotate(90deg) scale(calc(var(--base-scale, 1) * 1.05));
+  }
+  50% {
+    transform: translateX(calc(var(--sway) * 0.7)) rotate(180deg) scale(var(--base-scale, 1));
+  }
+  75% {
+    transform: translateX(calc(var(--sway) * 0.9)) rotate(270deg) scale(calc(var(--base-scale, 1) * 0.95));
+  }
+  100% {
+    top: 110vh;
+    transform: translateX(var(--sway)) rotate(360deg) scale(var(--base-scale, 1));
+  }
+}
+
+/* ---- BIRDS: subtle gliding animation ----
+   Birds drift horizontally across the upper viewport.
+   --bird-end is set by JS to the destination X position.
+   --bird-drift adds gentle vertical movement. */
+@keyframes birdGlide {
+  0%   { transform: translate(var(--bird-start), 0); }
+  50%  { transform: translate(calc((var(--bird-start) + var(--bird-end)) / 2), var(--bird-drift)); }
+  100% { transform: translate(var(--bird-end), 0); }
+}
+
+/* Wing flap — gentle vertical squish on the SVG */
+@keyframes birdFlap {
+  0%   { transform: scaleY(1); }
+  100% { transform: scaleY(0.6); }
+}
+
+/* Dark mode: birds become lighter */
+[data-theme="dark"] .sky-bird { color: rgba(180, 170, 160, 0.6); }
+
+
+/* The text content sits above the particles */
+.hero__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+/* Small greeting text */
+.hero__greeting {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--clr-navy-light);
+  margin-bottom: var(--space-xs);
+  letter-spacing: 0.02em;
+}
+
+/* Your name — the main heading */
+.hero__name {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  color: var(--clr-navy);
+  line-height: 1.15;
+  margin-bottom: var(--space-sm);
+
+  /* Subtle gradient text effect — same technique as the logo */
+  background: linear-gradient(
+    135deg,
+    var(--clr-navy) 0%,
+    var(--clr-navy-light) 50%,
+    var(--clr-blue) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtitle line containing Typed.js */
+.hero__subtitle {
+  font-size: var(--fs-lg);
+  font-weight: 400;
+  color: var(--clr-navy-light);
+  margin-bottom: var(--space-md);
+  min-height: 2.4em; /* reserve space so layout doesn't jump as text types */
+}
+
+/* Typed.js adds a blinking cursor element (.typed-cursor) automatically.
+   These rules style that cursor to match your colour palette. */
+.typed-cursor {
+  color: var(--clr-peach);
+  font-weight: 300;
+}
+
+/* CTA button */
+.hero__cta {
+  display: inline-block;
+  padding: 0.9rem 2.25rem;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--clr-navy);
+  background: linear-gradient(135deg, var(--clr-peach), #f0d4b0);
+  border: none;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+
+  /* Smooth hover transition */
+  transition: transform  var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+.hero__cta:hover {
+  transform: translateY(-3px);   /* float up slightly */
+  box-shadow: var(--shadow-md);  /* deeper shadow = feels lifted */
+}
+
+.hero__cta:active {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- HERO ENTRANCE: Gentle Dawn Rise ----
+   A warm Ghibli sunrise feel. A soft glow blooms first,
+   then content elements fade in + rise with staggered delays.
+   The name gets a special gentle scale-up for emphasis. */
+
+/* Warm glow — only appears when hero is revealed */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 600px;
+  height: 400px;
+  transform: translate(-50%, -50%) scale(0.6);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(240, 200, 160, 0.40) 0%,
+    rgba(240, 192, 144, 0.20) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero--revealed::after {
+  animation: dawnGlow 1.3s ease-out 0.1s forwards;
+}
+
+@keyframes dawnGlow {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  60%  { opacity: 1; }
+  100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* All hero content starts hidden */
+.hero__greeting,
+.hero__name,
+.hero__subtitle,
+.hero__cta {
+  opacity: 0;
+  transform: translateY(18px);
+  filter: blur(2px);
+}
+
+/* When hero is revealed, play the dawn rise animations */
+.hero--revealed .hero__greeting,
+.hero--revealed .hero__name,
+.hero--revealed .hero__subtitle,
+.hero--revealed .hero__cta {
+  animation: dawnRise 0.5s ease-out forwards;
+}
+
+/* Staggered delays — greeting first, then name, subtitle, CTA */
+.hero--revealed .hero__greeting { animation-delay: 0.1s; }
+.hero--revealed .hero__name     { animation-delay: 0.25s; animation-name: dawnRiseName; animation-duration: 0.6s; }
+.hero--revealed .hero__subtitle { animation-delay: 0.4s; }
+.hero--revealed .hero__cta      { animation-delay: 0.55s; }
+
+/* Standard rise: fade in + slide up from 18px below */
+@keyframes dawnRise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Name gets a special scale-up for extra emphasis */
+@keyframes dawnRiseName {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+    filter: blur(3px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Dark mode: warmer, softer glow */
+[data-theme="dark"] .hero::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 160, 110, 0.25) 0%,
+    rgba(180, 140, 100, 0.12) 40%,
+    transparent 70%
+  );
+}
+
+
+/* ----------------------------------------------------------------
+   6. ABOUT SECTION
+---------------------------------------------------------------- */
+
+.about {
+  background-color: rgba(240, 235, 224, 0.78);
+}
+
+/* Two-column grid: stacks on mobile, side-by-side on tablet+ */
+.about__grid {
+  display: grid;
+  grid-template-columns: 1fr;        /* single column on mobile */
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+/* --- Bio column (left on desktop) --- */
+.about__bio p {
+  margin-bottom: var(--space-sm);
+  color: var(--clr-navy-light);
+  line-height: 1.8;
+}
+
+.about__bio p:last-of-type {
+  margin-bottom: var(--space-md);
+}
+
+/* --- KITSUNE GUIDE — Chibi fox spirit mascot ---
+   Inspired by kitsune (fox spirits) from Japanese folklore.
+   Built entirely with CSS — no images. The kitsune acts as a
+   guide: it positions itself beside the current section and
+   shows speech bubbles with hints.
+
+   JS updates top/left to track sections, CSS transition handles
+   the smooth glide. On even-indexed sections the fox sits on the
+   left, on odd-indexed it sits on the right.
+
+   Structure:
+     .kitsune-guide     → fixed-position wrapper (JS sets top/left)
+       .kitsune-bubble  → speech bubble (toggled by JS)
+       .kitsune         → character container (idle bob)
+         .kitsune__tail    → bushy curved tail behind body
+         .kitsune__head    → orange/peach rounded head
+           .kitsune__ear   → triangular ears with pink inner
+           .kitsune__face  → eyes, nose, mouth
+           .kitsune__blush → pink cheek ovals
+         .kitsune__body    → smaller rounded body below head
+         .kitsune__shadow  → ground shadow with scale animation
+*/
+
+.kitsune-guide {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;                  /* above content, below navbar (100) */
+  cursor: pointer;
+  user-select: none;
+
+  /* Smooth glide — JS changes top/left, CSS animates the change.
+     1s ease gives a snappy but smooth repositioning. */
+  transition: top 1s ease, left 1s ease;
+
+  /* GPU hint for smooth animation */
+  will-change: top, left;
+}
+
+/* Flip the fox horizontally when on the right side of the page.
+   Only the .kitsune character is flipped — the .kitsune-bubble
+   is a sibling (not a child of .kitsune), so it's unaffected
+   and keeps its text readable without any counter-flip. */
+.kitsune-guide--flipped .kitsune {
+  transform: scaleX(-1);
+}
+
+
+/* --- SPEECH BUBBLE --- */
+.kitsune-bubble {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--clr-white);
+  color: var(--clr-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(26, 39, 68, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 51;
+}
+
+/* Triangle pointer at the bottom of the bubble */
+.kitsune-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--clr-white);
+}
+
+/* Visible state — toggled by JS */
+.kitsune-bubble--visible {
+  opacity: 1;
+}
+
+
+/* --- Character container with idle bobbing --- */
+.kitsune {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: kitsune-idle 3s ease-in-out infinite;
+}
+
+@keyframes kitsune-idle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+
+/* --- TAIL: bushy curved shape behind body --- */
+.kitsune__tail {
+  position: absolute;
+  bottom: 18px;
+  right: -16px;
+  width: 28px;
+  height: 40px;
+  background: linear-gradient(135deg, #F0A050 0%, #E88830 50%, #F5C890 100%);
+  border-radius: 0 70% 60% 40% / 0 80% 50% 30%;
+  transform: rotate(-15deg);
+  z-index: -1;
+  box-shadow: inset -2px -2px 6px rgba(200, 100, 20, 0.2);
+}
+
+/* White tip on the tail */
+.kitsune__tail::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -2px;
+  width: 14px;
+  height: 16px;
+  background: #FFF5E8;
+  border-radius: 0 60% 50% 40%;
+}
+
+
+/* --- HEAD: rounded orange shape --- */
+.kitsune__head {
+  width: 60px;
+  height: 55px;
+  background: linear-gradient(180deg, #F5A84A 0%, #E8923A 60%, #F0B060 100%);
+  border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(26, 39, 68, 0.1),
+              inset 0 -6px 12px rgba(200, 100, 20, 0.1);
+  z-index: 1;
+}
+
+
+/* --- EARS: CSS triangle trick --- */
+.kitsune__ear {
+  position: absolute;
+  top: -14px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid #F5A84A;
+  z-index: 2;
+}
+
+.kitsune__ear--left  { left: 4px;  transform: rotate(-8deg); }
+.kitsune__ear--right { right: 4px; transform: rotate(8deg); }
+
+/* Pink inner ear */
+.kitsune__ear-inner {
+  position: absolute;
+  top: 5px;
+  left: -5px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 10px solid #FFB8B0;
+}
+
+
+/* --- FACE CONTAINER --- */
+.kitsune__face {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 28px;
+}
+
+
+/* --- EYES: dark ovals with pupils --- */
+.kitsune__eye {
+  position: absolute;
+  width: 7px;
+  height: 9px;
+  background: var(--clr-navy);
+  border-radius: 50%;
+  top: 0;
+  transition: height var(--transition-fast),
+              width var(--transition-fast),
+              border-radius var(--transition-fast);
+}
+
+/* Pupil / catch-light — follows the cursor via --pupil-x/y
+   custom properties set by JS mousemove handler.
+   Light mode: white dot on dark navy eye (anime-style highlight).
+   Dark mode:  black dot on cream eye (visible pupil). */
+.kitsune__eye::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(
+    calc(-50% + var(--pupil-x, 0px)),
+    calc(-50% + var(--pupil-y, 0px))
+  );
+  will-change: transform;
+}
+
+/* Dark mode: keep same dark eye + white pupil (no inversion) */
+[data-theme="dark"] .kitsune__eye {
+  background: #1a2744;
+}
+
+.kitsune__eye--left  { left: 2px; }
+.kitsune__eye--right { right: 2px; }
+
+
+/* --- NOSE: small downward-pointing triangle --- */
+.kitsune__nose {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 4px solid #2A1A10;
+}
+
+
+/* --- MOUTH: small happy W-shape using two curves --- */
+.kitsune__mouth {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 4px;
+  border-bottom: 2px solid #2A1A10;
+  border-radius: 0 0 50% 50%;
+  transition: width var(--transition-fast),
+              height var(--transition-fast),
+              border-radius var(--transition-fast);
+}
+
+
+/* --- BLUSH: soft pink cheek circles --- */
+.kitsune__blush {
+  position: absolute;
+  width: 12px;
+  height: 7px;
+  background: rgba(255, 150, 130, 0.4);
+  border-radius: 50%;
+  top: 32px;
+  z-index: 2;
+  transition: opacity var(--transition-fast);
+}
+
+.kitsune__blush--left  { left: 4px; }
+.kitsune__blush--right { right: 4px; }
+
+
+/* --- BODY: smaller rounded shape below head --- */
+.kitsune__body {
+  width: 44px;
+  height: 30px;
+  background: linear-gradient(180deg, #E8923A 0%, #F0A050 60%, #F5C080 100%);
+  border-radius: 40% 40% 50% 50% / 30% 30% 60% 60%;
+  margin-top: -8px;
+  position: relative;
+  z-index: 0;
+  box-shadow: inset 0 -4px 10px rgba(200, 100, 20, 0.1);
+}
+
+/* White belly patch */
+.kitsune__body::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 18px;
+  background: #FFF5E8;
+  border-radius: 50% 50% 45% 45%;
+  opacity: 0.8;
+}
+
+
+/* --- LEGS: small rounded stumps that animate during trot --- */
+.kitsune__leg {
+  position: absolute;
+  bottom: -6px;
+  width: 8px;
+  height: 10px;
+  background: #E8923A;
+  border-radius: 3px 3px 4px 4px;
+  transform-origin: top center;
+  transition: transform 0.1s;
+}
+
+/* Front-left */
+.kitsune__leg--fl { left: 6px; }
+/* Front-right */
+.kitsune__leg--fr { left: 16px; }
+/* Back-left */
+.kitsune__leg--bl { right: 16px; }
+/* Back-right */
+.kitsune__leg--br { right: 6px; }
+
+/* --- TROTTING ANIMATION ---
+   When JS adds .kitsune--trotting, the whole kitsune leans forward
+   and the legs alternate in a gallop cycle. The body bobs slightly.
+   Removed when the kitsune arrives at its destination. */
+
+/* Body lean + bob during trot */
+@keyframes kitsune-trot-body {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-3px) rotate(-2deg); }
+  50%      { transform: translateY(0) rotate(0deg); }
+  75%      { transform: translateY(-3px) rotate(2deg); }
+}
+
+/* Front legs — alternating forward swing */
+@keyframes trot-front-left {
+  0%, 100% { transform: rotate(20deg); }
+  50%      { transform: rotate(-25deg); }
+}
+
+@keyframes trot-front-right {
+  0%, 100% { transform: rotate(-25deg); }
+  50%      { transform: rotate(20deg); }
+}
+
+/* Back legs — opposite phase to front */
+@keyframes trot-back-left {
+  0%, 100% { transform: rotate(-20deg); }
+  50%      { transform: rotate(25deg); }
+}
+
+@keyframes trot-back-right {
+  0%, 100% { transform: rotate(25deg); }
+  50%      { transform: rotate(-20deg); }
+}
+
+.kitsune--trotting .kitsune {
+  animation: kitsune-trot-body 0.3s ease-in-out infinite;
+}
+
+.kitsune--trotting .kitsune__leg--fl { animation: trot-front-left 0.3s ease-in-out infinite; }
+.kitsune--trotting .kitsune__leg--fr { animation: trot-front-right 0.3s ease-in-out infinite; }
+.kitsune--trotting .kitsune__leg--bl { animation: trot-back-left 0.3s ease-in-out infinite; }
+.kitsune--trotting .kitsune__leg--br { animation: trot-back-right 0.3s ease-in-out infinite; }
+
+/* Tail wags faster during trot */
+.kitsune--trotting .kitsune__tail {
+  animation: kitsune-idle 0.4s ease-in-out infinite;
+}
+
+/* Shadow stretches during trot */
+.kitsune--trotting .kitsune__shadow {
+  animation: none;
+  transform: scaleX(1.3);
+  opacity: 0.5;
+}
+
+
+/* --- GROUND SHADOW --- */
+.kitsune__shadow {
+  width: 46px;
+  height: 8px;
+  background: radial-gradient(ellipse, rgba(26, 39, 68, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  margin-top: 4px;
+  animation: kitsune-shadow 3s ease-in-out infinite;
+}
+
+@keyframes kitsune-shadow {
+  0%, 100% { transform: scaleX(1);    opacity: 1; }
+  50%      { transform: scaleX(0.75); opacity: 0.6; }
+}
+
+
+/* --- Hover effect --- */
+.kitsune-guide:hover .kitsune__head {
+  transform: scale(1.05);
+  transition: transform var(--transition-normal);
+}
+
+
+/* ---- CLICK REACTION: surprised ----
+   JS adds .kitsune--surprised to #mascot.
+   Jump + wiggle animation + surprised face. */
+@keyframes kitsune-surprise {
+  0%   { transform: translateY(0) rotate(0deg); }
+  15%  { transform: translateY(-20px) rotate(-10deg); }
+  30%  { transform: translateY(-14px) rotate(8deg); }
+  50%  { transform: translateY(-16px) rotate(-5deg) scale(1.08); }
+  70%  { transform: translateY(-8px) rotate(3deg); }
+  85%  { transform: translateY(-2px) rotate(-1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.kitsune--surprised .kitsune {
+  animation: kitsune-surprise 0.7s ease;
+}
+
+/* Surprised eyes: wide and round */
+.kitsune--surprised .kitsune__eye {
+  height: 11px;
+  width: 9px;
+  border-radius: 50%;
+}
+
+/* Surprised mouth: small "O" */
+.kitsune--surprised .kitsune__mouth {
+  width: 8px;
+  height: 8px;
+  border: 2px solid #2A1A10;
+  border-radius: 50%;
+  border-bottom-width: 2px;
+}
+
+/* Blush intensifies */
+.kitsune--surprised .kitsune__blush {
+  opacity: 1;
+  background: rgba(255, 140, 120, 0.55);
+}
+
+
+/* ---- SECTION-ENTER REACTION: hop ----
+   JS adds .kitsune--hop when scrolling into a new section. */
+@keyframes kitsune-hop {
+  0%   { transform: translateY(0); }
+  30%  { transform: translateY(-14px) rotate(4deg); }
+  50%  { transform: translateY(-10px) rotate(-3deg); }
+  70%  { transform: translateY(-4px) rotate(1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.kitsune--hop .kitsune {
+  animation: kitsune-hop 0.5s ease;
+}
+
+
+/* ---- MOBILE: smaller kitsune ---- */
+@media (max-width: 400px) {
+  .kitsune-guide {
+    transform: scale(0.8);
+    transform-origin: bottom center;
+  }
+}
+
+/* --- Stats column (right on desktop) --- */
+.about__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;    /* 2×2 card grid */
+  gap: var(--space-sm);
+}
+
+/* Individual stat card */
+.stat-card {
+  background: var(--clr-card-bg);
+  border: 1px solid rgba(168, 200, 232, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card__icon {
+  font-size: var(--fs-xl);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.stat-card__title {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--clr-navy-light);
+  margin-bottom: 0.25rem;
+}
+
+.stat-card__value {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--clr-navy);
+  margin-bottom: 0.15rem;
+}
+
+.stat-card__detail {
+  font-size: var(--fs-xs);
+  color: var(--clr-navy-light);
+  opacity: 0.75;
+}
+
+/* ----------------------------------------------------------------
+   7. PROJECTS SECTION
+---------------------------------------------------------------- */
+
+.projects {
+  background-color: rgba(232, 224, 208, 0.75);
+}
+
+/* Responsive grid — auto-fit sizes columns between 300px and 1fr.
+   If the container is wide enough for 2× 300px columns, you get two;
+   otherwise they collapse to a single column. No @media needed. */
+.projects__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: var(--space-md);
+}
+
+/* --- Project card --- */
+.project-card {
+  background: var(--clr-card-bg);
+  border: 1px solid rgba(168, 200, 232, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  position: relative;         /* anchor for the badge */
+  display: flex;
+  flex-direction: column;     /* push the GitHub button to the bottom */
+  box-shadow: var(--shadow-sm);
+
+  /* Hover transition — translateY + glow shadow */
+  transition: transform  var(--transition-normal),
+              box-shadow var(--transition-normal),
+              border-color var(--transition-normal);
+}
+
+/* ---- Card hover effect ----
+   Lifts card -6px, adds a soft blue glow, and shifts border colour.
+   This uses only CSS transitions — no JS needed. */
+.project-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-glow);
+  border-color: rgba(168, 200, 232, 0.5);
+}
+
+/* --- Highlight badge (top-right corner) --- */
+.project-card__badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--clr-navy);
+  background: linear-gradient(135deg, var(--clr-peach), #f5dcc0);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+}
+
+.project-card__badge-icon {
+  flex-shrink: 0;
+}
+
+/* --- Card title --- */
+.project-card__title {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--clr-navy);
+  margin-bottom: var(--space-xs);
+  /* Badge is absolute top-right, so add top margin to clear it on mobile */
+  margin-top: 2.2rem;
+}
+
+/* --- Card description --- */
+.project-card__desc {
+  font-size: var(--fs-sm);
+  color: var(--clr-navy-light);
+  line-height: 1.7;
+  margin-bottom: var(--space-sm);
+}
+
+.project-card__desc code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  background: rgba(168, 200, 232, 0.2);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Security design note (Password Analyzer only) --- */
+.project-card__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: var(--fs-xs);
+  color: var(--clr-navy-light);
+  background: rgba(184, 212, 184, 0.15);   /* sage green tint */
+  border-left: 3px solid var(--clr-green);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: var(--space-sm);
+  line-height: 1.6;
+}
+
+.project-card__note-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--clr-green);
+}
+
+/* --- Tech stack tag pills --- */
+.project-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: var(--space-sm);
+}
+
+.tag {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--clr-navy-light);
+  background: rgba(168, 200, 232, 0.2);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  transition: background var(--transition-fast);
+}
+
+.tag:hover {
+  background: rgba(168, 200, 232, 0.4);
+}
+
+/* --- GitHub button --- */
+.project-card__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;           /* push to bottom of the flex column */
+  padding: 0.6rem 1.2rem;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--clr-navy);
+  background: rgba(168, 200, 232, 0.15);
+  border: 1px solid rgba(168, 200, 232, 0.3);
+  border-radius: var(--radius-pill);
+  transition: background var(--transition-fast),
+              border-color var(--transition-fast);
+  width: fit-content;
+}
+
+.project-card__btn:hover {
+  background: rgba(168, 200, 232, 0.35);
+  border-color: rgba(168, 200, 232, 0.5);
+}
+
+/* ----------------------------------------------------------------
+   8. SKILLS SECTION — Terminal Style
+   Mimics a macOS terminal window with a title bar, dark background,
+   monospace font, and a blinking cursor. Gives a cybersecurity feel.
+---------------------------------------------------------------- */
+
+.skills {
+  background-color: rgba(240, 235, 224, 0.78);
+}
+
+/* --- Terminal window --- */
+.terminal {
+  background: var(--clr-navy);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  max-width: 700px;
+  margin-inline: auto;
+}
+
+/* Fake macOS title bar with three dots */
+.terminal__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.terminal__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal__dot--red    { background: #ff5f56; }
+.terminal__dot--yellow { background: #ffbd2e; }
+.terminal__dot--green  { background: #27c93f; }
+
+.terminal__bar-title {
+  margin-left: auto;
+  margin-right: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Terminal body — where the "commands" live */
+.terminal__body {
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* Each skill category group */
+.terminal__group {
+  margin-bottom: var(--space-sm);
+}
+
+/* Command prompt line — kian@portfolio:~$
+   word-break prevents horizontal overflow on narrow screens
+   where the monospace prompt text is too long to fit. */
+.terminal__prompt {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.4rem;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.terminal__user {
+  color: var(--clr-green);
+  font-weight: 700;
+}
+
+.terminal__path {
+  color: var(--clr-blue);
+  font-weight: 700;
+}
+
+/* Skill tags inside the terminal */
+.terminal__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-left: 0.5rem;
+}
+
+.terminal__tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast),
+              border-color var(--transition-fast);
+}
+
+.terminal__tag:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Certification tags — accent colour to make them stand out */
+.terminal__tag--cert {
+  border-color: var(--clr-peach);
+  color: var(--clr-peach);
+}
+
+.terminal__tag--cert:hover {
+  background: rgba(240, 200, 160, 0.15);
+}
+
+/* Blinking block cursor — pure CSS animation.
+   &#9608; in HTML renders as a solid block character. */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+.terminal__cursor {
+  color: var(--clr-green);
+  animation: blink 1s step-end infinite;
+}
+
+
+/* ----------------------------------------------------------------
+   9. CONTACT SECTION
+---------------------------------------------------------------- */
+
+.contact {
+  background-color: rgba(232, 224, 208, 0.75);
+}
+
+.contact__content {
+  text-align: center;
+  max-width: 500px;
+  margin-inline: auto;
+}
+
+.contact__text {
+  font-size: var(--fs-md);
+  color: var(--clr-navy-light);
+  margin-bottom: var(--space-md);
+  line-height: 1.7;
+}
+
+/* Three icon buttons side by side */
+.contact__buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* Base button style */
+.contact__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  border: 2px solid;
+  transition: background var(--transition-normal),
+              color var(--transition-normal),
+              border-color var(--transition-normal),
+              transform var(--transition-normal);
+}
+
+.contact__btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Email — peach accent */
+.contact__btn--email {
+  color: var(--clr-navy);
+  border-color: var(--clr-peach);
+  background: transparent;
+}
+
+.contact__btn--email:hover {
+  background: var(--clr-peach);
+  color: var(--clr-navy);
+}
+
+/* GitHub — navy */
+.contact__btn--github {
+  color: var(--clr-navy);
+  border-color: var(--clr-navy);
+  background: transparent;
+}
+
+.contact__btn--github:hover {
+  background: var(--clr-navy);
+  color: var(--clr-white);
+}
+
+/* LinkedIn — blue accent */
+.contact__btn--linkedin {
+  color: var(--clr-navy);
+  border-color: var(--clr-blue);
+  background: transparent;
+}
+
+.contact__btn--linkedin:hover {
+  background: var(--clr-blue);
+  color: var(--clr-navy);
+}
+
+
+/* ----------------------------------------------------------------
+   10. FOOTER
+---------------------------------------------------------------- */
+
+.footer {
+  background-color: var(--clr-navy);
+  color: rgba(255, 255, 255, 0.6);
+  padding-block: var(--space-md);
+  font-size: var(--fs-xs);
+  /* Snap to the end so the footer is reachable and
+     doesn't get stuck between mandatory snap points */
+  scroll-snap-align: end;
+}
+
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  text-align: center;
+}
+
+.footer__security {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--clr-green);
+  opacity: 0.7;
+}
+
+.footer__copy {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer__top {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.footer__top:hover {
+  color: var(--clr-peach);
+}
+
+
+/* ----------------------------------------------------------------
+   RESPONSIVE BREAKPOINTS
+   Mobile-first: styles above are the default (small screens).
+   These @media blocks add or override styles for larger screens.
+---------------------------------------------------------------- */
+
+/* Very small screens (below 400px — e.g. iPhone SE at 375px)
+   Stat cards go single-column so text isn't cramped.
+   Terminal gets reduced padding. */
+@media (max-width: 400px) {
+  .about__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .terminal__body {
+    padding: var(--space-sm);
+  }
+}
+
+/* Tablet and up (768px) */
+@media (min-width: 768px) {
+  :root {
+    --fs-2xl:  3.25rem;
+    --fs-3xl:  4.5rem;
+  }
+
+  /* ---- HERO: scale up text on larger screens ---- */
+  .hero__name {
+    font-size: var(--fs-3xl);
+  }
+
+  .hero__subtitle {
+    font-size: var(--fs-xl);
+  }
+
+  /* ---- ABOUT: two-column layout ---- */
+  .about__grid {
+    grid-template-columns: 1fr 1fr;  /* bio | stats side-by-side */
+  }
+
+  /* ---- PROJECTS: on tablet+, stat cards stay 2-col ---- */
+  .about__stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Terminal prompt can be bigger on wider screens */
+  .terminal__prompt {
+    font-size: var(--fs-sm);
+    word-break: normal;
+  }
+}
+
+/* Desktop and up (1024px) */
+@media (min-width: 1024px) {
+  :root {
+    --fs-2xl:  3.5rem;
+    --fs-3xl:  5rem;
+  }
+}
+
+
+/* ================================================================
+   10. ACCESSIBILITY — Keyboard Focus Indicators
+   WCAG 2.1 Level AA (2.4.7) requires a visible focus indicator.
+   :focus-visible fires only for keyboard navigation (not mouse
+   clicks), so it doesn't clutter the visual design.
+================================================================ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+.navbar__link:focus-visible,
+.hero__cta:focus-visible,
+.contact__btn:focus-visible,
+.project-card__btn:focus-visible,
+.footer__top:focus-visible,
+.navbar__logo:focus-visible {
+  outline: 2.5px solid var(--clr-peach);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Nav toggle label (hamburger) — give it a focus ring too */
+.nav-toggle:focus-visible + .nav-toggle-label {
+  outline: 2.5px solid var(--clr-peach);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Kitsune mascot — subtle glow when focused via keyboard */
+.kitsune-guide:focus-visible {
+  outline: 2.5px solid var(--clr-peach);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+
+/* ================================================================
+   11. MOBILE — Hide kitsune mascot on small screens
+   The fixed-position mascot overlaps hero text and project card
+   descriptions on phones (< 768px). Hide it entirely on mobile;
+   the sakura petals and background art provide enough personality.
+================================================================ */
+@media (max-width: 767px) {
+  .kitsune-guide {
+    display: none !important;
+  }
+}
+
+
+/* ================================================================
+   11b. THEME TOGGLE BUTTON — light/dark mode switch
+   Positioned in the navbar between the nav links and hamburger.
+   Shows moon emoji in light mode, sun emoji in dark mode.
+   On mobile: sits beside the hamburger.
+   On desktop: appears after the nav links.
+================================================================ */
+.theme-toggle {
+  background: none;
+  border: 2px solid rgba(168, 200, 232, 0.3);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--radius-pill);
+  transition: transform var(--transition-fast),
+              background var(--transition-fast),
+              border-color var(--transition-fast);
+  line-height: 1;
+  color: var(--clr-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Push to the right, sit just before hamburger */
+  margin-left: auto;
+  margin-right: var(--space-xs);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.15);
+  background: rgba(168, 200, 232, 0.15);
+  border-color: rgba(168, 200, 232, 0.5);
+}
+
+/* Icon visibility: show moon in light mode, sun in dark mode */
+[data-theme="light"] .theme-toggle__icon--sun  { display: none; }
+[data-theme="light"] .theme-toggle__icon--moon { display: inline; }
+[data-theme="dark"]  .theme-toggle__icon--moon { display: none; }
+[data-theme="dark"]  .theme-toggle__icon--sun  { display: inline; }
+
+/* (Desktop navbar override removed — hamburger on all sizes) */
+
+
+/* ================================================================
+   12. DARK MODE — data-theme="dark"
+   Activated by a data-theme="dark" attribute on <html>, set by
+   js/theme-init.js on load (reads localStorage → OS preference)
+   and toggled by the theme switch button in the navbar.
+
+   Overrides CSS custom properties to flip the palette. Backgrounds
+   become dark slate, text becomes warm cream, accents stay vibrant.
+================================================================ */
+[data-theme="dark"] {
+  --clr-bg:         #1a1e2e;
+  --clr-navy:       #e8e0d0;
+  --clr-navy-light: #c8c0b0;
+  --clr-white:      #222838;
+  --clr-card-bg:    rgba(40, 45, 65, 0.70);
+  --clr-navbar-bg:  rgba(26, 30, 46, 0.85);
+  color: #e8e0d0;
+}
+
+/* Section backgrounds — dark variants */
+[data-theme="dark"] .hero     { background-color: rgba(26, 30, 46, 0.75); }
+[data-theme="dark"] .about    { background-color: rgba(34, 40, 56, 0.78); }
+[data-theme="dark"] .projects { background-color: rgba(26, 30, 46, 0.75); }
+[data-theme="dark"] .skills   { background-color: rgba(34, 40, 56, 0.78); }
+[data-theme="dark"] .contact  { background-color: rgba(26, 30, 46, 0.75); }
+
+/* Navbar */
+[data-theme="dark"] .navbar {
+  background-color: var(--clr-navbar-bg);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Mobile dropdown menu — dark bg with light text */
+[data-theme="dark"] .navbar__links {
+  background: rgba(30, 35, 52, 0.97);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .navbar__link {
+  color: #e8e0d0;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .navbar__link:hover {
+  background: rgba(168, 200, 232, 0.12);
+}
+
+/* Cards */
+[data-theme="dark"] .project-card {
+  background-color: var(--clr-card-bg);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .stat-card {
+  background-color: var(--clr-card-bg);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Terminal */
+[data-theme="dark"] .terminal {
+  background-color: #0d1117;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* CTA button — cream text on darker peach bg for readable contrast.
+   Must use `background` (not background-color) to override the
+   base rule's `background: linear-gradient(...)` shorthand. */
+[data-theme="dark"] .hero__cta {
+  background: rgba(200, 160, 110, 0.35);
+  color: #f5efe6;
+  border: 1px solid rgba(240, 200, 160, 0.4);
+}
+
+/* Contact buttons */
+[data-theme="dark"] .contact__btn {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e8e0d0;
+}
+
+/* Tags */
+[data-theme="dark"] .tag {
+  background-color: rgba(168, 200, 232, 0.15);
+  color: #a8c8e8;
+}
+
+/* Footer */
+[data-theme="dark"] .footer {
+  background-color: #141824;
+}
+
+/* Section title underline */
+[data-theme="dark"] .section-title::after {
+  background-color: rgba(168, 200, 232, 0.5);
+}
+
+/* Project card badge — cream text on warmer bg for readable contrast.
+   Must use `background` to override the base gradient shorthand. */
+[data-theme="dark"] .project-card__badge {
+  background: rgba(200, 160, 110, 0.30);
+  color: #f5efe6;
+}
+
+/* Security note in project cards */
+[data-theme="dark"] .project-card__note {
+  background-color: rgba(184, 212, 184, 0.10);
+  border-color: rgba(184, 212, 184, 0.20);
+}
+
+/* Sakura petals — slightly brighter in dark mode */
+[data-theme="dark"] .sakura-petal {
+  opacity: 0.5;
+}
+
+/* Theme toggle button in dark mode */
+[data-theme="dark"] .theme-toggle {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e8e0d0;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.30);
+}
+
+
+/* ================================================================
+   13. PRINT STYLESHEET
+   Optimises the page for printing / PDF export. Hides decorative
+   elements (mascot, petals, nav), removes backgrounds, and
+   ensures text is black on white for ink efficiency.
+================================================================ */
+@media print {
+  /* Reset colours for print */
+  * {
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Hide non-essential elements */
+  .navbar,
+  .kitsune-guide,
+  .sakura-container,
+  .footer__top,
+  .terminal__bar {
+    display: none !important;
+  }
+
+  /* Remove fixed positioning */
+  body {
+    background-image: none !important;
+    background-attachment: scroll !important;
+  }
+
+  /* Remove scroll-snap for print layout */
+  html {
+    scroll-snap-type: none !important;
+  }
+
+  .section {
+    min-height: auto !important;
+    scroll-snap-align: none !important;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure all content is visible (no animation hidden state) */
+  .page-flip .container > *,
+  .hero__greeting,
+  .hero__name,
+  .hero__subtitle,
+  .hero__cta {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+  }
+
+  .hero::after {
+    display: none !important;
+  }
+
+  /* Show link URLs after links */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666 !important;
+  }
+
+  /* Terminal — print-friendly */
+  .terminal {
+    border: 1px solid #ccc !important;
+  }
+
+  .terminal__body {
+    color: #000 !important;
+  }
+}
