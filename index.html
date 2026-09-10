@@ -70,7 +70,7 @@
     ============================================================ -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -101,6 +101,22 @@
     <link rel="stylesheet" href="css/style.css" />
 
     <!-- ============================================================
+         Duality stylesheet — the hacker world plus every runtime
+         component (command palette, HUD, terminal, boot screen).
+         Loaded second so it can override style.css cleanly.
+    ============================================================ -->
+    <link rel="stylesheet" href="css/duality.css" />
+
+    <!-- ============================================================
+         PWA — installable, and fully readable offline once the
+         service worker has primed its cache.
+    ============================================================ -->
+    <link rel="manifest" href="site.webmanifest" />
+    <meta name="theme-color" content="#E8E0D0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1A1E2E" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- ============================================================
          Theme Initialisation (runs BEFORE paint — no defer!)
          Sets data-theme="light" or "dark" on <html> immediately,
          preventing a flash of the wrong theme on page load.
@@ -112,12 +128,18 @@
   <body>
 
     <!-- ============================================================
-         SAKURA PETAL CONTAINER
-         A full-viewport fixed div where JS spawns falling petal divs.
-         pointer-events: none ensures petals don't block page clicks.
-         z-index: 1 places petals behind most content.
+         LANDSCAPE LAYER
+         The mountain artwork used to be painted directly on <body>,
+         which meant nothing could ever be drawn behind it. It now
+         sits on its own fixed layer (inheriting the same background
+         image — one source of truth) so the WebGL sky can render
+         underneath it, and so it can fade out in the hacker world.
+
+         Petals are no longer DOM nodes: js/gfx/petals.js draws all
+         of them into a single canvas instead. See css/duality.css
+         for the full layer stack.
     ============================================================ -->
-    <div id="sakura-container" class="sakura-container"></div>
+    <div class="landscape" aria-hidden="true"></div>
 
     <!-- ============================================================
          1. NAVBAR
@@ -169,10 +191,30 @@
              Shows moon in light mode, sun in dark mode.
              JS in main.js handles the click → flips data-theme on <html>
              and saves the choice to localStorage. -->
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" type="button">
-          <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">&#9728;&#65039;</span>
-          <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">&#127769;</span>
-        </button>
+        <!-- Navbar controls: world switch, soundtrack, colour scheme.
+             The world switch flips the entire site between the
+             Ghibli world and the hacker world (js/theme/duality.js).
+             The soundtrack is generated with Web Audio at runtime and
+             is off until explicitly turned on. -->
+        <div class="navbar__controls">
+
+          <button id="world-toggle" class="icon-btn" type="button"
+                  aria-pressed="false" aria-label="Switch to the hacker world">
+            <span class="world-toggle__glyph world-toggle__glyph--ghibli" aria-hidden="true">&#127774;</span>
+            <span class="world-toggle__glyph world-toggle__glyph--hacker" aria-hidden="true">&#128421;&#65039;</span>
+          </button>
+
+          <button id="audio-toggle" class="icon-btn" type="button"
+                  aria-pressed="false" aria-label="Toggle the generated soundtrack">
+            <span aria-hidden="true">&#9834;</span>
+          </button>
+
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" type="button">
+            <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">&#9728;&#65039;</span>
+            <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">&#127769;</span>
+          </button>
+
+        </div>
 
         <!-- Hamburger button — only visible on mobile.
              The `for` attribute links this label to #nav-toggle,
@@ -552,6 +594,13 @@
          sides (left/right). Shows speech bubble hints on section
          enter, hops on section change, reacts on click.
     ============================================================ -->
+    <!-- Keyboard hint — the palette is the fastest way around the
+         site, so say so once. It hides itself after first use. -->
+    <div class="kbd-hint" id="kbd-hint">
+      <kbd>&#8984;</kbd><kbd>K</kbd>
+      <span>command palette</span>
+    </div>
+
     <div id="mascot" class="kitsune-guide" aria-label="Kitsune guide — click for a reaction!">
       <!-- Speech bubble — JS toggles visibility on section enter -->
       <div class="kitsune-bubble" aria-hidden="true">
@@ -601,9 +650,10 @@
          CDN links create a supply chain dependency — if the CDN
          is compromised, every site using it gets malicious code.
 
-         The sakura petal system (js/sakura.js) is our own code,
-         replacing the 170KB tsParticles library. By building it
-         ourselves, we eliminated a third-party dependency entirely.
+         Everything else on this page — the reactivity core, the
+         WebGL renderer, the shell, the synthesiser — is hand-written
+         and lives in /js. The dependency count is one, and it is
+         self-hosted.
 
          By self-hosting and writing our own code:
            ✓ We control every byte that runs on our page
@@ -613,11 +663,27 @@
     ============================================================ -->
     <script src="libs/typed.min.js" defer></script>
 
-    <!-- Custom sakura petal system — replaces tsParticles (170KB savings) -->
-    <script src="js/sakura.js" defer></script>
-
     <!-- Main script — defer guarantees execution order:
-         typed.min.js → sakura.js → main.js -->
+         typed.min.js → main.js -->
     <script src="js/main.js" defer></script>
+
+    <!-- ============================================================
+         THE RUNTIME — js/app.js is the composition root.
+
+         type="module" gives us deferred execution, strict mode and
+         real dependency resolution with no bundler in sight. The
+         kernel topologically sorts ~13 modules and boots them in
+         order; anything that fails (no WebGL, no Web Audio, no
+         service worker) is isolated and the page keeps working.
+
+         Module map:
+           core/   signals · event bus · store · DI · kernel · FSM
+           gfx/    WebGL2 renderer · GLSL · particle physics
+           term/   virtual filesystem · shell · commands · terminal
+           ui/     palette · HUD · cursor · tilt · boot · easter eggs
+           audio/  Web Audio synthesiser
+           theme/  the Ghibli ⇄ hacker world switch
+    ============================================================ -->
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>

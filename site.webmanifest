@@ -1,0 +1,61 @@
+{
+  "name": "Ang Kian Siang — Cybersecurity Analyst",
+  "short_name": "Kian Siang",
+  "description": "Portfolio of Ang Kian Siang, ICT undergraduate at SUSS and aspiring Cybersecurity Analyst. Two worlds, one site.",
+  "id": "/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#E8E0D0",
+  "theme_color": "#1A2744",
+  "categories": ["portfolio", "education", "productivity"],
+  "lang": "en-SG",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Projects",
+      "short_name": "Projects",
+      "url": "./#projects",
+      "description": "Jump straight to the project list"
+    },
+    {
+      "name": "Terminal",
+      "short_name": "Terminal",
+      "url": "./#skills",
+      "description": "Open the interactive shell"
+    },
+    {
+      "name": "Contact",
+      "short_name": "Contact",
+      "url": "./#contact",
+      "description": "Email, GitHub and LinkedIn"
+    }
+  ]
+}

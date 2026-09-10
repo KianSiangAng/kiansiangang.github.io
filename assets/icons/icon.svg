@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ang Kian Siang portfolio icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E4070"/>
+      <stop offset="100%" stop-color="#1A2744"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="52%">
+      <stop offset="0%" stop-color="#A8C8E8" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#A8C8E8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+
+  <!-- sakura petal, the Ghibli half -->
+  <g transform="translate(256 196)">
+    <path d="M0 -74 C34 -46 30 22 0 56 C-30 22 -34 -46 0 -74 Z" fill="#F0C8A0"/>
+    <path d="M0 -74 C34 -46 30 22 0 56 C-30 22 -34 -46 0 -74 Z" fill="#FFD8E4" opacity="0.75"/>
+  </g>
+
+  <!-- padlock, the security half -->
+  <g fill="none" stroke="#B8D4B8" stroke-width="22" stroke-linecap="round">
+    <path d="M196 322 v-26 a60 60 0 0 1 120 0 v26"/>
+  </g>
+  <rect x="170" y="318" width="172" height="118" rx="26" fill="#B8D4B8"/>
+  <circle cx="256" cy="368" r="17" fill="#1A2744"/>
+  <rect x="248" y="376" width="16" height="34" rx="8" fill="#1A2744"/>
+</svg>

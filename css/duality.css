@@ -1,0 +1,861 @@
+/* ================================================================
+   DUALITY.CSS — The second world, and every runtime component
+
+   style.css owns the original Ghibli site. This file adds:
+
+     1.  Layering for the WebGL / canvas background
+     2.  The hacker world  ([data-world="hacker"])
+     3.  The world transition wipe
+     4.  Interactive terminal (input line, ANSI colours)
+     5.  Command palette
+     6.  Performance HUD
+     7.  Custom cursor
+     8.  3D card tilt + glare
+     9.  Achievement toasts
+     10. Boot screen
+     11. Navbar controls and the keyboard hint
+     12. Reduced-motion and small-screen behaviour
+
+   Everything keys off two attributes on <html>:
+     data-theme = light | dark      (colour scheme, pre-existing)
+     data-world = ghibli | hacker   (which world we are in)
+================================================================ */
+
+
+/* ================================================================
+   1. BACKGROUND LAYERING
+
+   Painting order, bottom to top:
+     body background-colour   (propagated to the viewport)
+     .gfx-layer--gl           z-index -3   WebGL sky / glyph rain
+     .landscape               z-index -2   the mountain silhouettes
+     .gfx-layer--fx           z-index -1   petals / falling glyphs
+     page content             in flow, above all negative layers
+
+   Negative z-index keeps every layer behind the document without
+   any of the sections needing a stacking context of their own.
+================================================================ */
+
+.gfx-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  border: 0;
+}
+
+.gfx-layer--gl { z-index: -3; }
+.gfx-layer--fx { z-index: -1; }
+
+/* The original mountain artwork, lifted off <body> onto its own
+   layer so the shader sky can sit behind it. background-image is
+   inherited rather than duplicated — one source of truth. */
+.landscape {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: inherit;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  transition: opacity 700ms ease;
+}
+
+/* In the hacker world the mountains dissolve away. */
+[data-world="hacker"] .landscape { opacity: 0; }
+
+/* The hero is the one section with no body copy to protect, so its
+   wash is thinned right down and the procedural sky comes through.
+   A soft radial scrim behind the text keeps the contrast ratio where
+   it needs to be without flattening the whole viewport. */
+[data-world="ghibli"] .hero {
+  background-color: rgba(232, 224, 208, 0.30);
+}
+
+[data-theme="dark"][data-world="ghibli"] .hero {
+  background-color: rgba(26, 30, 46, 0.42);
+}
+
+.hero__content {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero__content::before {
+  content: '';
+  position: absolute;
+  inset: -12% -8%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--clr-bg) 82%, transparent) 0%,
+    color-mix(in srgb, var(--clr-bg) 55%, transparent) 45%,
+    transparent 72%
+  );
+}
+
+[data-world="hacker"] .hero__content::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 8, 5, 0.85) 0%,
+    rgba(2, 8, 5, 0.55) 48%,
+    transparent 74%
+  );
+}
+
+/* Without WebGL the CSS gradient underneath is all there is, so
+   leave it fully visible. */
+html:not(.has-webgl) .gfx-layer--gl { display: none; }
+
+
+/* ================================================================
+   2. THE HACKER WORLD
+
+   Rather than restyling every component, we redefine the palette
+   variables that style.css already consumes, then patch the
+   handful of places that hard-code a colour.
+================================================================ */
+
+:root {
+  --world-accent: var(--clr-blue);
+  --hud-bg: rgba(12, 16, 28, 0.92);
+  --palette-bg: rgba(250, 248, 242, 0.97);
+  --palette-fg: var(--clr-navy);
+  --palette-border: rgba(26, 39, 68, 0.12);
+}
+
+[data-world="hacker"] {
+  --clr-bg:         #04070a;
+  --clr-white:      #060b0d;
+  --clr-blue:       #3bff88;
+  --clr-green:      #23d977;
+  --clr-peach:      #7dffb8;
+  --clr-navy:       #c6ffd9;
+  --clr-navy-light: #8affb8;
+  --clr-card-bg:    rgba(10, 24, 16, 0.72);
+  --clr-navbar-bg:  rgba(4, 10, 8, 0.82);
+
+  --font-body: 'Space Mono', ui-monospace, monospace;
+
+  --shadow-sm: 0 0 8px rgba(59, 255, 136, 0.18);
+  --shadow-md: 0 0 18px rgba(59, 255, 136, 0.22);
+  --shadow-lg: 0 0 34px rgba(59, 255, 136, 0.28);
+  --shadow-glow: 0 0 28px rgba(59, 255, 136, 0.45);
+
+  --world-accent: #3bff88;
+  --palette-bg: rgba(6, 14, 10, 0.96);
+  --palette-fg: #c6ffd9;
+  --palette-border: rgba(59, 255, 136, 0.28);
+  --hud-bg: rgba(4, 12, 8, 0.92);
+
+  color-scheme: dark;
+}
+
+/* Section washes — the shader shows through the gaps. */
+[data-world="hacker"] .hero,
+[data-world="hacker"] .projects,
+[data-world="hacker"] .contact  { background-color: rgba(3, 8, 6, 0.62); }
+[data-world="hacker"] .about,
+[data-world="hacker"] .skills   { background-color: rgba(4, 12, 9, 0.82); }
+
+[data-world="hacker"] body { color: var(--clr-navy); }
+
+/* .navbar.scrolled in style.css hard-codes the parchment colour, and
+   two classes outrank one — so the scrolled navbar has to be named
+   explicitly here or it stays beige in the terminal world. */
+[data-world="hacker"] .navbar,
+[data-world="hacker"] .navbar.scrolled {
+  background: rgba(3, 10, 7, 0.90);
+  border-bottom-color: rgba(59, 255, 136, 0.22);
+  box-shadow: 0 2px 22px rgba(0, 40, 16, 0.5);
+}
+
+[data-world="hacker"] .navbar__links,
+[data-world="hacker"] .navbar__link { color: var(--clr-navy); }
+
+[data-world="hacker"] .nav-toggle-label span { background: var(--clr-blue); }
+
+/* The section-transition petal wipe (js/main.js) becomes a sweep of
+   data rather than blossom. */
+[data-world="hacker"] .bloom-petal--1 { background: rgba(59, 255, 136, 0.55); }
+[data-world="hacker"] .bloom-petal--2 { background: rgba(120, 255, 180, 0.45); }
+[data-world="hacker"] .bloom-petal--3 { background: rgba(35, 217, 119, 0.50); }
+[data-world="hacker"] .bloom-petal--4 { background: rgba(200, 255, 220, 0.35); }
+[data-world="hacker"] .bloom-petal { border-radius: 2px; }
+
+/* The mascot's speech bubble, in keeping with the surroundings. */
+[data-world="hacker"] .kitsune-bubble {
+  background: rgba(6, 20, 12, 0.9);
+  color: var(--clr-blue);
+  border: 1px solid rgba(59, 255, 136, 0.4);
+}
+
+[data-world="hacker"] .section-title,
+[data-world="hacker"] .hero__name {
+  color: var(--clr-blue);
+  text-shadow: 0 0 14px rgba(59, 255, 136, 0.45);
+  letter-spacing: 0.02em;
+}
+
+[data-world="hacker"] .hero__name::after {
+  content: '_';
+  animation: hacker-caret 1s steps(2) infinite;
+}
+
+@keyframes hacker-caret { 50% { opacity: 0; } }
+
+[data-world="hacker"] .project-card,
+[data-world="hacker"] .stat-card,
+[data-world="hacker"] .terminal {
+  background: var(--clr-card-bg);
+  border: 1px solid rgba(59, 255, 136, 0.28);
+  box-shadow: inset 0 0 24px rgba(59, 255, 136, 0.06), var(--shadow-sm);
+}
+
+[data-world="hacker"] .project-card__badge,
+[data-world="hacker"] .tag,
+[data-world="hacker"] .terminal__tag {
+  background: rgba(59, 255, 136, 0.12);
+  color: var(--clr-blue);
+  border: 1px solid rgba(59, 255, 136, 0.32);
+}
+
+[data-world="hacker"] .hero__cta,
+[data-world="hacker"] .contact__btn,
+[data-world="hacker"] .project-card__btn {
+  background: rgba(59, 255, 136, 0.14);
+  color: #d8ffe8;
+  border: 1px solid rgba(59, 255, 136, 0.45);
+  text-shadow: 0 0 10px rgba(59, 255, 136, 0.5);
+}
+
+[data-world="hacker"] .footer { background-color: #020504; }
+
+/* The hero subtitle sits directly over the rain and needs the extra
+   luminance to clear the contrast threshold. */
+[data-world="hacker"] .hero__subtitle,
+[data-world="hacker"] .hero__greeting {
+  color: #a6ffcb;
+  text-shadow: 0 0 12px rgba(0, 20, 8, 0.9);
+}
+
+/* Full-colour emoji look out of place on a phosphor display, so
+   they are pushed through the same green as everything else. */
+[data-world="hacker"] .stat-card__icon {
+  filter: grayscale(1) brightness(1.5) sepia(1) hue-rotate(72deg) saturate(2.6);
+}
+
+/* The Ghibli mascot has no place in a terminal. It fades out
+   rather than disappearing, so the transition reads as deliberate. */
+[data-world="hacker"] .kitsune-guide {
+  opacity: 0.09;
+  filter: grayscale(1) brightness(1.6) sepia(1) hue-rotate(70deg);
+  transition: opacity 600ms ease, filter 600ms ease;
+}
+
+/* A scanline veil over the whole document. */
+[data-world="hacker"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 20, 8, 0.28) 3px,
+    rgba(0, 20, 8, 0.28) 4px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+
+
+/* ================================================================
+   3. WORLD TRANSITION WIPE
+================================================================ */
+
+.world-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.world-wipe.is-active {
+  animation: world-wipe 900ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.world-wipe.is-to-hacker {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0 2px, rgba(0, 40, 16, 0.9) 2px 4px),
+    linear-gradient(180deg, #001a08, #04ff88 45%, #001a08);
+}
+
+.world-wipe.is-to-ghibli {
+  background: linear-gradient(180deg, #ffd9e4, #fff6e8 45%, #cfe6ff);
+}
+
+@keyframes world-wipe {
+  0%   { opacity: 0; transform: translateY(100%) skewY(0deg); }
+  35%  { opacity: 1; transform: translateY(0) skewY(-2deg); }
+  65%  { opacity: 1; transform: translateY(0) skewY(2deg); }
+  100% { opacity: 0; transform: translateY(-100%) skewY(0deg); }
+}
+
+/* A brief chromatic-aberration jolt across the page mid-wipe. */
+html.is-shifting body > *:not(.world-wipe):not(.boot) {
+  animation: world-glitch 900ms steps(3) both;
+}
+
+@keyframes world-glitch {
+  0%, 100% { filter: none; transform: none; }
+  40%      { filter: hue-rotate(25deg) saturate(1.4); transform: translateX(-2px); }
+  55%      { filter: hue-rotate(-25deg) saturate(1.6); transform: translateX(3px); }
+  70%      { filter: none; transform: translateX(-1px); }
+}
+
+
+/* ================================================================
+   4. INTERACTIVE TERMINAL
+================================================================ */
+
+.terminal__body {
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 200, 160, 0.4) transparent;
+}
+
+.terminal__output { display: block; }
+
+.terminal__line {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  margin: 0.1rem 0;
+}
+
+.terminal__line--echo { opacity: 0.95; margin-top: 0.55rem; }
+.terminal__line--error { color: #ff8f8f; }
+.terminal__line--dim { opacity: 0.6; }
+
+.terminal__inputline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.terminal__inputline.is-busy { opacity: 0.55; }
+
+.terminal__prompt--live { flex: 0 0 auto; white-space: nowrap; }
+
+.terminal__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 0;
+  color: #e8fff2;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  caret-color: #3bff88;
+}
+
+.terminal__input::placeholder { color: rgba(200, 255, 220, 0.35); }
+
+/* ---- ANSI SGR classes, emitted by the renderer ---- */
+.ansi-bold      { font-weight: 700; }
+.ansi-dim       { opacity: 0.62; }
+.ansi-italic    { font-style: italic; }
+.ansi-underline { text-decoration: underline; }
+.ansi-red       { color: #ff7b7b; }
+.ansi-green     { color: #5cf58f; }
+.ansi-yellow    { color: #ffd166; }
+.ansi-blue      { color: #7cc4ff; }
+.ansi-magenta   { color: #e2a6ff; }
+.ansi-cyan      { color: #6ee7e7; }
+.ansi-white     { color: #f2f6ff; }
+
+/* `matrix` and `exit` visual states */
+.terminal--matrix { animation: terminal-flicker 3.2s steps(2) 1; }
+.terminal--closed { animation: terminal-close 1.6s ease both; }
+
+@keyframes terminal-flicker {
+  0%, 100% { box-shadow: var(--shadow-md); }
+  50%      { box-shadow: 0 0 40px rgba(59, 255, 136, 0.75); }
+}
+
+@keyframes terminal-close {
+  0%   { transform: scaleY(1); opacity: 1; }
+  35%  { transform: scaleY(0.02); opacity: 0.9; }
+  60%  { transform: scaleY(0.02); opacity: 0.9; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+
+/* ---- Typed.js caret ----
+   Typed.js injects a <style> element for this animation, which our
+   Content-Security-Policy (style-src 'self', no 'unsafe-inline')
+   correctly refuses. We pass autoInsertCss:false in main.js and
+   define the caret here instead — the animation works and the CSP
+   stays strict. */
+.typed-cursor {
+  opacity: 1;
+  animation: typed-blink 0.7s infinite;
+}
+
+.typed-cursor.typed-cursor--blink {
+  animation: typed-blink 0.7s infinite;
+}
+
+@keyframes typed-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+
+/* ================================================================
+   5. COMMAND PALETTE
+================================================================ */
+
+.palette {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(1rem, 12vh, 8rem) 1rem 1rem;
+  background: rgba(12, 16, 28, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+/* `hidden` is a UA rule of the lowest specificity, so a class rule
+   with `display: flex` silently defeats it — the overlay stays laid
+   out and keeps swallowing clicks across the whole viewport. Restate
+   it here. */
+.palette[hidden] { display: none; }
+
+.palette.is-open { opacity: 1; }
+
+.palette__dialog {
+  width: min(620px, 100%);
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: var(--palette-bg);
+  color: var(--palette-fg);
+  border: 1px solid var(--palette-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  transform: translateY(-8px) scale(0.985);
+  transition: transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.palette.is-open .palette__dialog { transform: none; }
+
+.palette__input {
+  width: 100%;
+  padding: 1rem 1.15rem;
+  border: 0;
+  border-bottom: 1px solid var(--palette-border);
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  outline: none;
+}
+
+.palette__list {
+  margin: 0;
+  padding: 0.4rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.palette__item {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr auto auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.62rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+}
+
+.palette__item.is-active {
+  background: color-mix(in srgb, var(--world-accent) 34%, transparent);
+  box-shadow: inset 3px 0 0 var(--world-accent);
+}
+
+.palette__icon  { opacity: 0.7; text-align: center; }
+.palette__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette__group { opacity: 0.55; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.palette__hint {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--palette-border);
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.palette__empty { padding: 1.2rem; opacity: 0.6; font-size: var(--fs-sm); }
+
+.palette__footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--palette-border);
+  font-size: var(--fs-xs);
+  opacity: 0.6;
+  font-family: var(--font-mono);
+}
+
+
+/* ================================================================
+   6. PERFORMANCE HUD
+================================================================ */
+
+.hud {
+  position: fixed;
+  top: 76px;
+  right: 12px;
+  z-index: 7000;
+  width: 244px;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: var(--hud-bg);
+  color: #d8f5e6;
+  border: 1px solid rgba(120, 255, 190, 0.22);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.hud__title {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 0.4rem;
+}
+
+.hud__graph {
+  width: 100%;
+  height: 40px;
+  display: block;
+  margin-bottom: 0.45rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+
+.hud__body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.6rem;
+  margin: 0;
+}
+
+.hud__body dt { opacity: 0.55; }
+.hud__body dd { margin: 0; text-align: right; }
+
+
+/* ================================================================
+   7. CUSTOM CURSOR
+================================================================ */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9500;
+  pointer-events: none;
+  border-radius: 50%;
+  will-change: transform;
+  transition: opacity 200ms ease;
+}
+
+.cursor--dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--world-accent);
+}
+
+.cursor--ring {
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1.5px solid color-mix(in srgb, var(--world-accent) 70%, transparent);
+  transition: border-color 200ms ease, opacity 200ms ease;
+}
+
+.cursor--ring.is-pressed { border-width: 3px; }
+
+/* Only hide the system cursor once ours is definitely running. */
+html.has-custom-cursor,
+html.has-custom-cursor a,
+html.has-custom-cursor button,
+html.has-custom-cursor label { cursor: none; }
+
+/* …but never over text fields, where the caret matters. */
+html.has-custom-cursor input,
+html.has-custom-cursor textarea { cursor: text; }
+
+
+/* ================================================================
+   8. CARD TILT + GLARE
+================================================================ */
+
+.project-card,
+.stat-card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --glare-x: 50%;
+  --glare-y: 50%;
+  transform-style: preserve-3d;
+  transition: transform 320ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.project-card.is-tilting,
+.stat-card.is-tilting {
+  transform: perspective(760px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(6px);
+  transition: transform 90ms linear;
+}
+
+.project-card.is-tilting::after,
+.stat-card.is-tilting::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--glare-x) var(--glare-y),
+    color-mix(in srgb, var(--world-accent) 26%, transparent) 0%,
+    transparent 42%
+  );
+  /* Kept low: a specular highlight should suggest a light source,
+     not wash out the copy underneath it. */
+  opacity: 0.3;
+  mix-blend-mode: soft-light;
+}
+
+
+/* ================================================================
+   9. ACHIEVEMENT TOASTS
+================================================================ */
+
+.achv-layer {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 8500;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.achv-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--hud-bg);
+  color: #eafff3;
+  border: 1px solid color-mix(in srgb, var(--world-accent) 45%, transparent);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+  font-size: var(--fs-sm);
+  animation: achv-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.achv-toast.is-leaving { animation: achv-out 420ms ease forwards; }
+
+.achv-toast__icon { font-size: 1.3rem; color: var(--world-accent); }
+.achv-toast__name { opacity: 0.85; font-size: var(--fs-xs); }
+
+@keyframes achv-in  { from { opacity: 0; transform: translateX(40px); } }
+@keyframes achv-out { to   { opacity: 0; transform: translateX(40px); } }
+
+
+/* ================================================================
+   10. BOOT SCREEN
+================================================================ */
+
+html.is-booting { overflow: hidden; }
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 9800;
+  background: #04070a;
+  color: #7dffb0;
+  padding: clamp(1rem, 6vw, 4rem);
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 2.4vw, 14px);
+  overflow: hidden;
+  transition: opacity 600ms ease;
+}
+
+.boot.is-done { opacity: 0; pointer-events: none; }
+
+.boot__screen {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  text-shadow: 0 0 8px rgba(80, 255, 150, 0.45);
+  max-height: 84vh;
+  overflow: hidden;
+}
+
+.boot__skip {
+  position: absolute;
+  right: clamp(1rem, 6vw, 4rem);
+  bottom: clamp(1rem, 6vw, 4rem);
+  opacity: 0.45;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Scanlines over the boot screen, for period accuracy. */
+.boot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0 2px,
+    rgba(0, 0, 0, 0.35) 3px 4px
+  );
+}
+
+
+/* ================================================================
+   11. NAVBAR CONTROLS + KEYBOARD HINT
+================================================================ */
+
+.navbar__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: color-mix(in srgb, var(--world-accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--world-accent) 40%, transparent);
+  transform: translateY(-1px);
+}
+
+.icon-btn[aria-pressed="true"],
+.icon-btn.is-on {
+  background: color-mix(in srgb, var(--world-accent) 30%, transparent);
+  border-color: color-mix(in srgb, var(--world-accent) 55%, transparent);
+}
+
+.world-toggle__glyph { display: block; }
+[data-world="ghibli"] .world-toggle__glyph--hacker,
+[data-world="hacker"] .world-toggle__glyph--ghibli { display: none; }
+
+/* The ⌘K hint, bottom-left, dismissed once the palette is used. */
+.kbd-hint {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--clr-card-bg);
+  border: 1px solid var(--palette-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: var(--fs-xs);
+  color: var(--clr-navy);
+  box-shadow: var(--shadow-sm);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.kbd-hint.is-hidden { opacity: 0; transform: translateY(8px); pointer-events: none; }
+
+.kbd-hint kbd {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.08rem 0.32rem;
+  border: 1px solid var(--palette-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+[data-world="hacker"] .kbd-hint kbd { background: rgba(59, 255, 136, 0.14); }
+
+
+/* ================================================================
+   12. RESPONSIVE + REDUCED MOTION
+================================================================ */
+
+@media (max-width: 640px) {
+  .hud { top: 68px; right: 8px; width: 200px; }
+  .kbd-hint { display: none; }              /* no ⌘K on a phone */
+  .palette { padding-top: 8vh; }
+  .terminal__body { max-height: 60vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-wipe,
+  html.is-shifting body > * { animation: none !important; }
+  .achv-toast { animation: none; }
+  .terminal--matrix,
+  .terminal--closed { animation: none; }
+  .project-card.is-tilting,
+  .stat-card.is-tilting { transform: none; }
+  .cursor { display: none; }
+}
+
+/* Focus visibility must survive both worlds. */
+:focus-visible {
+  outline: 2px solid var(--world-accent);
+  outline-offset: 2px;
+}

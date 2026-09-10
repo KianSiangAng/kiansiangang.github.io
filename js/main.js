@@ -27,6 +27,13 @@ const typed = new Typed('#typed-text', {
     'a builder.',
     'an ICT student.',
   ],
+  /* Typed.js normally injects a <style> element at runtime for its
+     caret animation. Our CSP sets style-src 'self' with no
+     'unsafe-inline', so the browser blocks that injection and logs a
+     violation. Opting out and defining .typed-cursor ourselves in
+     css/duality.css keeps the animation AND the strict policy. */
+  autoInsertCss: false,
+
   typeSpeed:    60,    // ms per character typed
   backSpeed:    35,    // ms per character deleted
   backDelay:   1800,   // pause (ms) before deleting the current word

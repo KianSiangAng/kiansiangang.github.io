@@ -592,82 +592,13 @@ button {
   overflow: hidden;
 }
 
-/* ---- SAKURA PETAL BACKGROUND ----
-   A full-page container for falling sakura petals.
-   position: fixed + inset: 0 covers the entire viewport.
-   pointer-events: none ensures petals don't block clicks.
-   z-index: 1 puts petals behind most content but visible. */
-.sakura-container {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-/* Individual petal — a small rounded div with a soft pink
-   radial gradient. The asymmetric border-radius makes each
-   petal look organic rather than a perfect circle. */
-.sakura-petal {
-  position: absolute;
-  top: -20px;
-  background: radial-gradient(
-    ellipse at 30% 30%,
-    rgba(255, 220, 230, 0.9) 0%,
-    rgba(255, 183, 197, 0.7) 50%,
-    rgba(255, 160, 180, 0.4) 100%
-  );
-  /* Asymmetric border-radius = petal shape, not a circle */
-  border-radius: 50% 80% 50% 80%;
-  /* The fall animation handles vertical movement + rotation.
-     ease-in-out gives a natural floating feel. */
-  animation: sakura-fall linear forwards;
-}
-
-/* @keyframes sakura-fall
-   Moves the petal from top: -20px to top: 110vh (below viewport).
-   translateX(var(--sway)) drifts the petal horizontally — each
-   petal gets a different --sway value set by JS.
-   rotate() spins the petal as it falls for a natural tumble. */
-@keyframes sakura-fall {
-  0% {
-    top: -20px;
-    transform: translateX(0) rotate(0deg) scale(var(--base-scale, 1));
-  }
-  25% {
-    transform: translateX(calc(var(--sway) * 0.3)) rotate(90deg) scale(calc(var(--base-scale, 1) * 1.05));
-  }
-  50% {
-    transform: translateX(calc(var(--sway) * 0.7)) rotate(180deg) scale(var(--base-scale, 1));
-  }
-  75% {
-    transform: translateX(calc(var(--sway) * 0.9)) rotate(270deg) scale(calc(var(--base-scale, 1) * 0.95));
-  }
-  100% {
-    top: 110vh;
-    transform: translateX(var(--sway)) rotate(360deg) scale(var(--base-scale, 1));
-  }
-}
-
-/* ---- BIRDS: subtle gliding animation ----
-   Birds drift horizontally across the upper viewport.
-   --bird-end is set by JS to the destination X position.
-   --bird-drift adds gentle vertical movement. */
-@keyframes birdGlide {
-  0%   { transform: translate(var(--bird-start), 0); }
-  50%  { transform: translate(calc((var(--bird-start) + var(--bird-end)) / 2), var(--bird-drift)); }
-  100% { transform: translate(var(--bird-end), 0); }
-}
-
-/* Wing flap — gentle vertical squish on the SVG */
-@keyframes birdFlap {
-  0%   { transform: scaleY(1); }
-  100% { transform: scaleY(0.6); }
-}
-
-/* Dark mode: birds become lighter */
-[data-theme="dark"] .sky-bird { color: rgba(180, 170, 160, 0.6); }
-
+/* ---- BACKGROUND PARTICLES ----
+   Petals and birds used to be DOM nodes animated with CSS
+   keyframes: one <div> per petal, laid out and composited by the
+   browser. They are now drawn into a single canvas by
+   js/gfx/petals.js (physics, curl-noise wind) and js/gfx/birds.js
+   (a boids flock), which is both cheaper and far more capable.
+   The layer stack for those canvases lives in css/duality.css. */
 
 /* The text content sits above the particles */
 .hero__content {
@@ -2067,11 +1998,6 @@ input:focus-visible,
   border-color: rgba(184, 212, 184, 0.20);
 }
 
-/* Sakura petals — slightly brighter in dark mode */
-[data-theme="dark"] .sakura-petal {
-  opacity: 0.5;
-}
-
 /* Theme toggle button in dark mode */
 [data-theme="dark"] .theme-toggle {
   border-color: rgba(255, 255, 255, 0.15);
@@ -2102,7 +2028,14 @@ input:focus-visible,
   /* Hide non-essential elements */
   .navbar,
   .kitsune-guide,
-  .sakura-container,
+  .gfx-layer,
+  .landscape,
+  .kbd-hint,
+  .hud,
+  .palette,
+  .achv-layer,
+  .cursor,
+  .terminal__inputline,
   .footer__top,
   .terminal__bar {
     display: none !important;
