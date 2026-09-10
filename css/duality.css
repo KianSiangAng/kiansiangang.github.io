@@ -36,6 +36,19 @@
    any of the sections needing a stacking context of their own.
 ================================================================ */
 
+/* ----------------------------------------------------------------
+   `[hidden]` must win.
+
+   The UA stylesheet's `[hidden] { display: none }` has the lowest
+   possible specificity, so ANY class rule that sets `display`
+   silently defeats it — and the element stays laid out, still
+   catching clicks, while `el.hidden === true` insists it is gone.
+   This bit the command palette (an invisible full-screen overlay
+   swallowing every click) and then the shell's return button. One
+   rule closes the whole category.
+---------------------------------------------------------------- */
+[hidden] { display: none !important; }
+
 .gfx-layer {
   position: fixed;
   inset: 0;
@@ -122,6 +135,8 @@ html:not(.has-webgl) .gfx-layer--gl { display: none; }
 
 :root {
   --world-accent: var(--clr-blue);
+  --win-bg: #fbf9f4;
+  --win-bar: #f1ece1;
   --hud-bg: rgba(12, 16, 28, 0.92);
   --palette-bg: rgba(250, 248, 242, 0.97);
   --palette-fg: var(--clr-navy);
@@ -149,6 +164,8 @@ html:not(.has-webgl) .gfx-layer--gl { display: none; }
   --world-accent: #3bff88;
   --palette-bg: rgba(6, 14, 10, 0.96);
   --palette-fg: #c6ffd9;
+  --win-bg: #060f0b;
+  --win-bar: #0a1a11;
   --palette-border: rgba(59, 255, 136, 0.28);
   --hud-bg: rgba(4, 12, 8, 0.92);
 
@@ -273,6 +290,19 @@ html:not(.has-webgl) .gfx-layer--gl { display: none; }
   );
   mix-blend-mode: multiply;
   opacity: 0.55;
+}
+
+
+/* Dark colour scheme, Ghibli world: panels and windows follow the
+   scheme, not the world. Previously these tokens were only defined
+   for light and for hacker, so dark Ghibli got cream windows. */
+[data-theme="dark"][data-world="ghibli"] {
+  --palette-bg: rgba(30, 34, 50, 0.97);
+  --palette-fg: #e8e0d0;
+  --palette-border: rgba(255, 255, 255, 0.12);
+  --win-bg: #1e2232;
+  --win-bar: #262b3d;
+  --hud-bg: rgba(16, 20, 32, 0.94);
 }
 
 

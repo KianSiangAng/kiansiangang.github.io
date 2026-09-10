@@ -16,6 +16,29 @@ I'm an ICT undergraduate at the Singapore University of Social Sciences
 projects, skills and certifications — and doubles as the place I get to
 build the things I find interesting.
 
+## Two presentations
+
+On a desktop the site boots as **an operating system**: a menu bar, desktop
+icons, a dock, and draggable, resizable, snappable windows. Each section of
+the portfolio is an app. On a phone — or whenever you ask for it — it is a
+**conventional scrolling page**, which is also exactly what you get with
+JavaScript disabled.
+
+Both are views of the same document. The windows lift their content out of
+the semantic HTML in `index.html` rather than duplicating it, so there is one
+source of truth, and the portfolio stays crawlable and screen-reader-readable
+in either presentation.
+
+| | |
+|---|---|
+| Drag a window to a screen edge | Snap left, right or full screen |
+| Double-click a title bar | Zoom |
+| `Esc` | Close the focused window |
+| `Ctrl-Tab` | Cycle windows |
+| Right-click | Context menus on icons and the desktop |
+| Drag icons | Positions snap to a grid and persist |
+| `#/projects` | Every app is deep-linkable; back/forward work |
+
 ## Two worlds
 
 The site exists in two complete themes, not one theme with a filter over it:
@@ -82,6 +105,17 @@ js/
 │   ├── boot.js             ← BIOS-style POST screen
 │   ├── konami.js           ← typed input sequences
 │   └── achievements.js     ← 12 unlockables, persisted
+├── os/
+│   ├── shell.js            ← chooses the desktop or the page presentation
+│   ├── wm.js               ← window manager: drag, resize, snap, focus, persist
+│   ├── desktop.js          ← icons, selection, marquee, keyboard navigation
+│   ├── menubar.js          ← menus, status area, clock
+│   ├── dock.js             ← running and pinned apps
+│   ├── router.js           ← #/app/param deep links, bidirectional
+│   ├── registry.js         ← the app table; lifts content from the document
+│   ├── contextmenu.js      ← right-click menus
+│   ├── dom.js · icons.js   ← element helpers, inline SVG icon set
+│   └── apps/panels.js      ← Finder, résumé, settings, achievements, help
 ├── audio/synth.js          ← Web Audio synthesiser, lookahead scheduler
 ├── theme/duality.js        ← the world switch, as a state machine
 └── data/portfolio.js       ← single source of truth for all content
@@ -136,7 +170,8 @@ portfolio/
 ├── index.html              ← single-page HTML (all 7 sections)
 ├── css/
 │   ├── style.css           ← the original Ghibli site
-│   └── duality.css         ← hacker world + every runtime component
+│   ├── duality.css         ← hacker world + every runtime component
+│   └── os.css              ← the desktop presentation
 ├── js/                     ← see Architecture above
 ├── libs/typed.min.js       ← Typed.js v2.0.16 (self-hosted)
 ├── assets/icons/           ← favicon, PWA icons
@@ -163,8 +198,9 @@ portfolio/
 
 3. Open <http://127.0.0.1:8080>.
 
-Useful query parameters: `?boot=1` replays the boot screen, `?boot=0`
-skips it, `?debug=1` turns on trace-level logging.
+Useful query parameters: `?shell=os` and `?shell=page` force a presentation,
+`?boot=1` replays the boot screen, `?boot=0` skips it, and `?debug=1` turns on
+trace-level logging.
 
 ## Deployment (GitHub Pages)
 

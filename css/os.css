@@ -1,0 +1,951 @@
+/* ================================================================
+   OS.CSS — The desktop presentation
+
+   Loaded on top of style.css and duality.css. Everything here is
+   scoped to [data-shell="os"] or to the .os subtree, so the plain
+   page presentation is completely unaffected by it.
+
+   Contents:
+     1.  Shell mode switching
+     2.  Menu bar
+     3.  Desktop + icons
+     4.  Windows
+     5.  Dock
+     6.  Context menus
+     7.  App content (Finder, résumé, settings, achievements, help)
+     8.  Hacker world overrides
+     9.  Reduced motion, print, small screens
+================================================================ */
+
+
+/* ================================================================
+   1. SHELL MODE
+================================================================ */
+
+.os {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+/* In desktop mode the authored page is hidden, not removed: the
+   windows lift their content out of it, and switching back to the
+   page presentation must not need a reload. */
+[data-shell="os"] body > .section,
+[data-shell="os"] body > .footer,
+[data-shell="os"] body > .navbar,
+[data-shell="os"] body > .kitsune-guide,
+[data-shell="os"] body > .kbd-hint {
+  display: none !important;
+}
+
+[data-shell="os"] {
+  scroll-snap-type: none !important;
+  overflow: hidden;
+}
+
+[data-shell="os"] body {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* The 'return to the desktop' affordance, shown in page mode on
+   machines that could run the desktop. */
+.page-return {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--palette-border);
+  border-radius: var(--radius-pill);
+  background: var(--clr-card-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--clr-navy);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.page-return:hover { transform: translateY(-1px); }
+
+.os-escape {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 45;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--palette-border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--clr-card-bg) 70%, transparent);
+  color: var(--clr-navy);
+  font-size: var(--fs-xs);
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+}
+
+.os-escape:hover,
+.os-escape:focus-visible { opacity: 1; }
+
+
+/* ================================================================
+   2. MENU BAR
+================================================================ */
+
+.menubar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.6rem;
+  background: color-mix(in srgb, var(--clr-navbar-bg) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--palette-border);
+  color: var(--clr-navy);
+  font-size: 12.5px;
+  font-family: var(--font-body);
+  user-select: none;
+}
+
+.menubar__left,
+.menubar__status,
+.menubar__menus { display: flex; align-items: center; gap: 0.15rem; }
+
+.menubar__app { padding: 0 0.5rem 0 0.35rem; font-weight: 700; }
+
+.menubar__logo,
+.menubar__menu,
+.menubar__icon,
+.menubar__clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+}
+
+.menubar__logo:hover,
+.menubar__menu:hover,
+.menubar__icon:hover,
+.menubar__clock:hover,
+.menubar__menu[aria-expanded="true"],
+.menubar__logo[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--world-accent) 30%, transparent);
+}
+
+.menubar__icon--static { opacity: 0.55; pointer-events: none; }
+.menubar__icon.is-on { color: var(--world-accent); }
+.menubar__note { font-size: 13px; }
+
+.menubar__clock {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.menubar__menuwrap { position: relative; }
+
+.menubar__panel {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  min-width: 216px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--palette-border);
+  background: var(--palette-bg);
+  color: var(--palette-fg);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.24);
+  z-index: 501;
+}
+
+.menubar__panel--system { left: -4px; }
+
+.menubar__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 0.34rem 0.55rem;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.menubar__item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--world-accent) 40%, transparent);
+}
+
+.menubar__item:disabled { opacity: 0.4; }
+
+.menubar__shortcut {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+.menubar__sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--palette-border);
+}
+
+
+/* ================================================================
+   3. DESKTOP + ICONS
+================================================================ */
+
+.desktop {
+  position: absolute;
+  inset: 30px 0 0 0;
+  overflow: hidden;
+}
+
+.desktop__marquee {
+  position: fixed;
+  z-index: 60;
+  border: 1px solid color-mix(in srgb, var(--world-accent) 80%, transparent);
+  background: color-mix(in srgb, var(--world-accent) 18%, transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.desktop-icon {
+  position: absolute;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.2rem 0.3rem;
+  border-radius: 8px;
+  cursor: default;
+  text-align: center;
+  user-select: none;
+}
+
+.desktop-icon.is-dragging { opacity: 0.75; }
+
+.desktop-icon__glyph {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  color: var(--clr-navy);
+  background: color-mix(in srgb, var(--clr-card-bg) 88%, transparent);
+  border: 1px solid var(--palette-border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.desktop-icon:hover .desktop-icon__glyph { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* Folders and files read differently at a glance. */
+.desktop-icon__glyph[data-kind="folder"] { background: color-mix(in srgb, var(--clr-peach) 55%, var(--clr-card-bg)); }
+.desktop-icon__glyph[data-kind="file"]   { background: color-mix(in srgb, var(--clr-white) 80%, transparent); }
+.desktop-icon__glyph[data-kind="link"]   { background: color-mix(in srgb, var(--clr-blue) 45%, var(--clr-card-bg)); }
+.desktop-icon__glyph[data-kind="system"] { background: transparent; box-shadow: none; }
+
+.desktop-icon__label {
+  max-width: 84px;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  color: var(--clr-navy);
+  font-size: 11.5px;
+  line-height: 1.3;
+  background: color-mix(in srgb, var(--clr-bg) 55%, transparent);
+
+  /* Two lines maximum, then ellipsis. Without this a long name like
+     "Achievements" breaks mid-word and spills out of the icon cell. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+.desktop-icon.is-selected .desktop-icon__glyph {
+  outline: 2px solid var(--world-accent);
+  outline-offset: 2px;
+}
+
+.desktop-icon.is-selected .desktop-icon__label {
+  background: var(--world-accent);
+  color: var(--clr-bg);
+}
+
+.desktop-icon:focus-visible { outline: 2px solid var(--world-accent); outline-offset: 2px; }
+
+
+/* ================================================================
+   4. WINDOWS
+================================================================ */
+
+.wm-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.wm-layer > * { pointer-events: auto; }
+
+.wm-snap {
+  position: fixed;
+  z-index: 90;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--world-accent);
+  background: color-mix(in srgb, var(--world-accent) 20%, transparent);
+  opacity: 0;
+  transition: opacity 120ms ease, left 120ms ease, top 120ms ease,
+              width 120ms ease, height 120ms ease;
+  pointer-events: none;
+}
+
+.wm-snap.is-visible { opacity: 1; }
+
+.win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  border-radius: var(--radius-md);
+  /* Windows use their own near-opaque token rather than the palette's
+     translucent one: three stacked translucent windows turn into an
+     unreadable smear of everything underneath them. */
+  background: var(--win-bg);
+  color: var(--palette-fg);
+  border: 1px solid var(--palette-border);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 140ms ease, transform 140ms cubic-bezier(0.2, 0.9, 0.3, 1),
+              box-shadow 200ms ease;
+}
+
+.win.is-open { opacity: 1; transform: none; }
+.win.is-dragging,
+.win.is-resizing { transition: none; user-select: none; }
+
+.win.is-focused {
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.3), 0 0 0 1px color-mix(in srgb, var(--world-accent) 35%, transparent);
+}
+
+.win.is-minimised {
+  opacity: 0;
+  transform: translateY(40px) scale(0.86);
+  pointer-events: none;
+}
+
+.win.is-closing { animation: win-close 200ms ease forwards; }
+
+@keyframes win-close {
+  to { opacity: 0; transform: scale(0.94); }
+}
+
+.win__bar {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 0.6rem;
+  background: var(--win-bar);
+  border-bottom: 1px solid var(--palette-border);
+  cursor: grab;
+  user-select: none;
+}
+
+.win.is-dragging .win__bar { cursor: grabbing; }
+
+.win__lights { display: flex; gap: 6px; }
+
+.win__light {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #cfcfcf;
+  transition: filter var(--transition-fast);
+}
+
+.win__light--close { background: #ff5f57; }
+.win__light--min   { background: #febc2e; }
+.win__light--zoom  { background: #28c840; }
+.win__lights:hover .win__light { filter: brightness(1.1); }
+.win__light:focus-visible { outline: 2px solid var(--world-accent); outline-offset: 2px; }
+
+.win__titlewrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+  opacity: 0.75;
+}
+
+.win.is-focused .win__titlewrap { opacity: 1; }
+
+.win__title {
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.win__spacer { width: 48px; }
+
+.win__body {
+  flex: 1 1 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* Resize handles: invisible strips around the frame. */
+.win__handle { position: absolute; }
+.win__handle--n  { top: -3px; left: 8px; right: 8px; height: 7px; cursor: ns-resize; }
+.win__handle--s  { bottom: -3px; left: 8px; right: 8px; height: 7px; cursor: ns-resize; }
+.win__handle--e  { right: -3px; top: 8px; bottom: 8px; width: 7px; cursor: ew-resize; }
+.win__handle--w  { left: -3px; top: 8px; bottom: 8px; width: 7px; cursor: ew-resize; }
+.win__handle--ne { top: -4px; right: -4px; width: 14px; height: 14px; cursor: nesw-resize; }
+.win__handle--nw { top: -4px; left: -4px; width: 14px; height: 14px; cursor: nwse-resize; }
+.win__handle--se { bottom: -4px; right: -4px; width: 14px; height: 14px; cursor: nwse-resize; }
+.win__handle--sw { bottom: -4px; left: -4px; width: 14px; height: 14px; cursor: nesw-resize; }
+
+
+/* ================================================================
+   5. DOCK
+================================================================ */
+
+.dock {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 400;
+  padding: 6px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--clr-navbar-bg) 80%, transparent);
+  border: 1px solid var(--palette-border);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.26);
+  max-width: calc(100vw - 24px);
+}
+
+.dock__items {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.dock__tile {
+  --dock-scale: 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--clr-card-bg) 70%, transparent);
+  color: var(--clr-navy);
+  transform: scale(var(--dock-scale));
+  transform-origin: bottom center;
+  transition: background var(--transition-fast), transform 90ms ease;
+}
+
+.dock__tile:hover { background: color-mix(in srgb, var(--world-accent) 35%, transparent); }
+.dock__tile.is-focused { background: color-mix(in srgb, var(--world-accent) 45%, transparent); }
+
+.dock__label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--palette-bg);
+  border: 1px solid var(--palette-border);
+  color: var(--palette-fg);
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.dock__tile:hover .dock__label,
+.dock__tile:focus-visible .dock__label { opacity: 1; }
+
+.dock__dot {
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--clr-navy);
+  opacity: 0.65;
+}
+
+
+/* ================================================================
+   6. CONTEXT MENU
+================================================================ */
+
+.ctxmenu {
+  position: fixed;
+  z-index: 9000;
+  min-width: 200px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--palette-border);
+  background: var(--palette-bg);
+  color: var(--palette-fg);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+  font-size: 13px;
+}
+
+.ctxmenu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.34rem 0.5rem;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.ctxmenu__item.is-active:not(:disabled),
+.ctxmenu__item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--world-accent) 40%, transparent);
+}
+
+.ctxmenu__item:disabled { opacity: 0.4; }
+.ctxmenu__icon { display: inline-flex; width: 16px; opacity: 0.7; }
+.ctxmenu__label { flex: 1 1 auto; }
+.ctxmenu__sep { height: 1px; margin: 4px 6px; background: var(--palette-border); }
+
+
+/* ================================================================
+   7. APP CONTENT
+================================================================ */
+
+.app {
+  padding: 1.15rem 1.35rem 1.6rem;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+
+.app h1 { font-size: var(--fs-lg); margin-bottom: 0.5rem; }
+.app h2 { font-size: var(--fs-md); margin: 1.1rem 0 0.4rem; }
+.app p  { margin-bottom: 0.7rem; }
+.app ul { margin: 0 0 0.8rem 1.1rem; list-style: disc; }
+.app li { margin-bottom: 0.3rem; }
+.app__aside { opacity: 0.65; font-size: var(--fs-xs); }
+.app__missing { padding: 1.5rem; opacity: 0.6; }
+
+/* Content lifted out of the page needs its section chrome removed:
+   inside a window there is no full-height section to centre. */
+.app__lifted {
+  padding: 1.15rem 1.35rem 1.6rem;
+  max-width: none;
+  width: 100%;
+}
+
+.app__lifted .section-title { text-align: left; font-size: var(--fs-lg); }
+.app__lifted .section-title::after { margin-left: 0; }
+.app__lifted .fade-in { opacity: 1 !important; transform: none !important; }
+
+/* Scroll-reveal classes anywhere inside a window. The adopted terminal
+   carries .fade-in on itself, so it sat at opacity 0 inside its window
+   — a correctly-built terminal that was simply invisible. */
+.win .fade-in,
+.win .page-flip > .container > * {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+}
+.app__lifted .about__grid { grid-template-columns: 1fr; gap: var(--space-sm); }
+.app__lifted .about__stats { grid-template-columns: repeat(2, 1fr); }
+.app__lifted .contact__buttons { justify-content: flex-start; }
+
+/* The terminal, once adopted into a window, fills it. */
+.terminal--windowed {
+  margin: 0;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal--windowed .terminal__body { flex: 1 1 auto; max-height: none; }
+
+/* The terminal ships with its own decorative title bar and traffic
+   lights for the scrolling page. Inside a real window that is two
+   sets of chrome doing the same job, so the fake one goes. */
+.terminal--windowed .terminal__bar { display: none; }
+
+/* A full-width rounded focus ring around a terminal's input line
+   looks like a form field, not a prompt. Move the indicator to the
+   line itself so focus is still obvious. */
+.terminal__input:focus-visible { outline: none; }
+
+.terminal__inputline:focus-within {
+  box-shadow: inset 2px 0 0 var(--world-accent);
+  padding-left: 0.4rem;
+  border-radius: 2px;
+}
+
+/* ---- Finder ---- */
+.app--finder { display: flex; flex-direction: column; height: 100%; padding: 0; }
+
+.finder__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid var(--palette-border);
+  font-size: var(--fs-xs);
+}
+
+.finder__path { display: inline-flex; align-items: center; gap: 0.3rem; opacity: 0.7; font-family: var(--font-mono); }
+.finder__views { display: flex; gap: 4px; }
+
+.finder__view {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--palette-border);
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+}
+
+.finder__view.is-active { background: color-mix(in srgb, var(--world-accent) 35%, transparent); }
+
+.finder__grid { flex: 1 1 auto; margin: 0; padding: 0.8rem; list-style: none; overflow: auto; }
+.finder__grid--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
+.finder__grid--list { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.finder__button {
+  display: flex;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.finder__grid--grid .finder__button { flex-direction: column; align-items: center; text-align: center; }
+
+.finder__button:hover,
+.finder__button:focus-visible {
+  background: color-mix(in srgb, var(--world-accent) 22%, transparent);
+  border-color: var(--palette-border);
+}
+
+.finder__icon { color: var(--clr-navy-light); }
+.finder__meta { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.finder__name { font-weight: 700; }
+.finder__badge { font-size: var(--fs-xs); opacity: 0.6; }
+.finder__summary { font-size: var(--fs-xs); opacity: 0.75; }
+
+.finder__status {
+  padding: 0.35rem 0.8rem;
+  border-top: 1px solid var(--palette-border);
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* ---- Project detail ---- */
+.app--project .project__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.app--project .project__title { font-size: var(--fs-lg); }
+
+.project__badge {
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--clr-peach) 60%, transparent);
+  font-size: var(--fs-xs);
+}
+
+.project__note {
+  margin: 0.8rem 0;
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid var(--world-accent);
+  background: color-mix(in srgb, var(--world-accent) 12%, transparent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.project__tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; list-style: none; }
+
+.project__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--world-accent) 30%, transparent);
+  border: 1px solid var(--palette-border);
+}
+
+/* ---- Skills ---- */
+.skills__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.9rem; }
+.skills__category { font-size: var(--fs-sm); text-transform: capitalize; opacity: 0.7; margin: 0 0 0.3rem; }
+.skills__tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0; list-style: none; }
+
+.skills__cta {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--palette-border);
+}
+
+.skills__code {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--clr-navy) 10%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.skills__button,
+.settings__toggle,
+.settings__reset,
+.resume__print {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--palette-border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--world-accent) 26%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+
+/* ---- Résumé ---- */
+.app--resume .resume__head { margin-bottom: 1rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--palette-border); }
+.resume__role { opacity: 0.75; }
+.resume__contact { font-family: var(--font-mono); font-size: var(--fs-xs); opacity: 0.7; }
+
+.resume__heading {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin: 1.2rem 0 0.5rem;
+}
+
+.resume__entry { margin-bottom: 0.8rem; }
+.resume__entry h3 { font-size: var(--fs-base); margin-bottom: 0.15rem; text-transform: capitalize; }
+.resume__tools { font-size: var(--fs-xs); opacity: 0.65; font-family: var(--font-mono); }
+.resume__print { margin-top: 1.2rem; }
+
+/* ---- Settings ---- */
+.settings__title { margin-bottom: 1rem; }
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--palette-border);
+}
+
+.settings__text { display: flex; flex-direction: column; min-width: 0; }
+.settings__label { font-weight: 700; }
+.settings__desc { font-size: var(--fs-xs); opacity: 0.65; }
+
+.settings__segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--palette-border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--clr-navy) 6%, transparent);
+}
+
+.settings__segment {
+  padding: 0.25rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.settings__segment[aria-checked="true"] {
+  background: var(--world-accent);
+  color: var(--clr-bg);
+  font-weight: 700;
+}
+
+.settings__danger { margin-top: 1.2rem; }
+.settings__reset { margin-top: 0.5rem; background: color-mix(in srgb, #ff5f57 24%, transparent); }
+
+/* ---- Achievements ---- */
+.achv-head { margin-bottom: 1rem; }
+.achv-progress { font-size: var(--fs-xs); opacity: 0.7; }
+
+.achv-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--clr-navy) 12%, transparent);
+  overflow: hidden;
+}
+
+.achv-bar__fill { display: block; height: 100%; background: var(--world-accent); transition: width 400ms ease; }
+
+.achv-list { margin: 0; padding: 0; list-style: none; }
+
+.achv-item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--palette-border);
+}
+
+.achv-item[data-unlocked="false"] { opacity: 0.5; }
+.achv-item__star { color: var(--world-accent); font-size: 1.1rem; line-height: 1.3; }
+.achv-item__name { display: block; font-weight: 700; }
+.achv-item__hint { display: block; font-size: var(--fs-xs); opacity: 0.7; }
+
+/* ---- Help ---- */
+.help__list { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1rem; margin: 0 0 1rem; }
+.help__list dt { text-align: right; }
+.help__list dd { margin: 0; opacity: 0.8; }
+
+.help__list kbd,
+.kbd-hint kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--palette-border);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+
+/* ================================================================
+   8. HACKER WORLD
+================================================================ */
+
+[data-world="hacker"] .win,
+[data-world="hacker"] .menubar__panel,
+[data-world="hacker"] .ctxmenu {
+  background: var(--win-bg);
+  border-color: rgba(59, 255, 136, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(59, 255, 136, 0.05);
+}
+
+[data-world="hacker"] .win__bar {
+  background: var(--win-bar);
+  border-bottom-color: rgba(59, 255, 136, 0.25);
+}
+
+/* Phosphor terminals do not have traffic lights. */
+[data-world="hacker"] .win__light--close { background: #ff5f57; }
+[data-world="hacker"] .win__light--min   { background: #b9ff4d; }
+[data-world="hacker"] .win__light--zoom  { background: #3bff88; }
+
+[data-world="hacker"] .desktop-icon__glyph {
+  background: rgba(8, 22, 14, 0.75);
+  border-color: rgba(59, 255, 136, 0.3);
+  color: var(--clr-blue);
+  box-shadow: 0 0 14px rgba(59, 255, 136, 0.12);
+}
+
+[data-world="hacker"] .desktop-icon__label {
+  background: rgba(3, 10, 7, 0.72);
+  color: var(--clr-navy);
+}
+
+[data-world="hacker"] .dock {
+  background: rgba(4, 12, 8, 0.82);
+  border-color: rgba(59, 255, 136, 0.25);
+}
+
+[data-world="hacker"] .dock__tile { background: rgba(10, 28, 18, 0.7); color: var(--clr-blue); }
+[data-world="hacker"] .dock__dot { background: var(--clr-blue); }
+
+[data-world="hacker"] .menubar {
+  background: rgba(3, 10, 7, 0.9);
+  border-bottom-color: rgba(59, 255, 136, 0.25);
+}
+
+
+/* ================================================================
+   9. REDUCED MOTION, PRINT, SMALL SCREENS
+================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .win,
+  .dock__tile,
+  .wm-snap,
+  .achv-bar__fill { transition: none !important; }
+  .win.is-closing { animation: none; }
+}
+
+@media print {
+  .os, .menubar, .dock, .desktop, .os-escape, .page-return { display: none !important; }
+  [data-shell="os"] body > .section,
+  [data-shell="os"] body > .footer { display: block !important; }
+  [data-shell="os"] body { overflow: visible; height: auto; }
+}
+
+/* Below this the desktop metaphor stops being usable; the shell
+   falls back to the page presentation in JS, and this is the
+   belt-and-braces version of the same decision. */
+@media (max-width: 720px) {
+  .os { display: none; }
+  .page-return { display: none; }
+}

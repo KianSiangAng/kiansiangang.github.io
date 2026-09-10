@@ -35,6 +35,8 @@ import { createAchievements } from './ui/achievements.js';
 import { createSequences } from './ui/konami.js';
 import { createBootScreen, shouldBoot } from './ui/boot.js';
 
+import { createShell as createOSShell } from './os/shell.js';
+
 import { identity } from './data/portfolio.js';
 
 const log = createLogger('app');
@@ -161,6 +163,23 @@ kernel.use({
 });
 
 kernel.use({
+  name: 'os',
+  deps: ['bus', 'shell', 'terminal', 'gfx', 'audio', 'achievements'],
+  setup({ container }) {
+    return createOSShell({
+      bus,
+      services: {
+        audio: container.resolve('audio'),
+        scene: container.resolve('gfx'),
+        achievements: container.resolve('achievements'),
+        terminal: container.has('terminal') ? container.resolve('terminal') : null,
+        reducedMotion,
+      },
+    });
+  },
+});
+
+kernel.use({
   name: 'hud',
   deps: ['bus'],
   setup: () => createHUD({ bus, kernel }),
@@ -192,6 +211,8 @@ kernel.use({
         bus.emit('hud.toggle');
       }
     });
+
+    bus.on('palette.request', () => palette.open());
 
     return palette;
   },
@@ -375,6 +396,20 @@ function buildActions(container, palette) {
     { title: 'Open GitHub',        group: 'Contact', icon: '⌥', run: () => window.open(identity.github, '_blank', 'noopener,noreferrer') },
     { title: 'Open LinkedIn',      group: 'Contact', icon: '⌥', run: () => window.open(identity.linkedin, '_blank', 'noopener,noreferrer') },
   ];
+
+  /* Desktop apps, when the OS presentation is running. */
+  const os = container.has('os') ? container.resolve('os') : null;
+  if (os && os.mode() === 'os') {
+    for (const app of os.apps()) {
+      actions.push({
+        title: `Open ${app.title}`,
+        group: 'Apps',
+        icon: '▣',
+        keywords: [app.id, app.kind || '', app.description || ''],
+        run: () => os.open(app.id),
+      });
+    }
+  }
 
   /* Every shell command is also a palette action — one catalogue,
      two interfaces. */
