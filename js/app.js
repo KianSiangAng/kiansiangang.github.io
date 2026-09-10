@@ -20,7 +20,7 @@ import { createLogger, setLogLevel, drainLog } from './core/logger.js';
 
 import { createScene } from './gfx/scene.js';
 import { createAudioEngine } from './audio/synth.js';
-import { createDuality } from './theme/duality.js';
+import { createScheme } from './theme/scheme.js';
 
 import { createVFS } from './term/vfs.js';
 import { createShell } from './term/shell.js';
@@ -51,14 +51,12 @@ const bus = createEventBus();
 const container = createContainer();
 
 const initialState = loadPersisted('portfolio:state', {
-  world: 'ghibli',
   commandsRun: 0,
   visits: 0,
 });
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'world/set':      return { ...state, world: action.payload };
     case 'command/ran':    return { ...state, commandsRun: state.commandsRun + 1 };
     case 'visit/count':    return { ...state, visits: state.visits + 1 };
     default:               return state;
@@ -112,15 +110,9 @@ kernel.use({
 });
 
 kernel.use({
-  name: 'duality',
-  deps: ['bus', 'gfx', 'audio'],
-  setup: ({ container }) =>
-    createDuality({
-      bus,
-      scene: container.resolve('gfx'),
-      audio: container.resolve('audio'),
-      reducedMotion,
-    }),
+  name: 'scheme',
+  deps: ['bus', 'audio'],
+  setup: ({ container }) => createScheme({ bus, audio: container.resolve('audio') }),
 });
 
 kernel.use({
@@ -260,19 +252,17 @@ kernel.use({
   name: 'page',
   deps: ['bus'],
   setup() {
-    /* World toggle button in the navbar. */
-    const toggle = document.getElementById('world-toggle');
-    toggle?.addEventListener('click', () => bus.emit('world.request', { world: 'toggle' }));
-
-    bus.on('world.changed', ({ world }) => {
-      store.dispatch({ type: 'world/set', payload: world });
-      if (toggle) {
-        toggle.setAttribute('aria-pressed', String(world === 'hacker'));
-        toggle.setAttribute(
-          'aria-label',
-          world === 'hacker' ? 'Switch to the Ghibli world' : 'Switch to the hacker world',
-        );
+    /* A storm of petals, requested from the terminal, the Konami
+       code or by typing "sakura". */
+    bus.on('petals.storm', ({ intensity = 1.5 }) => {
+      const scene = container.resolve('gfx');
+      const count = Math.round(18 * intensity);
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          scene?.burst?.(Math.random() * window.innerWidth, -20, count);
+        }, i * 220);
       }
+      bus.emit('achievement.unlock', { id: 'storm' });
     });
 
     /* Audio toggle button. */
@@ -347,23 +337,23 @@ function buildActions(container, palette) {
     { title: 'Go to Contact',  group: 'Navigate', icon: '§', run: goto('contact'),  keywords: ['email', 'hire'] },
 
     {
-      title: 'Switch world (Ghibli ⇄ Hacker)',
-      group: 'World',
-      icon: '◐',
-      hint: 'or type: hack',
-      keywords: ['theme', 'matrix', 'green', 'sakura'],
-      run: () => bus.emit('world.request', { world: 'toggle' }),
-    },
-    {
       title: 'Toggle dark mode',
-      group: 'World',
+      group: 'Appearance',
       icon: '☾',
-      keywords: ['light', 'night', 'colour scheme'],
+      keywords: ['light', 'night', 'dark', 'colour scheme', 'theme'],
       run: () => bus.emit('theme.set', { theme: 'toggle' }),
     },
     {
+      title: 'Summon a storm of petals',
+      group: 'Appearance',
+      icon: '❀',
+      hint: 'or type: sakura',
+      keywords: ['sakura', 'blossom', 'storm', 'petals', 'wind'],
+      run: () => bus.emit('petals.storm', { intensity: 1.8 }),
+    },
+    {
       title: () => (audio.isOn() ? 'Turn the soundtrack off' : 'Turn the soundtrack on'),
-      group: 'World',
+      group: 'Appearance',
       icon: '♪',
       keywords: ['audio', 'music', 'sound', 'synth'],
       run: () => bus.emit('audio.request', { mode: 'toggle' }),
@@ -452,7 +442,8 @@ kernel
         console.log(
           `%c${identity.name}%c — console API\n\n` +
             '  kian.run("nmap")      run a shell command\n' +
-            '  kian.world("hacker")  switch worlds\n' +
+            '  kian.theme("dark")    switch colour scheme\n' +
+            '  kian.sakura()         a storm of petals\n' +
             '  kian.stats()          renderer statistics\n' +
             '  kian.modules()        kernel module report\n' +
             '  kian.log()            the boot log\n' +
@@ -464,8 +455,8 @@ kernel
         return '☺';
       },
       run: (command) => container.resolve('shell').run(command).then((r) => r.output.replace(/\x1b\[[0-9;]*m/g, '')),
-      world: (world) => bus.emit('world.request', { world: world || 'toggle' }),
       theme: (theme) => bus.emit('theme.set', { theme: theme || 'toggle' }),
+      sakura: (intensity = 1.8) => bus.emit('petals.storm', { intensity }),
       stats: () => container.resolve('gfx').stats(),
       modules: () => kernel.report(),
       deps: () => container.graph(),

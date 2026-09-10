@@ -67,7 +67,7 @@ export function createPalette({ bus, actions }) {
       empty.className = 'palette__empty';
       empty.setAttribute('role', 'option');
       empty.setAttribute('aria-selected', 'false');
-      empty.textContent = 'No matches. Try: projects, hacker, terminal, resume.';
+      empty.textContent = 'No matches. Try: projects, terminal, resume, contact.';
       list.appendChild(empty);
       input.removeAttribute('aria-activedescendant');
       return;

@@ -52,12 +52,11 @@ export function createSequences({ bus }) {
   /* ---- the stock sequences ---- */
   register(KONAMI, () => {
     bus.emit('achievement.unlock', { id: 'konami' });
-    bus.emit('world.request', { world: 'hacker' });
-    bus.emit('konami.activated');
+    bus.emit('petals.storm', { intensity: 2.2 });
   }, 'konami');
 
-  register([...'ghibli'], () => bus.emit('world.request', { world: 'ghibli' }), 'ghibli');
-  register([...'hack'], () => bus.emit('world.request', { world: 'hacker' }), 'hack');
+  register([...'sakura'], () => bus.emit('petals.storm', { intensity: 1.4 }), 'sakura');
+  register([...'night'], () => bus.emit('theme.set', { theme: 'toggle' }), 'night');
 
   return {
     register,

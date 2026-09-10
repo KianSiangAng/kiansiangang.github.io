@@ -1,7 +1,7 @@
 /* ================================================================
    OS.CSS — The desktop presentation
 
-   Loaded on top of style.css and duality.css. Everything here is
+   Loaded on top of style.css and runtime.css. Everything here is
    scoped to [data-shell="os"] or to the .os subtree, so the plain
    page presentation is completely unaffected by it.
 
@@ -13,8 +13,7 @@
      5.  Dock
      6.  Context menus
      7.  App content (Finder, résumé, settings, achievements, help)
-     8.  Hacker world overrides
-     9.  Reduced motion, print, small screens
+     8.  Reduced motion, print, small screens
 ================================================================ */
 
 
@@ -146,11 +145,11 @@
 .menubar__clock:hover,
 .menubar__menu[aria-expanded="true"],
 .menubar__logo[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--world-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .menubar__icon--static { opacity: 0.55; pointer-events: none; }
-.menubar__icon.is-on { color: var(--world-accent); }
+.menubar__icon.is-on { color: var(--accent); }
 .menubar__note { font-size: 13px; }
 
 .menubar__clock {
@@ -192,7 +191,7 @@
 }
 
 .menubar__item:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--world-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .menubar__item:disabled { opacity: 0.4; }
@@ -223,62 +222,92 @@
 .desktop__marquee {
   position: fixed;
   z-index: 60;
-  border: 1px solid color-mix(in srgb, var(--world-accent) 80%, transparent);
-  background: color-mix(in srgb, var(--world-accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 80%, transparent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: 2px;
   pointer-events: none;
 }
 
 .desktop-icon {
   position: absolute;
-  width: 88px;
+  width: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.4rem 0.2rem 0.3rem;
-  border-radius: 8px;
-  cursor: default;
+  gap: 0.4rem;
+  padding: 0.5rem 0.3rem 0.4rem;
+  border-radius: 12px;
+  cursor: pointer;
   text-align: center;
   user-select: none;
 }
 
-.desktop-icon.is-dragging { opacity: 0.75; }
+.desktop-icon.is-dragging { opacity: 0.7; }
 
+/* ---- the tile ----
+   A hairline outline on a photographic wallpaper reads as faint UI
+   chrome. A solid gradient tile with a real shadow reads as an
+   object, and objects invite clicking. --icon-from / --icon-to are
+   set per app by desktop.js. */
 .desktop-icon__glyph {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  color: var(--clr-navy);
-  background: color-mix(in srgb, var(--clr-card-bg) 88%, transparent);
-  border: 1px solid var(--palette-border);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  width: 66px;
+  height: 66px;
+  border-radius: 20px;
+  background: linear-gradient(155deg, var(--icon-from, #cfd8e6), var(--icon-to, #a8b8cc));
+  box-shadow:
+    0 8px 18px -6px rgba(26, 39, 68, 0.45),
+    0 2px 5px rgba(26, 39, 68, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1),
+              box-shadow 220ms ease;
 }
 
-.desktop-icon:hover .desktop-icon__glyph { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+/* A soft top-left sheen, so the tile reads as a curved surface
+   rather than a flat rectangle of colour. */
+.desktop-icon__glyph::after {
+  content: '';
+  position: absolute;
+  inset: 1px 1px 45% 1px;
+  border-radius: 19px 19px 40% 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
 
-/* Folders and files read differently at a glance. */
-.desktop-icon__glyph[data-kind="folder"] { background: color-mix(in srgb, var(--clr-peach) 55%, var(--clr-card-bg)); }
-.desktop-icon__glyph[data-kind="file"]   { background: color-mix(in srgb, var(--clr-white) 80%, transparent); }
-.desktop-icon__glyph[data-kind="link"]   { background: color-mix(in srgb, var(--clr-blue) 45%, var(--clr-card-bg)); }
-.desktop-icon__glyph[data-kind="system"] { background: transparent; box-shadow: none; }
+/* The résumé tile is pale, so its glyph is drawn dark instead. */
+.desktop-icon__glyph[data-app="resume"] svg [fill^="rgba(255"] { fill: rgba(70, 60, 45, 0.9); }
+.desktop-icon__glyph[data-app="resume"] svg path[stroke] { stroke: rgba(120, 105, 80, 0.75); }
+
+.desktop-icon:hover .desktop-icon__glyph,
+.desktop-icon:focus-visible .desktop-icon__glyph {
+  transform: translateY(-6px) scale(1.06);
+  box-shadow:
+    0 18px 28px -8px rgba(26, 39, 68, 0.5),
+    0 4px 10px rgba(26, 39, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.desktop-icon:active .desktop-icon__glyph {
+  transform: translateY(-2px) scale(0.98);
+  transition-duration: 90ms;
+}
 
 .desktop-icon__label {
-  max-width: 84px;
-  padding: 0.05rem 0.35rem;
-  border-radius: 4px;
+  max-width: 100px;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
   color: var(--clr-navy);
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.3;
-  background: color-mix(in srgb, var(--clr-bg) 55%, transparent);
+  background: color-mix(in srgb, var(--clr-bg) 62%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 
-  /* Two lines maximum, then ellipsis. Without this a long name like
-     "Achievements" breaks mid-word and spills out of the icon cell. */
+  /* Two lines maximum, then ellipsis. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -286,17 +315,87 @@
   overflow-wrap: break-word;
 }
 
+/* A one-line description, revealed on hover. It answers "what is
+   this?" without adding permanent clutter.
+
+   Absolutely positioned on purpose: in the flex flow it added
+   height to the hovered icon and shoved its caption straight
+   through the label of the icon below. As a floating tooltip it
+   costs the layout nothing and can afford to be wider than the
+   icon cell. */
+.desktop-icon__caption {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 50%;
+  z-index: 3;
+  width: 132px;
+  margin-left: -66px;
+  padding: 0.25rem 0.45rem;
+  border-radius: 7px;
+  background: var(--palette-bg);
+  border: 1px solid var(--palette-border);
+  box-shadow: 0 6px 16px -6px rgba(26, 39, 68, 0.4);
+  color: var(--palette-fg);
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+
+.desktop-icon:hover,
+.desktop-icon:focus-visible { z-index: 4; }
+
+.desktop-icon:hover .desktop-icon__caption,
+.desktop-icon:focus-visible .desktop-icon__caption {
+  opacity: 1;
+  transform: none;
+}
+
+/* An empty description would otherwise render as a stray pill. */
+.desktop-icon__caption:empty { display: none; }
+
 .desktop-icon.is-selected .desktop-icon__glyph {
-  outline: 2px solid var(--world-accent);
-  outline-offset: 2px;
+  outline: 2.5px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .desktop-icon.is-selected .desktop-icon__label {
-  background: var(--world-accent);
+  background: var(--accent);
   color: var(--clr-bg);
 }
 
-.desktop-icon:focus-visible { outline: 2px solid var(--world-accent); outline-offset: 2px; }
+.desktop-icon:focus-visible { outline: none; }
+
+/* ---- first-visit attention ring ----
+   Exactly one launcher pulses, and only until the visitor opens
+   anything at all. One clear starting point beats six equal ones;
+   six pulsing icons would be a fairground. */
+.desktop-icon[data-featured="true"]::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  width: 66px;
+  height: 66px;
+  margin-left: -33px;
+  border-radius: 20px;
+  border: 2px solid var(--clr-peach);
+  opacity: 0;
+  animation: icon-attention 2.6s ease-out infinite;
+  pointer-events: none;
+}
+
+.desktop.has-been-used .desktop-icon::before,
+.desktop-icon:hover::before { animation: none; opacity: 0; }
+
+@keyframes icon-attention {
+  0%   { opacity: 0.85; transform: scale(1); }
+  70%  { opacity: 0; transform: scale(1.35); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
 
 
 /* ================================================================
@@ -315,8 +414,8 @@
   position: fixed;
   z-index: 90;
   border-radius: var(--radius-md);
-  border: 2px solid var(--world-accent);
-  background: color-mix(in srgb, var(--world-accent) 20%, transparent);
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
   opacity: 0;
   transition: opacity 120ms ease, left 120ms ease, top 120ms ease,
               width 120ms ease, height 120ms ease;
@@ -350,7 +449,7 @@
 .win.is-resizing { transition: none; user-select: none; }
 
 .win.is-focused {
-  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.3), 0 0 0 1px color-mix(in srgb, var(--world-accent) 35%, transparent);
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.3), 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .win.is-minimised {
@@ -397,7 +496,7 @@
 .win__light--min   { background: #febc2e; }
 .win__light--zoom  { background: #28c840; }
 .win__lights:hover .win__light { filter: brightness(1.1); }
-.win__light:focus-visible { outline: 2px solid var(--world-accent); outline-offset: 2px; }
+.win__light:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .win__titlewrap {
   display: flex;
@@ -484,8 +583,8 @@
   transition: background var(--transition-fast), transform 90ms ease;
 }
 
-.dock__tile:hover { background: color-mix(in srgb, var(--world-accent) 35%, transparent); }
-.dock__tile.is-focused { background: color-mix(in srgb, var(--world-accent) 45%, transparent); }
+.dock__tile:hover { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.dock__tile.is-focused { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 
 .dock__label {
   position: absolute;
@@ -553,7 +652,7 @@
 
 .ctxmenu__item.is-active:not(:disabled),
 .ctxmenu__item:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--world-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .ctxmenu__item:disabled { opacity: 0.4; }
@@ -630,7 +729,7 @@
 .terminal__input:focus-visible { outline: none; }
 
 .terminal__inputline:focus-within {
-  box-shadow: inset 2px 0 0 var(--world-accent);
+  box-shadow: inset 2px 0 0 var(--accent);
   padding-left: 0.4rem;
   border-radius: 2px;
 }
@@ -659,7 +758,7 @@
   font-size: 11px;
 }
 
-.finder__view.is-active { background: color-mix(in srgb, var(--world-accent) 35%, transparent); }
+.finder__view.is-active { background: color-mix(in srgb, var(--accent) 35%, transparent); }
 
 .finder__grid { flex: 1 1 auto; margin: 0; padding: 0.8rem; list-style: none; overflow: auto; }
 .finder__grid--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
@@ -683,7 +782,7 @@
 
 .finder__button:hover,
 .finder__button:focus-visible {
-  background: color-mix(in srgb, var(--world-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
   border-color: var(--palette-border);
 }
 
@@ -714,8 +813,8 @@
 .project__note {
   margin: 0.8rem 0;
   padding: 0.7rem 0.9rem;
-  border-left: 3px solid var(--world-accent);
-  background: color-mix(in srgb, var(--world-accent) 12%, transparent);
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
@@ -728,7 +827,7 @@
   margin-top: 1rem;
   padding: 0.5rem 0.9rem;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--world-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
   border: 1px solid var(--palette-border);
 }
 
@@ -763,7 +862,7 @@
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--palette-border);
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--world-accent) 26%, transparent);
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
   color: inherit;
   font: inherit;
   font-size: var(--fs-sm);
@@ -823,7 +922,7 @@
 }
 
 .settings__segment[aria-checked="true"] {
-  background: var(--world-accent);
+  background: var(--accent);
   color: var(--clr-bg);
   font-weight: 700;
 }
@@ -842,7 +941,7 @@
   overflow: hidden;
 }
 
-.achv-bar__fill { display: block; height: 100%; background: var(--world-accent); transition: width 400ms ease; }
+.achv-bar__fill { display: block; height: 100%; background: var(--accent); transition: width 400ms ease; }
 
 .achv-list { margin: 0; padding: 0; list-style: none; }
 
@@ -855,7 +954,7 @@
 }
 
 .achv-item[data-unlocked="false"] { opacity: 0.5; }
-.achv-item__star { color: var(--world-accent); font-size: 1.1rem; line-height: 1.3; }
+.achv-item__star { color: var(--accent); font-size: 1.1rem; line-height: 1.3; }
 .achv-item__name { display: block; font-weight: 700; }
 .achv-item__hint { display: block; font-size: var(--fs-xs); opacity: 0.7; }
 
@@ -875,64 +974,124 @@
 }
 
 
+/* ---- Welcome ---- */
+.app--welcome {
+  display: flex;
+  flex-direction: column;
+  padding: 1.6rem 1.5rem 1.3rem;
+}
+
+.welcome__greeting {
+  margin: 0;
+  font-size: var(--fs-sm);
+  opacity: 0.65;
+}
+
+.welcome__name {
+  margin: 0 0 0.1rem;
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+
+.welcome__role {
+  margin: 0 0 0.9rem;
+  font-size: var(--fs-sm);
+  color: var(--clr-navy-light);
+  opacity: 0.85;
+}
+
+.welcome__blurb {
+  margin: 0 0 1.1rem;
+  font-size: var(--fs-sm);
+  opacity: 0.8;
+}
+
+.welcome__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.welcome__action {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--palette-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--clr-card-bg) 55%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1),
+              box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.welcome__action:hover,
+.welcome__action:focus-visible {
+  transform: translateX(3px);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 6px 18px -8px rgba(26, 39, 68, 0.5);
+}
+
+.welcome__action-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  color: #fff;
+  background: linear-gradient(155deg, #A8C8E8, #6E9FD0);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.welcome__action-icon[data-app="projects"] { background: linear-gradient(155deg, #F5CFA4, #E09A5F); }
+.welcome__action-icon[data-app="terminal"] { background: linear-gradient(155deg, #42568C, #1A2744); }
+.welcome__action-icon[data-app="resume"]   { background: linear-gradient(155deg, #FBF4E4, #E2D2B0); color: #6b5c42; }
+
+.welcome__action-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.welcome__action-text strong { font-size: var(--fs-sm); }
+.welcome__action-text span { font-size: var(--fs-xs); opacity: 0.65; }
+
+.welcome__chevron {
+  font-size: 1.3rem;
+  opacity: 0.35;
+  line-height: 1;
+}
+
+.welcome__dismiss {
+  align-self: flex-start;
+  margin-top: 1rem;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  opacity: 0.55;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.welcome__dismiss:hover { opacity: 0.85; }
+
+
 /* ================================================================
-   8. HACKER WORLD
-================================================================ */
-
-[data-world="hacker"] .win,
-[data-world="hacker"] .menubar__panel,
-[data-world="hacker"] .ctxmenu {
-  background: var(--win-bg);
-  border-color: rgba(59, 255, 136, 0.3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(59, 255, 136, 0.05);
-}
-
-[data-world="hacker"] .win__bar {
-  background: var(--win-bar);
-  border-bottom-color: rgba(59, 255, 136, 0.25);
-}
-
-/* Phosphor terminals do not have traffic lights. */
-[data-world="hacker"] .win__light--close { background: #ff5f57; }
-[data-world="hacker"] .win__light--min   { background: #b9ff4d; }
-[data-world="hacker"] .win__light--zoom  { background: #3bff88; }
-
-[data-world="hacker"] .desktop-icon__glyph {
-  background: rgba(8, 22, 14, 0.75);
-  border-color: rgba(59, 255, 136, 0.3);
-  color: var(--clr-blue);
-  box-shadow: 0 0 14px rgba(59, 255, 136, 0.12);
-}
-
-[data-world="hacker"] .desktop-icon__label {
-  background: rgba(3, 10, 7, 0.72);
-  color: var(--clr-navy);
-}
-
-[data-world="hacker"] .dock {
-  background: rgba(4, 12, 8, 0.82);
-  border-color: rgba(59, 255, 136, 0.25);
-}
-
-[data-world="hacker"] .dock__tile { background: rgba(10, 28, 18, 0.7); color: var(--clr-blue); }
-[data-world="hacker"] .dock__dot { background: var(--clr-blue); }
-
-[data-world="hacker"] .menubar {
-  background: rgba(3, 10, 7, 0.9);
-  border-bottom-color: rgba(59, 255, 136, 0.25);
-}
-
-
-/* ================================================================
-   9. REDUCED MOTION, PRINT, SMALL SCREENS
+   8. REDUCED MOTION, PRINT, SMALL SCREENS
 ================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   .win,
   .dock__tile,
   .wm-snap,
+  .desktop-icon__glyph,
+  .desktop-icon__caption,
+  .welcome__action,
   .achv-bar__fill { transition: none !important; }
   .win.is-closing { animation: none; }
+  .desktop-icon[data-featured="true"]::before { animation: none; opacity: 0; }
 }
 
 @media print {

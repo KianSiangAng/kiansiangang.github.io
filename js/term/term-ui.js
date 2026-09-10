@@ -156,10 +156,9 @@ export function createTerminalUI({ shell, bus, root }) {
       // Also drop the static mock-up: the visitor asked for a clear screen.
       body.querySelectorAll('.terminal__group').forEach((el) => el.remove());
     },
-    matrix() {
-      root.classList.add('terminal--matrix');
-      setTimeout(() => root.classList.remove('terminal--matrix'), 3200);
-      bus.emit('world.request', { world: 'hacker' });
+    storm() {
+      root.classList.add('terminal--storm');
+      setTimeout(() => root.classList.remove('terminal--storm'), 2400);
     },
     exit() {
       root.classList.add('terminal--closed');

@@ -62,6 +62,7 @@ export function createShell({ bus, services }) {
      first call a no-op and leave data-shell unset. */
   let mode = null;
   let os = null;
+  let welcomeShown = false;
 
   const root = el('div.os', { id: 'os-root', hidden: true });
   document.body.appendChild(root);
@@ -149,11 +150,11 @@ export function createShell({ bus, services }) {
     bus.on('desktop.tidy', () => desktop.tidy());
     bus.on('os.open', ({ appId, param }) => open(appId, { param }));
 
-    /* ⌥W switches world, matching the menu bar hint. */
+    /* ⌥D toggles the colour scheme, matching the menu bar hint. */
     window.addEventListener('keydown', (event) => {
-      if (event.altKey && event.key.toLowerCase() === 'w') {
+      if (event.altKey && event.key.toLowerCase() === 'd') {
         event.preventDefault();
-        bus.emit('world.request', { world: 'toggle' });
+        bus.emit('theme.set', { theme: 'toggle' });
       }
     });
 
@@ -171,7 +172,19 @@ export function createShell({ bus, services }) {
 
     // Deep link on first entry: #/projects should open Projects.
     const route = built.router.current();
-    if (route.app) built.open(route.app, { param: route.param, fromRouter: true });
+    if (route.app) {
+      built.open(route.app, { param: route.param, fromRouter: true });
+      return built;
+    }
+
+    /* No deep link and never been here before: offer a starting point.
+       Once is enough — a welcome screen that reappears is an obstacle. */
+    let welcomed = true;
+    try { welcomed = Boolean(localStorage.getItem('portfolio:welcomed')); } catch { /* ignore */ }
+    if (!welcomed && !welcomeShown) {
+      welcomeShown = true;
+      built.open('welcome');
+    }
     return built;
   }
 

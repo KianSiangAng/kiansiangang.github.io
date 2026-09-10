@@ -29,7 +29,6 @@ export function createFlock(canvas, options = {}) {
   const birds = [];
   let width = 0;
   let height = 0;
-  let worldMix = 0;
 
   const count = options.count ?? 14;
 
@@ -129,9 +128,7 @@ export function createFlock(canvas, options = {}) {
   }
 
   function draw() {
-    // Birds belong to the Ghibli world; they fade as it does.
-    const opacity = (1 - worldMix) * 0.55;
-    if (opacity <= 0.01) return;
+    const opacity = 0.55;
 
     ctx.save();
     ctx.strokeStyle = `rgba(64, 54, 64, ${opacity})`;
@@ -162,7 +159,6 @@ export function createFlock(canvas, options = {}) {
     resize,
     update,
     draw,
-    setWorldMix(value) { worldMix = value; },
     get count() { return birds.length; },
   };
 }

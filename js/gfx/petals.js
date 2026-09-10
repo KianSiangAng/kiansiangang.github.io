@@ -12,13 +12,11 @@
      - per-petal depth, driving size, opacity, blur and parallax
      - object pooling: the array is allocated once and reused, so
        the system never triggers GC mid-scroll
-     - in the hacker world the same particles render as falling
-       glyphs — identical physics, different shader, so to speak
+     - a burst() for interaction, so clicking the mascot puffs
+       petals out of it
 
    Respects prefers-reduced-motion by not existing.
 ================================================================ */
-
-const GLYPHS = 'アイウエオカキクケコサシスセソ0123456789<>[]{}/\\|=+*#$%&@';
 
 /* ---- Value noise, the JavaScript twin of the one in the GLSL ---- */
 function hash2(x, y) {
@@ -56,7 +54,6 @@ export function createPetalSystem(canvas, options = {}) {
   let width = 0;
   let height = 0;
   let dpr = 1;
-  let worldMix = 0;               // 0 = petals, 1 = glyphs
   let pointer = { x: -999, y: -999 };
 
   const config = {
@@ -83,8 +80,6 @@ export function createPetalSystem(canvas, options = {}) {
     petal.spin = (Math.random() - 0.5) * 1.4;
     petal.wobble = Math.random() * Math.PI * 2;
     petal.colour = PALETTE[(Math.random() * PALETTE.length) | 0];
-    petal.glyph = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-    petal.glyphTimer = 0;
     return petal;
   }
 
@@ -130,12 +125,6 @@ export function createPetalSystem(canvas, options = {}) {
       petal.wobble += step * 2.2;
       petal.rotation += petal.spin * step;
 
-      petal.glyphTimer += step;
-      if (petal.glyphTimer > 0.12) {
-        petal.glyphTimer = 0;
-        petal.glyph = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-      }
-
       // Recycle rather than allocate.
       if (petal.y > height + 40) resetPetal(petal, true);
       if (petal.x < -60) petal.x = width + 40;
@@ -164,17 +153,6 @@ export function createPetalSystem(canvas, options = {}) {
     ctx.restore();
   }
 
-  function drawGlyph(petal) {
-    ctx.save();
-    ctx.translate(petal.x, petal.y);
-    ctx.globalAlpha = 0.25 + petal.depth * 0.6;
-    ctx.fillStyle = petal.depth > 0.85 ? '#d7ffe6' : '#3bff88';
-    ctx.font = `${Math.round(petal.size * 1.5)}px "Space Mono", monospace`;
-    ctx.textAlign = 'center';
-    ctx.fillText(petal.glyph, 0, 0);
-    ctx.restore();
-  }
-
   /** Clear the shared canvas. Split out from draw() so other
       systems (the flock) can render between the clear and the
       petals, and end up visually behind them. */
@@ -183,14 +161,7 @@ export function createPetalSystem(canvas, options = {}) {
   }
 
   function draw() {
-    if (worldMix > 0.5) {
-      ctx.shadowColor = 'rgba(60, 255, 130, 0.7)';
-      ctx.shadowBlur = 8;
-      for (const petal of petals) drawGlyph(petal);
-      ctx.shadowBlur = 0;
-    } else {
-      for (const petal of petals) drawPetal(petal);
-    }
+    for (const petal of petals) drawPetal(petal);
     ctx.globalAlpha = 1;
   }
 
@@ -200,7 +171,6 @@ export function createPetalSystem(canvas, options = {}) {
     draw,
     clearFrame,
     get count() { return petals.length; },
-    setWorldMix(value) { worldMix = value; },
     setPointer(x, y) { pointer.x = x; pointer.y = y; },
     /** A puff of petals from a point — used when the mascot is clicked. */
     burst(x, y, amount = 10) {

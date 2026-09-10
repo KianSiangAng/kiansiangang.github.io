@@ -129,3 +129,105 @@ export function icon(name, size = 20) {
 }
 
 export const iconNames = Object.keys(SHAPES);
+
+/* ================================================================
+   APP GLYPHS — filled, two-tone, for the desktop
+
+   The line icons above are right for menus and the dock, where an
+   icon is a label. They are wrong for a desktop launcher, where an
+   icon has to look like an object worth clicking: a 1.6px hairline
+   on a photographic wallpaper reads as faint UI chrome.
+
+   These are solid shapes in two tones of white, drawn to sit on a
+   coloured gradient tile. The lighter tone carries the detail (a
+   folder's flap, a page's folded corner), which is what gives a
+   flat glyph the suggestion of depth.
+================================================================ */
+
+const SOLID = 'rgba(255,255,255,0.96)';
+const SHADE = 'rgba(255,255,255,0.58)';
+
+/* Internal detail on a mostly-white glyph has to be DARKER, not
+   lighter. A lighter-white fold on a pale tile disappears entirely,
+   which turned the Contact envelope into a plain white rectangle. */
+const DETAIL = 'rgba(46, 46, 58, 0.20)';
+
+const APP_SHAPES = {
+  person: () => [
+    svg('circle', { fill: SOLID, cx: 12, cy: 8.4, r: 3.9 }),
+    svg('path', {
+      fill: SHADE,
+      d: 'M12 13.4c-4.3 0-7.8 2.9-7.8 6.6 0 .6.5 1.1 1.1 1.1h13.4c.6 0 1.1-.5 1.1-1.1 0-3.7-3.5-6.6-7.8-6.6z',
+    }),
+  ],
+
+  folder: () => [
+    svg('path', {
+      fill: SHADE,
+      d: 'M2.8 7c0-1.1.9-2 2-2h4.3l2.2 2.6h7.9c1.1 0 2 .9 2 2v2.1H2.8z',
+    }),
+    svg('path', {
+      fill: SOLID,
+      d: 'M2.4 10.2h19.2l-1.4 8.4c-.15 1-1 1.7-2 1.7H5.8c-1 0-1.85-.7-2-1.7z',
+    }),
+    svg('path', { fill: DETAIL, d: 'M2.4 10.2h19.2l-.16 1H2.56z' }),
+  ],
+
+  terminal: () => [
+    svg('rect', { fill: SHADE, x: 2.4, y: 4.2, width: 19.2, height: 15.6, rx: 2.8 }),
+    svg('path', {
+      fill: 'none', stroke: SOLID, 'stroke-width': 2.1,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+      d: 'M6.9 9.9l3.1 2.6-3.1 2.6',
+    }),
+    svg('path', {
+      fill: 'none', stroke: SOLID, 'stroke-width': 2.1, 'stroke-linecap': 'round',
+      d: 'M12.9 15.4h4.4',
+    }),
+  ],
+
+  document: () => [
+    svg('path', {
+      fill: SOLID,
+      d: 'M6.2 2.6h6.5l5.3 5.3v12.1c0 1-.8 1.8-1.8 1.8H6.2c-1 0-1.8-.8-1.8-1.8V4.4c0-1 .8-1.8 1.8-1.8z',
+    }),
+    svg('path', { fill: SHADE, d: 'M12.7 2.6l5.3 5.3h-4.3c-.55 0-1-.45-1-1z' }),
+    svg('path', {
+      fill: 'none', stroke: 'rgba(120,110,90,0.55)', 'stroke-width': 1.5, 'stroke-linecap': 'round',
+      d: 'M7.6 12.4h7.6M7.6 15.4h7.6M7.6 9.4h3.4',
+    }),
+  ],
+
+  mail: () => [
+    svg('rect', { fill: SOLID, x: 2.3, y: 5, width: 19.4, height: 14, rx: 2.6 }),
+    svg('path', { fill: DETAIL, d: 'M3.4 6.5h17.2L12 13.2z' }),
+    svg('path', {
+      fill: 'none', stroke: DETAIL, 'stroke-width': 1.4, 'stroke-linecap': 'round',
+      d: 'M3.6 17.6l5.6-4.7M20.4 17.6l-5.6-4.7',
+    }),
+  ],
+
+  chart: () => [
+    svg('rect', { fill: SHADE, x: 3.4, y: 12.6, width: 3.6, height: 7.8, rx: 1.3 }),
+    svg('rect', { fill: SOLID, x: 8.9, y: 6.4, width: 3.6, height: 14, rx: 1.3 }),
+    svg('rect', { fill: SHADE, x: 14.4, y: 9.8, width: 3.6, height: 10.6, rx: 1.3 }),
+    svg('circle', { fill: SOLID, cx: 19.6, cy: 5.2, r: 2 }),
+  ],
+};
+
+/**
+ * A filled desktop-launcher glyph. Falls back to the line icon for
+ * anything without a solid design.
+ */
+export function appGlyph(name, size = 34) {
+  const shape = APP_SHAPES[name];
+  if (!shape) return icon(name, size);
+  return svg('svg', {
+    viewBox: '0 0 24 24',
+    width: size,
+    height: size,
+    'aria-hidden': 'true',
+    focusable: 'false',
+  }, shape());
+}
+

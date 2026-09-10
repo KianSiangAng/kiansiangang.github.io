@@ -16,13 +16,20 @@
    The Terminal is the exception: it does not clone, it adopts.
    The live shell element is moved into the window, because two
    copies of a terminal wired to one shell would be a mess.
+
+   Two surfaces, two jobs, no duplication:
+     desktop: true   the six things a visitor actually came for,
+                     as large colourful launchers
+     pinned: true    utilities and links, as quiet dock glyphs
+   Nothing appears on both. A desktop that mirrors its own dock is
+   twice the clutter and half the hierarchy.
 ================================================================ */
 
 import { el } from './dom.js';
 import { identity } from '../data/portfolio.js';
 import {
   buildProjects, buildProject, buildResume, buildSkills,
-  buildSettings, buildAchievements, buildHelp,
+  buildSettings, buildAchievements, buildHelp, buildWelcome,
 } from './apps/panels.js';
 
 /**
@@ -79,11 +86,27 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
 
   const apps = [
     {
+      id: 'welcome',
+      title: `Welcome`,
+      icon: 'star',
+      kind: 'app',
+      description: 'Start here',
+      window: { width: 486, height: 548, minWidth: 380 },
+      build: (win) => buildWelcome({
+        onOpen,
+        onDismiss: (explicit) => {
+          try { localStorage.setItem('portfolio:welcomed', '1'); } catch { /* ignore */ }
+          if (explicit) win.close();
+        },
+      }),
+    },
+    {
       id: 'about',
       title: 'About Me',
       icon: 'person',
       kind: 'app',
-      pinned: true,
+      desktop: true,
+      tint: ['#A8C8E8', '#6E9FD0'],
       description: 'Who I am and what I have done',
       window: { width: 760, height: 520 },
       build: () => lift('#about .container'),
@@ -93,7 +116,9 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Projects',
       icon: 'folder',
       kind: 'folder',
-      pinned: true,
+      desktop: true,
+      featured: true,
+      tint: ['#F5CFA4', '#E09A5F'],
       description: 'A folder of things I have built',
       window: { width: 700, height: 470 },
       build: () => buildProjects({ onOpenProject: openProject }),
@@ -103,7 +128,8 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Terminal',
       icon: 'terminal',
       kind: 'app',
-      pinned: true,
+      desktop: true,
+      tint: ['#42568C', '#1A2744'],
       description: 'A real shell — try `help`',
       window: { width: 720, height: 460, minWidth: 420, minHeight: 260 },
       build(win) {
@@ -120,7 +146,8 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Résumé',
       icon: 'document',
       kind: 'file',
-      pinned: true,
+      desktop: true,
+      tint: ['#FBF4E4', '#E2D2B0'],
       description: 'The one-page version',
       window: { width: 620, height: 560 },
       build: () => buildResume(),
@@ -130,6 +157,8 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Skills',
       icon: 'chart',
       kind: 'app',
+      desktop: true,
+      tint: ['#BFDCC0', '#82B589'],
       description: 'Languages, tools and concepts',
       window: { width: 640, height: 440 },
       build: () => buildSkills({ onOpen }),
@@ -139,7 +168,8 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Contact',
       icon: 'mail',
       kind: 'app',
-      pinned: true,
+      desktop: true,
+      tint: ['#F5BDB6', '#DE8B84'],
       description: 'Email, GitHub, LinkedIn',
       window: { width: 560, height: 380 },
       build: () => lift('#contact .container'),
@@ -149,7 +179,8 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Settings',
       icon: 'gear',
       kind: 'app',
-      description: 'World, colour scheme, audio, presentation',
+      pinned: true,
+      description: 'Colour scheme, audio, presentation',
       window: { width: 560, height: 520 },
       build: () => buildSettings({ bus, shell, audio, scene }),
     },
@@ -158,6 +189,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Achievements',
       icon: 'star',
       kind: 'app',
+      pinned: true,
       description: 'Twelve things to find',
       window: { width: 480, height: 520 },
       build: () => buildAchievements({ achievements }),
@@ -167,6 +199,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'Help',
       icon: 'info',
       kind: 'app',
+      pinned: true,
       description: 'Keyboard shortcuts and hints',
       window: { width: 520, height: 480 },
       build: () => buildHelp(),
@@ -176,6 +209,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'README.md',
       icon: 'document',
       kind: 'file',
+      pinned: true,
       description: 'Why this site is like this',
       window: { width: 620, height: 500 },
       build: () => el('div.app.app--readme', {}, [
@@ -199,6 +233,14 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
             + 'phones get a conventional scrolling site, and with JavaScript disabled '
             + 'the whole portfolio is still there as plain semantic HTML.',
         }),
+        el('h2', { text: 'Deliberately not built' }),
+        el('ul', {}, [
+          el('li', { text: 'An auto-playing background video — weight, autoplay policy, and rude.' }),
+          el('li', { text: 'A cookie banner. There are no cookies, so there is nothing to consent to.' }),
+          el('li', { text: 'Third-party analytics. Nothing here needs to know who you are.' }),
+          el('li', { text: 'A CDN for the JavaScript — a supply chain I do not control.' }),
+          el('li', { text: 'A second visual theme. It was a good demo and a bad portfolio.' }),
+        ]),
         el('h2', { text: 'Contact' }),
         el('p', { text: `${identity.email} · ${identity.github}` }),
       ]),
@@ -208,6 +250,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'GitHub',
       icon: 'github',
       kind: 'link',
+      pinned: true,
       url: identity.github,
       description: 'My repositories',
       external: identity.github,
@@ -217,29 +260,10 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       title: 'LinkedIn',
       icon: 'linkedin',
       kind: 'link',
+      pinned: true,
       url: identity.linkedin,
       description: 'Professional profile',
       external: identity.linkedin,
-    },
-    {
-      id: 'trash',
-      title: 'Trash',
-      icon: 'trash',
-      kind: 'system',
-      description: 'Ideas that did not survive review',
-      window: { width: 480, height: 320 },
-      build: () => el('div.app.app--trash', {}, [
-        el('h1', { text: 'Trash' }),
-        el('p', { text: 'Things considered for this site and deliberately thrown away:' }),
-        el('ul', {}, [
-          el('li', { text: 'An auto-playing background video (weight, autoplay policy, and rude).' }),
-          el('li', { text: 'A cookie banner (there are no cookies, so there is nothing to consent to).' }),
-          el('li', { text: 'Third-party analytics (nothing here needs to know who you are).' }),
-          el('li', { text: 'A CDN for the JavaScript (a supply chain I do not control).' }),
-          el('li', { text: 'A password strength checker as a web app — see the Password Analyzer.' }),
-        ]),
-        el('p.app__aside', { text: 'Emptying the trash is not implemented. The decisions stand.' }),
-      ]),
     },
   ];
 
@@ -249,7 +273,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
     apps,
     get: (id) => byId.get(id),
     openProject,
-    /** Everything the desktop should show as an icon. */
-    desktopIcons: () => apps.filter((app) => app.kind !== 'hidden'),
+    /** Only the content apps get a desktop launcher. */
+    desktopIcons: () => apps.filter((app) => app.desktop),
   };
 }

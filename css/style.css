@@ -598,7 +598,7 @@ button {
    browser. They are now drawn into a single canvas by
    js/gfx/petals.js (physics, curl-noise wind) and js/gfx/birds.js
    (a boids flock), which is both cheaper and far more capable.
-   The layer stack for those canvases lives in css/duality.css. */
+   The layer stack for those canvases lives in css/runtime.css. */
 
 /* The text content sits above the particles */
 .hero__content {

@@ -1,21 +1,13 @@
 /* ================================================================
    SHADERS.JS — GLSL ES 3.0 sources
 
-   Two full-screen fragment shaders, one per world:
+   One full-screen fragment shader: a procedural sky. A vertical
+   gradient, five octaves of fBm cloud in two layers for depth, a
+   sun (or moon) whose glow drifts with the pointer, and a vignette.
 
-     ghibliFragment — a procedural sky: vertical gradient, five
-       octaves of fBm cloud, a sun (or moon) whose glow follows the
-       pointer, and a vignette. Day/night is a uniform, so the
-       existing light/dark toggle drives the shader too.
-
-     hackerFragment — falling glyph columns, a faint wireframe
-       grid and CRT scanlines. Column speed and glyph flicker are
-       derived from a hash of the column index, so it is stable
-       across frames without any CPU-side state.
-
-   Both are drawn to the same full-screen quad and composited by
-   alpha, which is what makes the world transition a crossfade
-   rather than a hard cut.
+   Day and night are a uniform rather than a second shader, so the
+   light/dark toggle drives the sky directly — dawn colours become
+   deep blues, the sun becomes a moon, and the clouds cool off.
 ================================================================ */
 
 export const vertexShader = `#version 300 es
@@ -35,7 +27,7 @@ out vec4 fragColor;
 
 uniform vec2  uResolution;
 uniform float uTime;
-uniform float uAlpha;      // crossfade weight for this world
+uniform float uAlpha;      // layer opacity
 uniform float uDark;       // 0 = light scheme, 1 = dark scheme
 uniform vec2  uPointer;    // normalised cursor position
 
@@ -98,46 +90,6 @@ void main() {
   // --- vignette -----------------------------------------------
   float vignette = smoothstep(1.3, 0.3, length(uv - 0.5) * 1.6);
   colour *= mix(0.8, 1.0, vignette);
-
-  fragColor = vec4(colour, uAlpha);
-}`;
-
-export const hackerFragment = `${PRELUDE}
-void main() {
-  vec2 uv = vUv;
-  float columns = max(floor(uResolution.x / 16.0), 8.0);
-  float rows    = max(floor(uResolution.y / 18.0), 8.0);
-
-  float column = floor(uv.x * columns);
-  float speed  = 0.35 + hash(vec2(column, 1.0)) * 1.1;
-
-  // Row index counted from the TOP so the rain falls downward.
-  float row  = floor((1.0 - uv.y) * rows);
-  float head = fract(hash(vec2(column, 3.0)) + uTime * speed * 0.22) * rows;
-
-  // Distance behind the leading glyph, wrapped into [0, rows).
-  float trail = mod(row - head, rows);
-
-  // Glyph flicker: re-hashed a few times a second per cell.
-  float glyph = hash(vec2(column, row + floor(uTime * 7.0 * speed)));
-  float lit = step(0.32, glyph);
-
-  vec3 colour = vec3(0.015, 0.045, 0.028);
-  colour += vec3(0.10, 0.95, 0.35) * exp(-trail * 0.28) * lit;
-  colour += vec3(0.75, 1.0, 0.85) * smoothstep(1.4, 0.0, trail) * lit;  // bright head
-
-  // faint wireframe grid
-  vec2 cell = fract(uv * vec2(columns, rows));
-  float grid = step(0.965, cell.x) + step(0.965, cell.y);
-  colour += vec3(0.0, 0.22, 0.14) * grid * 0.16;
-
-  // CRT scanlines + slight horizontal jitter near the top
-  colour *= 0.86 + 0.14 * sin(uv.y * uResolution.y * 1.6);
-  colour *= 1.0 - 0.25 * smoothstep(0.85, 1.0, hash(vec2(floor(uTime * 12.0), row)));
-
-  // pointer bloom, so the cursor feels like it disturbs the field
-  float near = distance(uv, uPointer);
-  colour += vec3(0.05, 0.35, 0.18) * exp(-near * near * 40.0);
 
   fragColor = vec4(colour, uAlpha);
 }`;

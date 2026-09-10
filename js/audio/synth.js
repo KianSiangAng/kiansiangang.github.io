@@ -1,17 +1,14 @@
 /* ================================================================
    SYNTH.JS — A generated soundtrack, no audio files
 
-   Two beds, crossfaded with the world:
+   A slow ambient pad: three detuned triangle oscillators on a
+   suspended chord through a lowpass filter whose cutoff is swept by
+   an LFO, plus sparse bell notes picked from a pentatonic scale.
+   Vaguely Joe Hisaishi, if you are feeling generous.
 
-     ghibli — a slow pad: three detuned triangle oscillators on a
-       pentatonic chord through a lowpass filter whose cutoff is
-       swept by an LFO, plus occasional bell notes picked from the
-       scale. Vaguely Joe Hisaishi, if you are generous.
-
-     hacker — a saw drone plus a 16th-note arpeggio through a
-       resonant filter, scheduled with a lookahead clock rather
-       than setTimeout-per-note, because setTimeout jitter is
-       audible and a lookahead scheduler is the correct fix.
+   Notes are queued by a lookahead scheduler rather than a
+   setTimeout per note: setTimeout jitter is audible on anything
+   rhythmic, and a lookahead clock is the standard fix.
 
    Reverb is a convolver fed a procedurally generated impulse
    response (exponentially decaying noise) — no .wav to download.
@@ -24,28 +21,25 @@ import { createLogger } from '../core/logger.js';
 
 const log = createLogger('audio');
 
-/* A minor pentatonic gives the Ghibli-ish flavour; the hacker bed
-   uses the same set a fifth down so the crossfade stays consonant. */
+/* A minor pentatonic: no interval in it can sound wrong against
+   the pad, which is what makes randomly chosen bell notes safe. */
 const PENTATONIC = [220.0, 261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33];
-const ARP = [110.0, 130.81, 164.81, 196.0, 220.0, 164.81, 130.81, 196.0];
 
 export function createAudioEngine({ bus }) {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) {
     log.warn('Web Audio unavailable — the soundtrack is disabled');
-    return { supported: false, enable() {}, disable() {}, toggle() {}, setWorld() {}, blip() {}, isOn: () => false };
+    return { supported: false, enable() {}, disable() {}, toggle() {}, blip() {}, isOn: () => false };
   }
 
   let ctx = null;
   let master = null;
-  let ghibliBus = null;
-  let hackerBus = null;
+  let padBus = null;
   let nodes = [];
   let scheduler = 0;
   let nextNoteTime = 0;
   let step = 0;
   let enabled = false;
-  let worldMix = 0;
 
   const LOOKAHEAD = 0.12;    // seconds of notes to schedule ahead
   const TICK = 45;           // scheduler wake-up interval (ms)
@@ -85,26 +79,22 @@ export function createAudioEngine({ bus }) {
     wet.connect(reverb);
     reverb.connect(ctx.destination);
 
-    ghibliBus = ctx.createGain();
-    hackerBus = ctx.createGain();
-    ghibliBus.gain.value = 1 - worldMix;
-    hackerBus.gain.value = worldMix;
-    ghibliBus.connect(master);
-    hackerBus.connect(master);
+    padBus = ctx.createGain();
+    padBus.gain.value = 1;
+    padBus.connect(master);
 
-    buildGhibliPad();
-    buildHackerDrone();
+    buildPad();
 
     nextNoteTime = ctx.currentTime;
     scheduler = setInterval(tick, TICK);
   }
 
-  function buildGhibliPad() {
+  function buildPad() {
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = 900;
     filter.Q.value = 0.7;
-    filter.connect(ghibliBus);
+    filter.connect(padBus);
 
     // Slow cutoff sweep — the "breathing" of the pad.
     const lfo = ctx.createOscillator();
@@ -131,24 +121,6 @@ export function createAudioEngine({ bus }) {
     }
   }
 
-  function buildHackerDrone() {
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 320;
-    filter.Q.value = 4;
-    filter.connect(hackerBus);
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.value = 55;
-    const gain = ctx.createGain();
-    gain.gain.value = 0.1;
-    osc.connect(gain);
-    gain.connect(filter);
-    osc.start();
-    nodes.push(osc);
-  }
-
   /** One plucked note with an exponential decay envelope. */
   function pluck(frequency, time, destination, { type = 'sine', peak = 0.14, decay = 1.6 } = {}) {
     const osc = ctx.createOscillator();
@@ -173,19 +145,12 @@ export function createAudioEngine({ bus }) {
     const tempo = 0.125;                       // 16ths at 120bpm
 
     while (nextNoteTime < ctx.currentTime + LOOKAHEAD) {
-      // Hacker arpeggio — every 16th.
-      if (worldMix > 0.02) {
-        pluck(ARP[step % ARP.length] * 2, nextNoteTime, hackerBus, {
-          type: 'square',
-          peak: 0.05 * worldMix,
-          decay: 0.22,
-        });
-      }
-      // Ghibli bells — sparse, on the beat, randomly voiced.
-      if (worldMix < 0.98 && step % 8 === 0 && Math.random() < 0.55) {
-        pluck(PENTATONIC[(Math.random() * PENTATONIC.length) | 0], nextNoteTime, ghibliBus, {
+      // Bells: sparse, on the beat, and only sometimes, so the pad
+      // never turns into a melody that demands attention.
+      if (step % 8 === 0 && Math.random() < 0.55) {
+        pluck(PENTATONIC[(Math.random() * PENTATONIC.length) | 0], nextNoteTime, padBus, {
           type: 'sine',
-          peak: 0.1 * (1 - worldMix),
+          peak: 0.1,
           decay: 2.4,
         });
       }
@@ -231,14 +196,6 @@ export function createAudioEngine({ bus }) {
 
     toggle() {
       return enabled ? (engine.disable(), false) : (engine.enable(), true);
-    },
-
-    /** 0 = ghibli bed, 1 = hacker bed. */
-    setWorld(value) {
-      worldMix = value;
-      if (!ctx) return;
-      fade(ghibliBus.gain, 1 - value, 1.4);
-      fade(hackerBus.gain, value, 1.4);
     },
 
     /** A short UI click — only audible when the soundtrack is on. */

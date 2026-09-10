@@ -17,15 +17,16 @@
 ================================================================ */
 
 import { el, clamp } from './dom.js';
-import { icon } from './icons.js';
+import { appGlyph } from './icons.js';
 import { createLogger } from '../core/logger.js';
 
 const log = createLogger('desktop');
 
-const GRID = 96;
-const ICON_WIDTH = 88;
-const ICON_HEIGHT = 92;
-const TOP_MARGIN = 44;
+const GRID = 104;
+const ICON_WIDTH = 104;
+const ICON_HEIGHT = 106;
+const TOP_MARGIN = 54;
+const LEFT_MARGIN = 30;
 const STORAGE_KEY = 'portfolio:desktop-icons';
 
 export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
@@ -60,13 +61,17 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
     }
   }
 
-  /** Default layout: a column down the right-hand side, like a real desktop. */
+  /** Default layout: one generous column down the left.
+      Six launchers in a single column read as a menu; the same six
+      spread across the right-hand side read as a folder someone
+      forgot to tidy. Left-hand also matches reading order, and it
+      keeps the right side of the wallpaper clear. */
   function defaultPosition(index) {
-    const perColumn = Math.max(1, Math.floor((window.innerHeight - TOP_MARGIN - 120) / ICON_HEIGHT));
+    const perColumn = Math.max(1, Math.floor((window.innerHeight - TOP_MARGIN - 130) / ICON_HEIGHT));
     const column = Math.floor(index / perColumn);
     const row = index % perColumn;
     return {
-      x: window.innerWidth - ICON_WIDTH - 26 - column * GRID,
+      x: LEFT_MARGIN + column * GRID,
       y: TOP_MARGIN + row * ICON_HEIGHT,
     };
   }
@@ -82,6 +87,13 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
 
   function snapToGrid(value, origin) {
     return origin + Math.round((value - origin) / (GRID / 2)) * (GRID / 2);
+  }
+
+  /** The attention ring on the featured launcher retires for good
+      the first time anything on the desktop is opened. */
+  function retireHint() {
+    surface.classList.add('has-been-used');
+    try { localStorage.setItem('portfolio:desktop-used', '1'); } catch { /* ignore */ }
   }
 
   /* ----------------------------------------------------------------
@@ -119,15 +131,25 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
 
   function buildIcon(app, index) {
     const label = el('span.desktop-icon__label', { text: app.title });
+    /* The tile's gradient comes from the app definition, written
+       through CSSOM custom properties — which CSP permits, unlike a
+       style attribute in markup. */
+    const [from, to] = app.tint || ['#cfd8e6', '#a8b8cc'];
+    const glyph = el('span.desktop-icon__glyph', {
+      dataset: { kind: app.kind || 'app', app: app.id },
+      style: { '--icon-from': from, '--icon-to': to },
+    }, appGlyph(app.icon, 38));
+
     const node = el('div.desktop-icon', {
       role: 'option',
       'aria-selected': 'false',
       tabindex: index === 0 ? '0' : '-1',
-      dataset: { app: app.id },
+      dataset: { app: app.id, featured: String(Boolean(app.featured)) },
       title: app.description || app.title,
     }, [
-      el('span.desktop-icon__glyph', { dataset: { kind: app.kind || 'app' } }, icon(app.icon, 34)),
+      glyph,
       label,
+      el('span.desktop-icon__caption', { text: app.description || '' }),
     ]);
 
     const entry = { app, el: node, x: 0, y: 0 };
@@ -136,10 +158,11 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
     place(entry, initial.x, initial.y);
 
     /* -- open -- */
-    node.addEventListener('dblclick', () => onOpen(app.id));
+    node.addEventListener('dblclick', () => { retireHint(); onOpen(app.id); });
     node.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
+        retireHint();
         onOpen(app.id);
       }
     });
@@ -256,8 +279,8 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
       { label: 'Tidy icons', icon: 'window', action: tidy },
       { label: 'Reset icon positions', icon: 'trash', action: reset },
       'separator',
-      { label: 'Change world', icon: 'globe', action: () => bus.emit('world.request', { world: 'toggle' }) },
       { label: 'Toggle dark mode', icon: 'star', action: () => bus.emit('theme.set', { theme: 'toggle' }) },
+      { label: 'Summon petals', icon: 'globe', action: () => bus.emit('petals.storm', { intensity: 1.8 }) },
       'separator',
       { label: 'Open Settings', icon: 'gear', action: () => onOpen('settings') },
     ]);
@@ -313,6 +336,10 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
     }, 150);
   }, { passive: true });
 
+  try {
+    if (localStorage.getItem('portfolio:desktop-used')) surface.classList.add('has-been-used');
+  } catch { /* ignore */ }
+
   for (const [index, app] of apps.entries()) icons.push(buildIcon(app, index));
   log.info(`${icons.length} desktop icons`);
 
@@ -321,6 +348,7 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
     tidy,
     reset,
     select,
+    retireHint,
     icons: () => icons.map((entry) => entry.app.id),
   };
 }

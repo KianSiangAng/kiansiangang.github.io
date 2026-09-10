@@ -101,11 +101,12 @@
     <link rel="stylesheet" href="css/style.css" />
 
     <!-- ============================================================
-         Duality stylesheet — the hacker world plus every runtime
-         component (command palette, HUD, terminal, boot screen).
-         Loaded second so it can override style.css cleanly.
+         Runtime stylesheet — everything the JavaScript renders at
+         load: background layers, terminal, command palette, HUD,
+         cursor, toasts, boot screen. Loaded second so it can
+         override style.css cleanly.
     ============================================================ -->
-    <link rel="stylesheet" href="css/duality.css" />
+    <link rel="stylesheet" href="css/runtime.css" />
 
     <!-- ============================================================
          Desktop OS stylesheet. Everything in it is scoped to
@@ -140,10 +141,10 @@
          which meant nothing could ever be drawn behind it. It now
          sits on its own fixed layer (inheriting the same background
          image — one source of truth) so the WebGL sky can render
-         underneath it, and so it can fade out in the hacker world.
+         underneath it, rather than being stuck at the very bottom.
 
          Petals are no longer DOM nodes: js/gfx/petals.js draws all
-         of them into a single canvas instead. See css/duality.css
+         of them into a single canvas instead. See css/runtime.css
          for the full layer stack.
     ============================================================ -->
     <div class="landscape" aria-hidden="true"></div>
@@ -198,18 +199,10 @@
              Shows moon in light mode, sun in dark mode.
              JS in main.js handles the click → flips data-theme on <html>
              and saves the choice to localStorage. -->
-        <!-- Navbar controls: world switch, soundtrack, colour scheme.
-             The world switch flips the entire site between the
-             Ghibli world and the hacker world (js/theme/duality.js).
-             The soundtrack is generated with Web Audio at runtime and
-             is off until explicitly turned on. -->
+        <!-- Navbar controls: soundtrack and colour scheme. The
+             soundtrack is generated with Web Audio at runtime and is
+             off until explicitly turned on. -->
         <div class="navbar__controls">
-
-          <button id="world-toggle" class="icon-btn" type="button"
-                  aria-pressed="false" aria-label="Switch to the hacker world">
-            <span class="world-toggle__glyph world-toggle__glyph--ghibli" aria-hidden="true">&#127774;</span>
-            <span class="world-toggle__glyph world-toggle__glyph--hacker" aria-hidden="true">&#128421;&#65039;</span>
-          </button>
 
           <button id="audio-toggle" class="icon-btn" type="button"
                   aria-pressed="false" aria-label="Toggle the generated soundtrack">
@@ -458,7 +451,7 @@
         <h2 class="section-title">Skills</h2>
 
         <!-- Terminal-styled container — monospace font, dark background,
-             blinking cursor to give a "hacker terminal" feel.
+             blinking cursor. At runtime it becomes a working shell.
              This ties into your cybersecurity identity. -->
         <div class="terminal fade-in">
 
@@ -684,12 +677,13 @@
          service worker) is isolated and the page keeps working.
 
          Module map:
-           core/   signals · event bus · store · DI · kernel · FSM
+           core/   signals · event bus · store · DI · kernel · logger
            gfx/    WebGL2 renderer · GLSL · particle physics
            term/   virtual filesystem · shell · commands · terminal
            ui/     palette · HUD · cursor · tilt · boot · easter eggs
            audio/  Web Audio synthesiser
-           theme/  the Ghibli ⇄ hacker world switch
+           theme/  the light/dark colour scheme
+           os/     window manager · desktop · dock · router · apps
     ============================================================ -->
     <script type="module" src="js/app.js"></script>
   </body>

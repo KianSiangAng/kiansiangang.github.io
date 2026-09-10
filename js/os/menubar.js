@@ -35,10 +35,6 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
   ]);
 
   /* ---- status area ---- */
-  const worldButton = el('button.menubar__icon', {
-    type: 'button', 'aria-label': 'Switch world', title: 'Switch world (⌥W)',
-  }, icon('globe', 15));
-
   const audioButton = el('button.menubar__icon', {
     type: 'button', 'aria-label': 'Toggle soundtrack', title: 'Soundtrack', 'aria-pressed': 'false',
   }, [el('span.menubar__note', { text: '♪' })]);
@@ -50,12 +46,11 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
   status.append(
     el('span.menubar__icon.menubar__icon--static', { 'aria-hidden': 'true' }, icon('wifi', 15)),
     el('span.menubar__icon.menubar__icon--static', { 'aria-hidden': 'true' }, icon('battery', 15)),
-    worldButton, audioButton, themeButton, clock,
+    audioButton, themeButton, clock,
   );
 
   root.appendChild(bar);
 
-  worldButton.addEventListener('click', () => bus.emit('world.request', { world: 'toggle' }));
   audioButton.addEventListener('click', () => bus.emit('audio.request', { mode: 'toggle' }));
   themeButton.addEventListener('click', () => bus.emit('theme.set', { theme: 'toggle' }));
   bus.on('audio.state', ({ on }) => {
@@ -152,8 +147,8 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
     { label: 'Open command palette', shortcut: '⌘K', action: () => bus.emit('palette.request') },
     { label: 'Performance HUD', shortcut: '`', action: () => bus.emit('hud.toggle') },
     'separator',
-    { label: 'Switch world', shortcut: '⌥W', action: () => bus.emit('world.request', { world: 'toggle' }) },
-    { label: 'Toggle dark mode', action: () => bus.emit('theme.set', { theme: 'toggle' }) },
+    { label: 'Toggle dark mode', shortcut: '⌥D', action: () => bus.emit('theme.set', { theme: 'toggle' }) },
+    { label: 'Summon petals', action: () => bus.emit('petals.storm', { intensity: 1.8 }) },
     'separator',
     { label: 'Close all windows', action: () => wm.closeAll() },
     { label: 'View as a plain page', action: () => shell.setMode('page') },

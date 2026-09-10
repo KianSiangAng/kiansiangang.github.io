@@ -15,6 +15,58 @@ import { el, clear } from '../dom.js';
 import { icon } from '../icons.js';
 import { projects, identity, skills, experience, education } from '../../data/portfolio.js';
 
+
+/* ----------------------------------------------------------------
+   Welcome
+
+   The first-run problem with any desktop metaphor is that a visitor
+   arrives to a wallpaper and a row of icons with no idea which one
+   matters. Real operating systems answer this with a welcome
+   screen, so this one does too: a short greeting and three large,
+   obvious places to start.
+
+   It opens once, remembers that it has, and is closed like any
+   other window. It is not a modal and never blocks anything.
+---------------------------------------------------------------- */
+
+export function buildWelcome({ onOpen, onDismiss }) {
+  function action(title, description, appId, iconName) {
+    return el('button.welcome__action', {
+      type: 'button',
+      onclick: () => { onDismiss(); onOpen(appId); },
+    }, [
+      el('span.welcome__action-icon', { dataset: { app: appId } }, icon(iconName, 22)),
+      el('span.welcome__action-text', {}, [
+        el('strong', { text: title }),
+        el('span', { text: description }),
+      ]),
+      el('span.welcome__chevron', { text: '›', 'aria-hidden': 'true' }),
+    ]);
+  }
+
+  return el('div.app.app--welcome', {}, [
+    el('p.welcome__greeting', { text: 'Hi, I\u2019m' }),
+    el('h1.welcome__name', { text: identity.name }),
+    el('p.welcome__role', { text: `${identity.role} · ${identity.location}` }),
+    el('p.welcome__blurb', {
+      text: 'This portfolio is a small operating system. Open a window, drag it '
+        + 'around, and have a look at whatever you like \u2014 or start here:',
+    }),
+
+    el('div.welcome__actions', {}, [
+      action('See my projects', 'Three things I have built', 'projects', 'folder'),
+      action('Open the terminal', 'It is a real shell, not a screenshot', 'terminal', 'terminal'),
+      action('Read my résumé', 'The one-page version', 'resume', 'document'),
+    ]),
+
+    el('button.welcome__dismiss', {
+      type: 'button',
+      text: 'I\u2019ll explore on my own',
+      onclick: () => onDismiss(true),
+    }),
+  ]);
+}
+
 /* ----------------------------------------------------------------
    Projects — a folder
 ---------------------------------------------------------------- */
@@ -215,14 +267,7 @@ export function buildSettings({ bus, shell, audio, scene }) {
   const body = el('div.app.app--settings', {}, [
     el('h1.settings__title', { text: 'Settings' }),
 
-    row('World', 'The whole site has two of them.',
-      segmented(
-        [{ label: 'Ghibli', value: 'ghibli' }, { label: 'Hacker', value: 'hacker' }],
-        () => document.documentElement.dataset.world,
-        (world) => bus.emit('world.request', { world }),
-      )),
-
-    row('Colour scheme', 'Independent of the world.',
+    row('Colour scheme', 'Follows your system until you choose.',
       segmented(
         [{ label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' }],
         () => document.documentElement.dataset.theme,
@@ -324,7 +369,8 @@ export function buildHelp() {
     ['Drag to a screen edge', 'Snap left, right or full'],
     ['Arrow keys on the desktop', 'Move between icons'],
     ['Enter on an icon', 'Open it'],
-    ['Type "hack"', 'Switch to the hacker world'],
+    ['⌥D', 'Toggle dark mode'],
+    ['Type "sakura"', 'A storm of blossom'],
     ['↑↑↓↓←→←→BA', 'You know what this does'],
     ['kian.help() in devtools', 'A console API onto the runtime'],
   ];

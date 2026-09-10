@@ -3,8 +3,8 @@
 
    Owns two stacked fixed-position canvases behind the page:
 
-     gl-layer  WebGL2 full-screen shader (the sky, or the rain)
-     fx-layer  canvas2d particles (petals, or falling glyphs)
+     gl-layer  WebGL2 full-screen shader (the procedural sky)
+     fx-layer  canvas2d particles (sakura petals) and the bird flock
 
    and the single requestAnimationFrame loop that drives both.
    One loop for the whole site: every animated subsystem hangs off
@@ -19,7 +19,7 @@
 ================================================================ */
 
 import { createRenderer } from './gl.js';
-import { vertexShader, ghibliFragment, hackerFragment } from './shaders.js';
+import { vertexShader, ghibliFragment } from './shaders.js';
 import { createPetalSystem } from './petals.js';
 import { createFlock } from './birds.js';
 import { createLogger } from '../core/logger.js';
@@ -43,8 +43,7 @@ export function createScene({ bus, reducedMotion = false }) {
 
   /* -- WebGL, if we can have it -------------------------------- */
   let renderer = null;
-  let ghibliProgram = null;
-  let hackerProgram = null;
+  let skyProgram = null;
   let backend = 'css-gradient';
 
   function buildGL() {
@@ -54,8 +53,7 @@ export function createScene({ bus, reducedMotion = false }) {
        treat a throw as "no WebGL here". */
     try {
       renderer = createRenderer(glCanvas);
-      ghibliProgram = renderer.createProgram(vertexShader, ghibliFragment, 'ghibli');
-      hackerProgram = renderer.createProgram(vertexShader, hackerFragment, 'hacker');
+      skyProgram = renderer.createProgram(vertexShader, ghibliFragment, 'sky');
       renderer.enableBlending();
       renderer.onContextLost(() => { running = false; });
       renderer.onContextRestored(() => { if (buildGL()) start(); });
@@ -75,10 +73,8 @@ export function createScene({ bus, reducedMotion = false }) {
   let lastFrame = 0;
   let elapsed = 0;
 
-  let worldTarget = 0;      // 0 = ghibli, 1 = hacker
-  let worldMix = 0;         // eased toward the target
   let darkTarget = 0;
-  let darkMix = 0;
+  let darkMix = 0;          // eased toward the target, so dusk is gradual
 
   const pointer = { x: 0.5, y: 0.5, px: 0, py: 0 };
 
@@ -108,32 +104,25 @@ export function createScene({ bus, reducedMotion = false }) {
 
     const frameStart = performance.now();
 
-    // Exponential smoothing toward the target — frame-rate independent.
+    // Exponential smoothing toward the target — frame-rate independent,
+    // so switching to dark mode fades the sky rather than cutting it.
     const ease = 1 - Math.pow(0.001, Math.min(dt, 0.05));
-    worldMix += (worldTarget - worldMix) * ease;
     darkMix += (darkTarget - darkMix) * ease;
-    if (Math.abs(worldTarget - worldMix) < 0.001) worldMix = worldTarget;
 
     pointer.x += (pointer.px - pointer.x) * Math.min(dt * 4, 1);
     pointer.y += (pointer.py - pointer.y) * Math.min(dt * 4, 1);
 
     if (renderer) {
       renderer.clear();
-      const uniforms = (program, alpha) => {
-        program.use();
-        program.set('uResolution', [glCanvas.width, glCanvas.height]);
-        program.set('uTime', elapsed);
-        program.set('uAlpha', alpha);
-        program.set('uDark', darkMix);
-        program.set('uPointer', [pointer.x, pointer.y]);
-        renderer.drawQuad();
-      };
-      if (worldMix < 0.999) uniforms(ghibliProgram, 1 - worldMix);
-      if (worldMix > 0.001) uniforms(hackerProgram, worldMix);
+      skyProgram.use();
+      skyProgram.set('uResolution', [glCanvas.width, glCanvas.height]);
+      skyProgram.set('uTime', elapsed);
+      skyProgram.set('uAlpha', 1);
+      skyProgram.set('uDark', darkMix);
+      skyProgram.set('uPointer', [pointer.x, pointer.y]);
+      renderer.drawQuad();
     }
 
-    petals.setWorldMix(worldMix);
-    flock.setWorldMix(worldMix);
     petals.update(dt, elapsed);
     flock.update(dt);
 
@@ -162,16 +151,14 @@ export function createScene({ bus, reducedMotion = false }) {
     resize();
     syncColourScheme();
     darkMix = darkTarget;
-    worldMix = worldTarget;
     if (renderer) {
       renderer.clear();
-      const program = worldMix > 0.5 ? hackerProgram : ghibliProgram;
-      program.use();
-      program.set('uResolution', [glCanvas.width, glCanvas.height]);
-      program.set('uTime', 8.0);            // a pleasant, arbitrary moment
-      program.set('uAlpha', 1);
-      program.set('uDark', darkMix);
-      program.set('uPointer', [0.5, 0.5]);
+      skyProgram.use();
+      skyProgram.set('uResolution', [glCanvas.width, glCanvas.height]);
+      skyProgram.set('uTime', 8.0);         // a pleasant, arbitrary moment
+      skyProgram.set('uAlpha', 1);
+      skyProgram.set('uDark', darkMix);
+      skyProgram.set('uPointer', [0.5, 0.5]);
       renderer.drawQuad();
     }
     petals.clear();
@@ -240,12 +227,6 @@ export function createScene({ bus, reducedMotion = false }) {
       document.removeEventListener('visibilitychange', onVisibility);
       schemeObserver.disconnect();
       renderer?.dispose();
-    },
-
-    /** 0 = ghibli, 1 = hacker. The loop eases across. */
-    setWorld(value) {
-      worldTarget = value;
-      if (reducedMotion) renderStatic();
     },
 
     burst: (x, y, n) => petals.burst(x, y, n),

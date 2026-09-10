@@ -333,19 +333,15 @@ export function createCommands() {
     /* ---------------- system ---------------- */
     {
       name: 'theme',
-      summary: 'switch between the ghibli and hacker worlds',
-      usage: 'theme [ghibli|hacker|toggle|dark|light]',
+      summary: 'switch the colour scheme',
+      usage: 'theme [dark|light|toggle]',
       run({ args, services }) {
         const mode = (args.positional[0] || 'toggle').toLowerCase();
-        if (['dark', 'light'].includes(mode)) {
-          services.bus.emit('theme.set', { theme: mode });
-          return `${green('✓')} colour scheme → ${mode}`;
+        if (!['dark', 'light', 'toggle'].includes(mode)) {
+          return 'theme: expected dark, light or toggle';
         }
-        if (!['ghibli', 'hacker', 'toggle'].includes(mode)) {
-          return `theme: expected ghibli, hacker, toggle, dark or light`;
-        }
-        services.bus.emit('world.request', { world: mode });
-        return `${green('✓')} world → ${mode === 'toggle' ? 'the other one' : mode}`;
+        services.bus.emit('theme.set', { theme: mode });
+        return `${green('✓')} colour scheme → ${mode === 'toggle' ? 'the other one' : mode}`;
       },
     },
     {
@@ -496,12 +492,14 @@ export function createCommands() {
       },
     },
     {
-      name: 'matrix',
-      summary: 'follow the white rabbit',
-      usage: 'matrix',
-      run: ({ services }) => {
-        services.bus.emit('achievement.unlock', { id: 'matrix' });
-        return { output: green('Wake up, Neo…'), code: 0, control: { type: 'matrix' } };
+      name: 'sakura',
+      summary: 'summon a storm of blossom',
+      usage: 'sakura [intensity]',
+      run({ args, services }) {
+        const intensity = Math.min(Number(args.positional[0]) || 1.6, 3);
+        services.bus.emit('petals.storm', { intensity });
+        services.bus.emit('achievement.unlock', { id: 'storm' });
+        return magenta('花吹雪 — the wind picks up.');
       },
     },
     {

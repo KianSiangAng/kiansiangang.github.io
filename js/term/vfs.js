@@ -97,7 +97,7 @@ const motdText = [
   '  This shell is real: commands are parsed, piped and executed',
   '  against an in-memory filesystem. Nothing here is a screenshot.',
   '',
-  "  Try:  help  ·  ls  ·  cat about.txt  ·  neofetch  ·  theme hacker",
+  '  Try:  help  ·  ls  ·  cat about.txt  ·  neofetch  ·  sakura',
 ].join('\n');
 
 /* ----------------------------------------------------------------

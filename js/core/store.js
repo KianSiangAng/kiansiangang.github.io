@@ -11,7 +11,7 @@
        middleware: [loggerMiddleware, persistMiddleware('key')],
      });
 
-     store.dispatch({ type: 'theme/set', payload: 'hacker' });
+     store.dispatch({ type: 'theme/set', payload: 'dark' });
      store.select(s => s.theme).subscribe(console.log);
 
    Time travel is real: every dispatched action is recorded with

@@ -1,53 +1,60 @@
 /* ================================================================
-   DUALITY.CSS — The second world, and every runtime component
+   RUNTIME.CSS — Everything the JavaScript runtime renders
 
-   style.css owns the original Ghibli site. This file adds:
+   style.css owns the authored page. This file styles what the
+   runtime creates at load: the background layers, the interactive
+   terminal, the command palette, the performance HUD, the custom
+   cursor, card tilt, achievement toasts and the boot screen.
 
-     1.  Layering for the WebGL / canvas background
-     2.  The hacker world  ([data-world="hacker"])
-     3.  The world transition wipe
-     4.  Interactive terminal (input line, ANSI colours)
+   (It was called duality.css when the site ran two themes. The
+   second theme is gone — it split the site's identity in half and
+   doubled every styling decision — so the name went with it. Light
+   and dark remain, as one identity with two lighting conditions.)
+
+   Contents:
+     1.  [hidden], and why it needs restating
+     2.  Background layering
+     3.  Design tokens, light and dark
+     4.  Interactive terminal
      5.  Command palette
      6.  Performance HUD
      7.  Custom cursor
-     8.  3D card tilt + glare
+     8.  Card tilt and glare
      9.  Achievement toasts
      10. Boot screen
      11. Navbar controls and the keyboard hint
-     12. Reduced-motion and small-screen behaviour
-
-   Everything keys off two attributes on <html>:
-     data-theme = light | dark      (colour scheme, pre-existing)
-     data-world = ghibli | hacker   (which world we are in)
+     12. Responsive and reduced motion
 ================================================================ */
 
 
 /* ================================================================
-   1. BACKGROUND LAYERING
+   1. [hidden] MUST WIN
+
+   The UA stylesheet's `[hidden] { display: none }` has the lowest
+   possible specificity, so ANY class rule that sets `display`
+   silently defeats it — the element stays laid out, still catching
+   clicks, while `el.hidden === true` insists it is gone. This bit
+   the command palette (an invisible full-screen overlay swallowing
+   every click on the page) and then the shell's return button. One
+   rule closes the whole category.
+================================================================ */
+
+[hidden] { display: none !important; }
+
+
+/* ================================================================
+   2. BACKGROUND LAYERING
 
    Painting order, bottom to top:
      body background-colour   (propagated to the viewport)
-     .gfx-layer--gl           z-index -3   WebGL sky / glyph rain
+     .gfx-layer--gl           z-index -3   the WebGL sky
      .landscape               z-index -2   the mountain silhouettes
-     .gfx-layer--fx           z-index -1   petals / falling glyphs
+     .gfx-layer--fx           z-index -1   petals and the bird flock
      page content             in flow, above all negative layers
 
    Negative z-index keeps every layer behind the document without
    any of the sections needing a stacking context of their own.
 ================================================================ */
-
-/* ----------------------------------------------------------------
-   `[hidden]` must win.
-
-   The UA stylesheet's `[hidden] { display: none }` has the lowest
-   possible specificity, so ANY class rule that sets `display`
-   silently defeats it — and the element stays laid out, still
-   catching clicks, while `el.hidden === true` insists it is gone.
-   This bit the command palette (an invisible full-screen overlay
-   swallowing every click) and then the shell's return button. One
-   rule closes the whole category.
----------------------------------------------------------------- */
-[hidden] { display: none !important; }
 
 .gfx-layer {
   position: fixed;
@@ -62,9 +69,9 @@
 .gfx-layer--gl { z-index: -3; }
 .gfx-layer--fx { z-index: -1; }
 
-/* The original mountain artwork, lifted off <body> onto its own
-   layer so the shader sky can sit behind it. background-image is
-   inherited rather than duplicated — one source of truth. */
+/* The mountain artwork, lifted off <body> onto its own layer so the
+   shader sky can sit behind it. background-image is inherited rather
+   than duplicated — one source of truth. */
 .landscape {
   position: fixed;
   inset: 0;
@@ -77,20 +84,16 @@
   transition: opacity 700ms ease;
 }
 
-/* In the hacker world the mountains dissolve away. */
-[data-world="hacker"] .landscape { opacity: 0; }
+/* Without WebGL the CSS gradient underneath is all there is, so
+   leave it fully visible. */
+html:not(.has-webgl) .gfx-layer--gl { display: none; }
 
 /* The hero is the one section with no body copy to protect, so its
    wash is thinned right down and the procedural sky comes through.
-   A soft radial scrim behind the text keeps the contrast ratio where
-   it needs to be without flattening the whole viewport. */
-[data-world="ghibli"] .hero {
-  background-color: rgba(232, 224, 208, 0.30);
-}
-
-[data-theme="dark"][data-world="ghibli"] .hero {
-  background-color: rgba(26, 30, 46, 0.42);
-}
+   A soft radial scrim behind the text holds the contrast ratio
+   without flattening the whole viewport. */
+.hero { background-color: rgba(232, 224, 208, 0.30); }
+[data-theme="dark"] .hero { background-color: rgba(26, 30, 46, 0.42); }
 
 .hero__content {
   position: relative;
@@ -111,30 +114,16 @@
   );
 }
 
-[data-world="hacker"] .hero__content::before {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(2, 8, 5, 0.85) 0%,
-    rgba(2, 8, 5, 0.55) 48%,
-    transparent 74%
-  );
-}
-
-/* Without WebGL the CSS gradient underneath is all there is, so
-   leave it fully visible. */
-html:not(.has-webgl) .gfx-layer--gl { display: none; }
-
 
 /* ================================================================
-   2. THE HACKER WORLD
+   3. DESIGN TOKENS
 
-   Rather than restyling every component, we redefine the palette
-   variables that style.css already consumes, then patch the
-   handful of places that hard-code a colour.
+   Components below consume these rather than raw colours, so the
+   dark scheme is a token swap and nothing else.
 ================================================================ */
 
 :root {
-  --world-accent: var(--clr-blue);
+  --accent: var(--clr-blue);
   --win-bg: #fbf9f4;
   --win-bar: #f1ece1;
   --hud-bg: rgba(12, 16, 28, 0.92);
@@ -143,160 +132,7 @@ html:not(.has-webgl) .gfx-layer--gl { display: none; }
   --palette-border: rgba(26, 39, 68, 0.12);
 }
 
-[data-world="hacker"] {
-  --clr-bg:         #04070a;
-  --clr-white:      #060b0d;
-  --clr-blue:       #3bff88;
-  --clr-green:      #23d977;
-  --clr-peach:      #7dffb8;
-  --clr-navy:       #c6ffd9;
-  --clr-navy-light: #8affb8;
-  --clr-card-bg:    rgba(10, 24, 16, 0.72);
-  --clr-navbar-bg:  rgba(4, 10, 8, 0.82);
-
-  --font-body: 'Space Mono', ui-monospace, monospace;
-
-  --shadow-sm: 0 0 8px rgba(59, 255, 136, 0.18);
-  --shadow-md: 0 0 18px rgba(59, 255, 136, 0.22);
-  --shadow-lg: 0 0 34px rgba(59, 255, 136, 0.28);
-  --shadow-glow: 0 0 28px rgba(59, 255, 136, 0.45);
-
-  --world-accent: #3bff88;
-  --palette-bg: rgba(6, 14, 10, 0.96);
-  --palette-fg: #c6ffd9;
-  --win-bg: #060f0b;
-  --win-bar: #0a1a11;
-  --palette-border: rgba(59, 255, 136, 0.28);
-  --hud-bg: rgba(4, 12, 8, 0.92);
-
-  color-scheme: dark;
-}
-
-/* Section washes — the shader shows through the gaps. */
-[data-world="hacker"] .hero,
-[data-world="hacker"] .projects,
-[data-world="hacker"] .contact  { background-color: rgba(3, 8, 6, 0.62); }
-[data-world="hacker"] .about,
-[data-world="hacker"] .skills   { background-color: rgba(4, 12, 9, 0.82); }
-
-[data-world="hacker"] body { color: var(--clr-navy); }
-
-/* .navbar.scrolled in style.css hard-codes the parchment colour, and
-   two classes outrank one — so the scrolled navbar has to be named
-   explicitly here or it stays beige in the terminal world. */
-[data-world="hacker"] .navbar,
-[data-world="hacker"] .navbar.scrolled {
-  background: rgba(3, 10, 7, 0.90);
-  border-bottom-color: rgba(59, 255, 136, 0.22);
-  box-shadow: 0 2px 22px rgba(0, 40, 16, 0.5);
-}
-
-[data-world="hacker"] .navbar__links,
-[data-world="hacker"] .navbar__link { color: var(--clr-navy); }
-
-[data-world="hacker"] .nav-toggle-label span { background: var(--clr-blue); }
-
-/* The section-transition petal wipe (js/main.js) becomes a sweep of
-   data rather than blossom. */
-[data-world="hacker"] .bloom-petal--1 { background: rgba(59, 255, 136, 0.55); }
-[data-world="hacker"] .bloom-petal--2 { background: rgba(120, 255, 180, 0.45); }
-[data-world="hacker"] .bloom-petal--3 { background: rgba(35, 217, 119, 0.50); }
-[data-world="hacker"] .bloom-petal--4 { background: rgba(200, 255, 220, 0.35); }
-[data-world="hacker"] .bloom-petal { border-radius: 2px; }
-
-/* The mascot's speech bubble, in keeping with the surroundings. */
-[data-world="hacker"] .kitsune-bubble {
-  background: rgba(6, 20, 12, 0.9);
-  color: var(--clr-blue);
-  border: 1px solid rgba(59, 255, 136, 0.4);
-}
-
-[data-world="hacker"] .section-title,
-[data-world="hacker"] .hero__name {
-  color: var(--clr-blue);
-  text-shadow: 0 0 14px rgba(59, 255, 136, 0.45);
-  letter-spacing: 0.02em;
-}
-
-[data-world="hacker"] .hero__name::after {
-  content: '_';
-  animation: hacker-caret 1s steps(2) infinite;
-}
-
-@keyframes hacker-caret { 50% { opacity: 0; } }
-
-[data-world="hacker"] .project-card,
-[data-world="hacker"] .stat-card,
-[data-world="hacker"] .terminal {
-  background: var(--clr-card-bg);
-  border: 1px solid rgba(59, 255, 136, 0.28);
-  box-shadow: inset 0 0 24px rgba(59, 255, 136, 0.06), var(--shadow-sm);
-}
-
-[data-world="hacker"] .project-card__badge,
-[data-world="hacker"] .tag,
-[data-world="hacker"] .terminal__tag {
-  background: rgba(59, 255, 136, 0.12);
-  color: var(--clr-blue);
-  border: 1px solid rgba(59, 255, 136, 0.32);
-}
-
-[data-world="hacker"] .hero__cta,
-[data-world="hacker"] .contact__btn,
-[data-world="hacker"] .project-card__btn {
-  background: rgba(59, 255, 136, 0.14);
-  color: #d8ffe8;
-  border: 1px solid rgba(59, 255, 136, 0.45);
-  text-shadow: 0 0 10px rgba(59, 255, 136, 0.5);
-}
-
-[data-world="hacker"] .footer { background-color: #020504; }
-
-/* The hero subtitle sits directly over the rain and needs the extra
-   luminance to clear the contrast threshold. */
-[data-world="hacker"] .hero__subtitle,
-[data-world="hacker"] .hero__greeting {
-  color: #a6ffcb;
-  text-shadow: 0 0 12px rgba(0, 20, 8, 0.9);
-}
-
-/* Full-colour emoji look out of place on a phosphor display, so
-   they are pushed through the same green as everything else. */
-[data-world="hacker"] .stat-card__icon {
-  filter: grayscale(1) brightness(1.5) sepia(1) hue-rotate(72deg) saturate(2.6);
-}
-
-/* The Ghibli mascot has no place in a terminal. It fades out
-   rather than disappearing, so the transition reads as deliberate. */
-[data-world="hacker"] .kitsune-guide {
-  opacity: 0.09;
-  filter: grayscale(1) brightness(1.6) sepia(1) hue-rotate(70deg);
-  transition: opacity 600ms ease, filter 600ms ease;
-}
-
-/* A scanline veil over the whole document. */
-[data-world="hacker"] body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 20, 8, 0.28) 3px,
-    rgba(0, 20, 8, 0.28) 4px
-  );
-  mix-blend-mode: multiply;
-  opacity: 0.55;
-}
-
-
-/* Dark colour scheme, Ghibli world: panels and windows follow the
-   scheme, not the world. Previously these tokens were only defined
-   for light and for hacker, so dark Ghibli got cream windows. */
-[data-theme="dark"][data-world="ghibli"] {
+[data-theme="dark"] {
   --palette-bg: rgba(30, 34, 50, 0.97);
   --palette-fg: #e8e0d0;
   --palette-border: rgba(255, 255, 255, 0.12);
@@ -307,56 +143,8 @@ html:not(.has-webgl) .gfx-layer--gl { display: none; }
 
 
 /* ================================================================
-   3. WORLD TRANSITION WIPE
-================================================================ */
-
-.world-wipe {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(100%);
-}
-
-.world-wipe.is-active {
-  animation: world-wipe 900ms cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.world-wipe.is-to-hacker {
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0 2px, rgba(0, 40, 16, 0.9) 2px 4px),
-    linear-gradient(180deg, #001a08, #04ff88 45%, #001a08);
-}
-
-.world-wipe.is-to-ghibli {
-  background: linear-gradient(180deg, #ffd9e4, #fff6e8 45%, #cfe6ff);
-}
-
-@keyframes world-wipe {
-  0%   { opacity: 0; transform: translateY(100%) skewY(0deg); }
-  35%  { opacity: 1; transform: translateY(0) skewY(-2deg); }
-  65%  { opacity: 1; transform: translateY(0) skewY(2deg); }
-  100% { opacity: 0; transform: translateY(-100%) skewY(0deg); }
-}
-
-/* A brief chromatic-aberration jolt across the page mid-wipe. */
-html.is-shifting body > *:not(.world-wipe):not(.boot) {
-  animation: world-glitch 900ms steps(3) both;
-}
-
-@keyframes world-glitch {
-  0%, 100% { filter: none; transform: none; }
-  40%      { filter: hue-rotate(25deg) saturate(1.4); transform: translateX(-2px); }
-  55%      { filter: hue-rotate(-25deg) saturate(1.6); transform: translateX(3px); }
-  70%      { filter: none; transform: translateX(-1px); }
-}
-
-
-/* ================================================================
    4. INTERACTIVE TERMINAL
 ================================================================ */
-
 .terminal__body {
   max-height: min(60vh, 520px);
   overflow-y: auto;
@@ -419,13 +207,13 @@ html.is-shifting body > *:not(.world-wipe):not(.boot) {
 .ansi-cyan      { color: #6ee7e7; }
 .ansi-white     { color: #f2f6ff; }
 
-/* `matrix` and `exit` visual states */
-.terminal--matrix { animation: terminal-flicker 3.2s steps(2) 1; }
+/* `sakura` and `exit` visual states */
+.terminal--storm { animation: terminal-glow 2.4s ease 1; }
 .terminal--closed { animation: terminal-close 1.6s ease both; }
 
-@keyframes terminal-flicker {
+@keyframes terminal-glow {
   0%, 100% { box-shadow: var(--shadow-md); }
-  50%      { box-shadow: 0 0 40px rgba(59, 255, 136, 0.75); }
+  50%      { box-shadow: 0 0 38px color-mix(in srgb, var(--clr-peach) 75%, transparent); }
 }
 
 @keyframes terminal-close {
@@ -532,8 +320,8 @@ html.is-shifting body > *:not(.world-wipe):not(.boot) {
 }
 
 .palette__item.is-active {
-  background: color-mix(in srgb, var(--world-accent) 34%, transparent);
-  box-shadow: inset 3px 0 0 var(--world-accent);
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .palette__icon  { opacity: 0.7; text-align: center; }
@@ -628,14 +416,14 @@ html.is-shifting body > *:not(.world-wipe):not(.boot) {
   width: 6px;
   height: 6px;
   margin: -3px 0 0 -3px;
-  background: var(--world-accent);
+  background: var(--accent);
 }
 
 .cursor--ring {
   width: 26px;
   height: 26px;
   margin: -13px 0 0 -13px;
-  border: 1.5px solid color-mix(in srgb, var(--world-accent) 70%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 70%, transparent);
   transition: border-color 200ms ease, opacity 200ms ease;
 }
 
@@ -681,7 +469,7 @@ html.has-custom-cursor textarea { cursor: text; }
   pointer-events: none;
   background: radial-gradient(
     circle at var(--glare-x) var(--glare-y),
-    color-mix(in srgb, var(--world-accent) 26%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 26%, transparent) 0%,
     transparent 42%
   );
   /* Kept low: a specular highlight should suggest a light source,
@@ -714,7 +502,7 @@ html.has-custom-cursor textarea { cursor: text; }
   border-radius: var(--radius-sm);
   background: var(--hud-bg);
   color: #eafff3;
-  border: 1px solid color-mix(in srgb, var(--world-accent) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
   font-size: var(--fs-sm);
   animation: achv-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1);
@@ -722,7 +510,7 @@ html.has-custom-cursor textarea { cursor: text; }
 
 .achv-toast.is-leaving { animation: achv-out 420ms ease forwards; }
 
-.achv-toast__icon { font-size: 1.3rem; color: var(--world-accent); }
+.achv-toast__icon { font-size: 1.3rem; color: var(--accent); }
 .achv-toast__name { opacity: 0.85; font-size: var(--fs-xs); }
 
 @keyframes achv-in  { from { opacity: 0; transform: translateX(40px); } }
@@ -812,20 +600,16 @@ html.is-booting { overflow: hidden; }
 
 .icon-btn:hover,
 .icon-btn:focus-visible {
-  background: color-mix(in srgb, var(--world-accent) 22%, transparent);
-  border-color: color-mix(in srgb, var(--world-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   transform: translateY(-1px);
 }
 
 .icon-btn[aria-pressed="true"],
 .icon-btn.is-on {
-  background: color-mix(in srgb, var(--world-accent) 30%, transparent);
-  border-color: color-mix(in srgb, var(--world-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
-
-.world-toggle__glyph { display: block; }
-[data-world="ghibli"] .world-toggle__glyph--hacker,
-[data-world="hacker"] .world-toggle__glyph--ghibli { display: none; }
 
 /* The ⌘K hint, bottom-left, dismissed once the palette is used. */
 .kbd-hint {
@@ -859,8 +643,6 @@ html.is-booting { overflow: hidden; }
   background: rgba(255, 255, 255, 0.35);
 }
 
-[data-world="hacker"] .kbd-hint kbd { background: rgba(59, 255, 136, 0.14); }
-
 
 /* ================================================================
    12. RESPONSIVE + REDUCED MOTION
@@ -874,18 +656,16 @@ html.is-booting { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .world-wipe,
-  html.is-shifting body > * { animation: none !important; }
   .achv-toast { animation: none; }
-  .terminal--matrix,
+  .terminal--storm,
   .terminal--closed { animation: none; }
   .project-card.is-tilting,
   .stat-card.is-tilting { transform: none; }
   .cursor { display: none; }
 }
 
-/* Focus visibility must survive both worlds. */
+/* Focus visibility, in both colour schemes. */
 :focus-visible {
-  outline: 2px solid var(--world-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
