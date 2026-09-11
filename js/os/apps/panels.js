@@ -12,7 +12,7 @@
 ================================================================ */
 
 import { el, clear } from '../dom.js';
-import { icon } from '../icons.js';
+import { icon, objectIcon } from '../icons.js';
 import { projects, identity, skills, experience, education } from '../../data/portfolio.js';
 
 
@@ -30,12 +30,12 @@ import { projects, identity, skills, experience, education } from '../../data/po
 ---------------------------------------------------------------- */
 
 export function buildWelcome({ onOpen, onDismiss }) {
-  function action(title, description, appId, iconName) {
+  function action(title, description, appId, objectName) {
     return el('button.welcome__action', {
       type: 'button',
       onclick: () => { onDismiss(); onOpen(appId); },
     }, [
-      el('span.welcome__action-icon', { dataset: { app: appId } }, icon(iconName, 22)),
+      el('span.welcome__action-icon', { dataset: { app: appId } }, objectIcon(objectName, 42)),
       el('span.welcome__action-text', {}, [
         el('strong', { text: title }),
         el('span', { text: description }),
@@ -54,9 +54,9 @@ export function buildWelcome({ onOpen, onDismiss }) {
     }),
 
     el('div.welcome__actions', {}, [
-      action('See my projects', 'Three things I have built', 'projects', 'folder'),
-      action('Open the terminal', 'It is a real shell, not a screenshot', 'terminal', 'terminal'),
-      action('Read my résumé', 'The one-page version', 'resume', 'document'),
+      action('See my projects', 'Three things I have built', 'projects', 'books'),
+      action('Open the terminal', 'It is a real shell, not a screenshot', 'terminal', 'crt'),
+      action('Read my résumé', 'The one-page version', 'resume', 'letter'),
     ]),
 
     el('button.welcome__dismiss', {

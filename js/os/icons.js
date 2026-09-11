@@ -131,99 +131,150 @@ export function icon(name, size = 20) {
 export const iconNames = Object.keys(SHAPES);
 
 /* ================================================================
-   APP GLYPHS — filled, two-tone, for the desktop
+   OBJECT ICONS — the desktop launchers
 
    The line icons above are right for menus and the dock, where an
-   icon is a label. They are wrong for a desktop launcher, where an
-   icon has to look like an object worth clicking: a 1.6px hairline
-   on a photographic wallpaper reads as faint UI chrome.
+   icon is a label. They were wrong for the desktop, and so was what
+   replaced them first: a grid of glossy gradient squares is an
+   app-store shelf, and it dates the moment the trend moves on.
 
-   These are solid shapes in two tones of white, drawn to sit on a
-   coloured gradient tile. The lighter tone carries the detail (a
-   folder's flap, a page's folded corner), which is what gives a
-   flat glyph the suggestion of depth.
+   These are objects instead. Each launcher is a thing that could sit
+   on a desk — a stack of books, a small CRT, a folded paper crane —
+   drawn as flat shapes in two or three tones with a contact shadow,
+   and placed directly on the wallpaper with no tile around it.
+
+   They are bespoke rather than fashionable, which is the only
+   reliable way for an icon set not to look dated in two years. They
+   are also the objects that will be sitting on the desk in the 3D
+   room, so the desktop and the room share one vocabulary.
+
+   Drawn in a 64x64 box (the line icons use 24x24), because objects
+   need the extra room for detail that still reads at 44px.
 ================================================================ */
 
-const SOLID = 'rgba(255,255,255,0.96)';
-const SHADE = 'rgba(255,255,255,0.58)';
+const PAPER = '#FBF6EA', PAPER_SHADE = '#E5D8BE', PAPER_EDGE = 'rgba(150,128,96,.34)';
+const INK = 'rgba(120,104,78,.45)';
 
-/* Internal detail on a mostly-white glyph has to be DARKER, not
-   lighter. A lighter-white fold on a pale tile disappears entirely,
-   which turned the Contact envelope into a plain white rectangle. */
-const DETAIL = 'rgba(46, 46, 58, 0.20)';
-
-const APP_SHAPES = {
-  person: () => [
-    svg('circle', { fill: SOLID, cx: 12, cy: 8.4, r: 3.9 }),
-    svg('path', {
-      fill: SHADE,
-      d: 'M12 13.4c-4.3 0-7.8 2.9-7.8 6.6 0 .6.5 1.1 1.1 1.1h13.4c.6 0 1.1-.5 1.1-1.1 0-3.7-3.5-6.6-7.8-6.6z',
-    }),
+const OBJECTS = {
+  /* ---- About Me: the kitsune ---- */
+  kitsune: () => [
+    svg('ellipse', { cx: 32, cy: 57, rx: 17, ry: 3, fill: 'rgba(70,52,44,.16)' }),
+    // tail, behind
+    svg('path', { d: 'M44 48c10-1 16-8 15-17-1-6-5-9-8-8 3 3 4 7 2 11-2 4-6 6-11 6z', fill: '#E8A46A' }),
+    svg('path', { d: 'M51 23c3-1 7 2 8 8 .4 3 0 6-1 8 .6-7-2-13-7-13z', fill: '#FBF2E4' }),
+    // body
+    svg('path', { d: 'M32 30c8 0 14 6 14 14v6a3 3 0 0 1-3 3H21a3 3 0 0 1-3-3v-6c0-8 6-14 14-14z', fill: '#EE9F5E' }),
+    svg('path', { d: 'M32 38c4 0 7 3 7 7v6H25v-6c0-4 3-7 7-7z', fill: '#FDF4E6' }),
+    // ears
+    svg('path', { d: 'M18 20l3 10-8-3z', fill: '#EE9F5E' }),
+    svg('path', { d: 'M46 20l-3 10 8-3z', fill: '#EE9F5E' }),
+    svg('path', { d: 'M18.8 23l1.6 5-4-1.6z', fill: '#F2B7C2' }),
+    svg('path', { d: 'M45.2 23l-1.6 5 4-1.6z', fill: '#F2B7C2' }),
+    // head
+    svg('ellipse', { cx: 32, cy: 27, rx: 14, ry: 12, fill: '#F3A868' }),
+    svg('path', { d: 'M32 21c5 0 9 3.5 9 8 0 3.4-4 6-9 6s-9-2.6-9-6c0-4.5 4-8 9-8z', fill: '#FDF4E6' }),
+    // face
+    svg('circle', { cx: 26.5, cy: 25.5, r: 1.9, fill: '#2A2438' }),
+    svg('circle', { cx: 37.5, cy: 25.5, r: 1.9, fill: '#2A2438' }),
+    svg('circle', { cx: 27.1, cy: 24.8, r: .6, fill: '#fff' }),
+    svg('circle', { cx: 38.1, cy: 24.8, r: .6, fill: '#fff' }),
+    svg('path', { d: 'M32 29.4l-1.6-1.4h3.2z', fill: '#2A2438' }),
+    svg('circle', { cx: 21.5, cy: 29.5, r: 2.4, fill: 'rgba(240,150,160,.45)' }),
+    svg('circle', { cx: 42.5, cy: 29.5, r: 2.4, fill: 'rgba(240,150,160,.45)' }),
   ],
 
-  folder: () => [
-    svg('path', {
-      fill: SHADE,
-      d: 'M2.8 7c0-1.1.9-2 2-2h4.3l2.2 2.6h7.9c1.1 0 2 .9 2 2v2.1H2.8z',
-    }),
-    svg('path', {
-      fill: SOLID,
-      d: 'M2.4 10.2h19.2l-1.4 8.4c-.15 1-1 1.7-2 1.7H5.8c-1 0-1.85-.7-2-1.7z',
-    }),
-    svg('path', { fill: DETAIL, d: 'M2.4 10.2h19.2l-.16 1H2.56z' }),
+  /* ---- Projects: a stack of books ---- */
+  books: () => [
+    svg('ellipse', { cx: 32, cy: 56, rx: 20, ry: 3.2, fill: 'rgba(70,52,44,.17)' }),
+    svg('path', { d: 'M13 44h30a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H13z', fill: '#7FA9D4' }),
+    svg('path', { d: 'M13 44h30a3 3 0 0 1 3 3v1.4H13z', fill: '#A8C8E8' }),
+    svg('rect', { x: 13, y: 44, width: 4.2, height: 11, fill: 'rgba(0,0,0,.13)' }),
+    svg('path', { d: 'M16 33h30a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H16z', fill: '#D98F62' }),
+    svg('path', { d: 'M16 33h30a3 3 0 0 1 3 3v1.4H16z', fill: '#F0C8A0' }),
+    svg('rect', { x: 16, y: 33, width: 4.2, height: 12, fill: 'rgba(0,0,0,.13)' }),
+    svg('path', { d: 'M12 22h29a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H12z', fill: '#8FBA92' }),
+    svg('path', { d: 'M12 22h29a3 3 0 0 1 3 3v1.4H12z', fill: '#B8D4B8' }),
+    svg('rect', { x: 12, y: 22, width: 4.2, height: 12, fill: 'rgba(0,0,0,.13)' }),
+    // a bookmark ribbon
+    svg('path', { d: 'M36 22v8l-2.2-2-2.2 2v-8z', fill: '#E07A6A' }),
   ],
 
-  terminal: () => [
-    svg('rect', { fill: SHADE, x: 2.4, y: 4.2, width: 19.2, height: 15.6, rx: 2.8 }),
-    svg('path', {
-      fill: 'none', stroke: SOLID, 'stroke-width': 2.1,
-      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
-      d: 'M6.9 9.9l3.1 2.6-3.1 2.6',
-    }),
-    svg('path', {
-      fill: 'none', stroke: SOLID, 'stroke-width': 2.1, 'stroke-linecap': 'round',
-      d: 'M12.9 15.4h4.4',
-    }),
+  /* ---- Terminal: a small CRT ---- */
+  crt: () => [
+    svg('ellipse', { cx: 32, cy: 57, rx: 17, ry: 3, fill: 'rgba(70,52,44,.17)' }),
+    svg('rect', { x: 25, y: 45, width: 14, height: 7, rx: 1.6, fill: '#C9BBA4' }),
+    svg('rect', { x: 18, y: 50, width: 28, height: 4.4, rx: 2.2, fill: '#E0D3BC' }),
+    svg('rect', { x: 7, y: 12, width: 50, height: 36, rx: 5.5, fill: '#EDE2CC' }),
+    svg('rect', { x: 7, y: 12, width: 50, height: 36, rx: 5.5, fill: 'none', stroke: PAPER_EDGE, 'stroke-width': 1.3 }),
+    svg('rect', { x: 11.5, y: 16.5, width: 41, height: 25, rx: 3.2, fill: '#22304E' }),
+    svg('path', { d: 'M17.5 24.5l4.8 4-4.8 4', fill: 'none', stroke: '#7FE3A8', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }),
+    svg('rect', { x: 26, y: 30.2, width: 11, height: 2.6, rx: 1.3, fill: '#7FE3A8' }),
+    svg('path', { d: 'M11.5 16.5h41v8H11.5z', fill: 'rgba(255,255,255,.06)' }),
+    svg('circle', { cx: 51, cy: 44.6, r: 1.2, fill: '#8FBA92' }),
   ],
 
-  document: () => [
-    svg('path', {
-      fill: SOLID,
-      d: 'M6.2 2.6h6.5l5.3 5.3v12.1c0 1-.8 1.8-1.8 1.8H6.2c-1 0-1.8-.8-1.8-1.8V4.4c0-1 .8-1.8 1.8-1.8z',
-    }),
-    svg('path', { fill: SHADE, d: 'M12.7 2.6l5.3 5.3h-4.3c-.55 0-1-.45-1-1z' }),
-    svg('path', {
-      fill: 'none', stroke: 'rgba(120,110,90,0.55)', 'stroke-width': 1.5, 'stroke-linecap': 'round',
-      d: 'M7.6 12.4h7.6M7.6 15.4h7.6M7.6 9.4h3.4',
-    }),
+  /* ---- Résumé: a sheet with a wax seal ---- */
+  letter: () => [
+    svg('ellipse', { cx: 32, cy: 56, rx: 16, ry: 2.8, fill: 'rgba(70,52,44,.15)' }),
+    svg('path', { d: 'M15 9h24l10 10v33a3 3 0 0 1-3 3H18a3 3 0 0 1-3-3z', fill: PAPER }),
+    svg('path', { d: 'M39 9l10 10H41a2 2 0 0 1-2-2z', fill: PAPER_SHADE }),
+    svg('path', { d: 'M15 9h24l10 10v33a3 3 0 0 1-3 3H18a3 3 0 0 1-3-3z', fill: 'none', stroke: PAPER_EDGE, 'stroke-width': 1.3 }),
+    svg('path', { d: 'M21 26h16M21 31h20M21 36h20M21 41h11', stroke: INK, 'stroke-width': 1.7, 'stroke-linecap': 'round' }),
+    svg('circle', { cx: 41, cy: 45, r: 6.4, fill: '#D9705E' }),
+    svg('circle', { cx: 41, cy: 45, r: 6.4, fill: 'none', stroke: 'rgba(150,60,50,.35)', 'stroke-width': 1 }),
+    svg('path', { d: 'M41 41.4c1.4 1.4 1.4 2.8 0 3.6 1.4-.8 2.8-.8 3.6.6-1.4-.6-2.6 0-2.6 1.8-.8-1.4-2.2-1.4-3.6-.6 1.4-1 1.4-2.4-.6-3.4 1.4.4 2.4 0 3.2-2z', fill: 'rgba(255,255,255,.5)' }),
   ],
 
-  mail: () => [
-    svg('rect', { fill: SOLID, x: 2.3, y: 5, width: 19.4, height: 14, rx: 2.6 }),
-    svg('path', { fill: DETAIL, d: 'M3.4 6.5h17.2L12 13.2z' }),
-    svg('path', {
-      fill: 'none', stroke: DETAIL, 'stroke-width': 1.4, 'stroke-linecap': 'round',
-      d: 'M3.6 17.6l5.6-4.7M20.4 17.6l-5.6-4.7',
-    }),
+  /* ---- Skills: a potted plant ---- */
+  plant: () => [
+    svg('ellipse', { cx: 32, cy: 57, rx: 15, ry: 2.8, fill: 'rgba(70,52,44,.17)' }),
+    // five leaves, alternating tone so the foliage reads as layered
+    svg('path', { d: 'M32 39c-2-10-8-14-15-14 1 9 6 14 15 14z', fill: '#8FBA92' }),
+    svg('path', { d: 'M32 39c2-10 8-14 15-14-1 9-6 14-15 14z', fill: '#B8D4B8' }),
+    svg('path', { d: 'M32 38c-4-8-3-15 1-20 4 6 4 13-1 20z', fill: '#A3C9A6' }),
+    svg('path', { d: 'M32 39c-5-5-10-6-15-4 4 5 9 6 15 4z', fill: '#7FAE86' }),
+    svg('path', { d: 'M32 39c5-5 10-6 15-4-4 5-9 6-15 4z', fill: '#9FC6A3' }),
+    svg('path', { d: 'M32 41V28', stroke: '#6E9A74', 'stroke-width': 1.6, 'stroke-linecap': 'round' }),
+    // pot
+    svg('path', { d: 'M21 41h22l-2.6 12.6a3 3 0 0 1-3 2.4H26.6a3 3 0 0 1-3-2.4z', fill: '#D08A62' }),
+    svg('path', { d: 'M19.6 37.4h24.8a1.7 1.7 0 0 1 1.7 1.7v1.4a1.7 1.7 0 0 1-1.7 1.7H19.6a1.7 1.7 0 0 1-1.7-1.7v-1.4a1.7 1.7 0 0 1 1.7-1.7z', fill: '#E0A17A' }),
+    svg('path', { d: 'M25.4 45l-1 8', stroke: 'rgba(255,255,255,.3)', 'stroke-width': 2, 'stroke-linecap': 'round' }),
   ],
 
-  chart: () => [
-    svg('rect', { fill: SHADE, x: 3.4, y: 12.6, width: 3.6, height: 7.8, rx: 1.3 }),
-    svg('rect', { fill: SOLID, x: 8.9, y: 6.4, width: 3.6, height: 14, rx: 1.3 }),
-    svg('rect', { fill: SHADE, x: 14.4, y: 9.8, width: 3.6, height: 10.6, rx: 1.3 }),
-    svg('circle', { fill: SOLID, cx: 19.6, cy: 5.2, r: 2 }),
+  /* ---- Contact: a paper crane ---- */
+  crane: () => [
+    svg('ellipse', { cx: 32, cy: 55, rx: 14, ry: 2.6, fill: 'rgba(70,52,44,.15)' }),
+    // tail, up and to the right
+    svg('path', { d: 'M34 34l20-20-4 12 4 1-19 8z', fill: PAPER_SHADE }),
+    svg('path', { d: 'M34 34l20-20-4 12 4 1-19 8z', fill: 'none', stroke: PAPER_EDGE, 'stroke-width': .9 }),
+    // far wing, sweeping down-left
+    svg('path', { d: 'M32 35L9 22l14 23z', fill: PAPER_SHADE }),
+    svg('path', { d: 'M32 35L9 22l14 23z', fill: 'none', stroke: PAPER_EDGE, 'stroke-width': .9 }),
+    // neck and head, up to the left, with a beak
+    svg('path', { d: 'M31 34L16 9l6 1 9 20z', fill: PAPER }),
+    svg('path', { d: 'M16 9l-7 1.5 6.5 4z', fill: PAPER_SHADE }),
+    svg('path', { d: 'M31 34L16 9l6 1 9 20z', fill: 'none', stroke: PAPER_EDGE, 'stroke-width': .9 }),
+    // body
+    svg('path', { d: 'M26 33h13l-6 17z', fill: PAPER_SHADE }),
+    // near wing, sweeping down-right, the brightest plane
+    svg('path', { d: 'M33 34l22-9-9 23z', fill: PAPER }),
+    svg('path', { d: 'M33 34l22-9-9 23z', fill: 'none', stroke: PAPER_EDGE, 'stroke-width': .9 }),
+    // the fold that makes it read as folded paper
+    svg('path', { d: 'M33 34l6 6', stroke: PAPER_EDGE, 'stroke-width': .9 }),
   ],
+
 };
 
+
 /**
- * A filled desktop-launcher glyph. Falls back to the line icon for
- * anything without a solid design.
+ * A desktop launcher object. Falls back to the line icon so a new
+ * app without an illustration still gets something sensible.
  */
-export function appGlyph(name, size = 34) {
-  const shape = APP_SHAPES[name];
-  if (!shape) return icon(name, size);
+export function objectIcon(name, size = 72) {
+  const shape = OBJECTS[name];
+  if (!shape) return icon(name, Math.round(size * 0.55));
   return svg('svg', {
-    viewBox: '0 0 24 24',
+    viewBox: '0 0 64 64',
     width: size,
     height: size,
     'aria-hidden': 'true',
@@ -231,3 +282,4 @@ export function appGlyph(name, size = 34) {
   }, shape());
 }
 
+export const objectNames = Object.keys(OBJECTS);

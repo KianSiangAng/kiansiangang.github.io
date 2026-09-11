@@ -230,12 +230,12 @@
 
 .desktop-icon {
   position: absolute;
-  width: 104px;
+  width: 116px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.3rem 0.4rem;
+  gap: 0.1rem;
+  padding: 0.4rem 0.25rem 0.35rem;
   border-radius: 12px;
   cursor: pointer;
   text-align: center;
@@ -244,59 +244,36 @@
 
 .desktop-icon.is-dragging { opacity: 0.7; }
 
-/* ---- the tile ----
-   A hairline outline on a photographic wallpaper reads as faint UI
-   chrome. A solid gradient tile with a real shadow reads as an
-   object, and objects invite clicking. --icon-from / --icon-to are
-   set per app by desktop.js. */
-.desktop-icon__glyph {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 66px;
-  height: 66px;
-  border-radius: 20px;
-  background: linear-gradient(155deg, var(--icon-from, #cfd8e6), var(--icon-to, #a8b8cc));
-  box-shadow:
-    0 8px 18px -6px rgba(26, 39, 68, 0.45),
-    0 2px 5px rgba(26, 39, 68, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
-  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1),
-              box-shadow 220ms ease;
+/* ---- the object ----
+   No tile. Each launcher is an illustrated object resting on the
+   wallpaper, lit from above by a drop-shadow rather than contained
+   by a rounded rectangle. A tile is what makes an icon look like
+   part of a grid; without one it looks like a thing you could pick
+   up, which is the whole point. */
+.desktop-icon__art {
+  display: block;
+  line-height: 0;
+  filter: drop-shadow(0 7px 9px rgba(60, 45, 40, 0.26));
+  transition: transform 240ms cubic-bezier(0.2, 0.9, 0.3, 1),
+              filter 240ms ease;
 }
 
-/* A soft top-left sheen, so the tile reads as a curved surface
-   rather than a flat rectangle of colour. */
-.desktop-icon__glyph::after {
-  content: '';
-  position: absolute;
-  inset: 1px 1px 45% 1px;
-  border-radius: 19px 19px 40% 40%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
-  pointer-events: none;
+.desktop-icon:hover .desktop-icon__art,
+.desktop-icon:focus-visible .desktop-icon__art {
+  /* Lifts off the desk: rises, grows very slightly, and its shadow
+     falls further and softer, as a real object's would. */
+  transform: translateY(-7px) scale(1.045);
+  filter: drop-shadow(0 15px 14px rgba(60, 45, 40, 0.3));
 }
 
-/* The résumé tile is pale, so its glyph is drawn dark instead. */
-.desktop-icon__glyph[data-app="resume"] svg [fill^="rgba(255"] { fill: rgba(70, 60, 45, 0.9); }
-.desktop-icon__glyph[data-app="resume"] svg path[stroke] { stroke: rgba(120, 105, 80, 0.75); }
-
-.desktop-icon:hover .desktop-icon__glyph,
-.desktop-icon:focus-visible .desktop-icon__glyph {
-  transform: translateY(-6px) scale(1.06);
-  box-shadow:
-    0 18px 28px -8px rgba(26, 39, 68, 0.5),
-    0 4px 10px rgba(26, 39, 68, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
-}
-
-.desktop-icon:active .desktop-icon__glyph {
-  transform: translateY(-2px) scale(0.98);
+.desktop-icon:active .desktop-icon__art {
+  transform: translateY(-2px) scale(0.99);
+  filter: drop-shadow(0 5px 7px rgba(60, 45, 40, 0.3));
   transition-duration: 90ms;
 }
 
 .desktop-icon__label {
-  max-width: 100px;
+  max-width: 112px;
   padding: 0.1rem 0.45rem;
   border-radius: 6px;
   color: var(--clr-navy);
@@ -307,7 +284,6 @@
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 
-  /* Two lines maximum, then ellipsis. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -315,21 +291,16 @@
   overflow-wrap: break-word;
 }
 
-/* A one-line description, revealed on hover. It answers "what is
-   this?" without adding permanent clutter.
-
-   Absolutely positioned on purpose: in the flex flow it added
-   height to the hovered icon and shoved its caption straight
-   through the label of the icon below. As a floating tooltip it
-   costs the layout nothing and can afford to be wider than the
-   icon cell. */
+/* A one-line description on hover. Absolutely positioned: in the
+   flex flow it added height to the hovered icon and drove its
+   caption through the label of the icon below. */
 .desktop-icon__caption {
   position: absolute;
   top: calc(100% - 2px);
   left: 50%;
   z-index: 3;
-  width: 132px;
-  margin-left: -66px;
+  width: 136px;
+  margin-left: -68px;
   padding: 0.25rem 0.45rem;
   border-radius: 7px;
   background: var(--palette-bg);
@@ -354,12 +325,13 @@
   transform: none;
 }
 
-/* An empty description would otherwise render as a stray pill. */
 .desktop-icon__caption:empty { display: none; }
 
-.desktop-icon.is-selected .desktop-icon__glyph {
-  outline: 2.5px solid var(--accent);
-  outline-offset: 3px;
+/* Selection has no tile to outline any more, so it highlights the
+   whole cell instead. */
+.desktop-icon.is-selected {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .desktop-icon.is-selected .desktop-icon__label {
@@ -367,34 +339,25 @@
   color: var(--clr-bg);
 }
 
-.desktop-icon:focus-visible { outline: none; }
-
-/* ---- first-visit attention ring ----
-   Exactly one launcher pulses, and only until the visitor opens
-   anything at all. One clear starting point beats six equal ones;
-   six pulsing icons would be a fairground. */
-.desktop-icon[data-featured="true"]::before {
-  content: '';
-  position: absolute;
-  top: 0.5rem;
-  left: 50%;
-  width: 66px;
-  height: 66px;
-  margin-left: -33px;
-  border-radius: 20px;
-  border: 2px solid var(--clr-peach);
-  opacity: 0;
-  animation: icon-attention 2.6s ease-out infinite;
-  pointer-events: none;
+.desktop-icon:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
-.desktop.has-been-used .desktop-icon::before,
-.desktop-icon:hover::before { animation: none; opacity: 0; }
+/* ---- first-visit attention ----
+   Exactly one launcher breathes, and only until the visitor opens
+   anything at all. One clear starting point beats six equal ones;
+   six animated icons would be a fairground. */
+.desktop-icon[data-featured="true"] .desktop-icon__art {
+  animation: icon-breathe 3.4s ease-in-out infinite;
+}
 
-@keyframes icon-attention {
-  0%   { opacity: 0.85; transform: scale(1); }
-  70%  { opacity: 0; transform: scale(1.35); }
-  100% { opacity: 0; transform: scale(1.35); }
+.desktop.has-been-used .desktop-icon__art,
+.desktop-icon:hover .desktop-icon__art { animation: none; }
+
+@keyframes icon-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-4px) scale(1.02); }
 }
 
 
@@ -1038,18 +1001,11 @@
 .welcome__action-icon {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
-  border-radius: 11px;
-  color: #fff;
-  background: linear-gradient(155deg, #A8C8E8, #6E9FD0);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  filter: drop-shadow(0 4px 5px rgba(60, 45, 40, 0.22));
 }
-
-.welcome__action-icon[data-app="projects"] { background: linear-gradient(155deg, #F5CFA4, #E09A5F); }
-.welcome__action-icon[data-app="terminal"] { background: linear-gradient(155deg, #42568C, #1A2744); }
-.welcome__action-icon[data-app="resume"]   { background: linear-gradient(155deg, #FBF4E4, #E2D2B0); color: #6b5c42; }
 
 .welcome__action-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
 .welcome__action-text strong { font-size: var(--fs-sm); }
@@ -1086,12 +1042,12 @@
   .win,
   .dock__tile,
   .wm-snap,
-  .desktop-icon__glyph,
+  .desktop-icon__art,
   .desktop-icon__caption,
   .welcome__action,
   .achv-bar__fill { transition: none !important; }
   .win.is-closing { animation: none; }
-  .desktop-icon[data-featured="true"]::before { animation: none; opacity: 0; }
+  .desktop-icon[data-featured="true"] .desktop-icon__art { animation: none; }
 }
 
 @media print {

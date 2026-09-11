@@ -19,7 +19,7 @@
 
    Two surfaces, two jobs, no duplication:
      desktop: true   the six things a visitor actually came for,
-                     as large colourful launchers
+                     each drawn as an object (see `object`)
      pinned: true    utilities and links, as quiet dock glyphs
    Nothing appears on both. A desktop that mirrors its own dock is
    twice the clutter and half the hierarchy.
@@ -106,7 +106,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       icon: 'person',
       kind: 'app',
       desktop: true,
-      tint: ['#A8C8E8', '#6E9FD0'],
+      object: 'kitsune',
       description: 'Who I am and what I have done',
       window: { width: 760, height: 520 },
       build: () => lift('#about .container'),
@@ -118,7 +118,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       kind: 'folder',
       desktop: true,
       featured: true,
-      tint: ['#F5CFA4', '#E09A5F'],
+      object: 'books',
       description: 'A folder of things I have built',
       window: { width: 700, height: 470 },
       build: () => buildProjects({ onOpenProject: openProject }),
@@ -129,7 +129,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       icon: 'terminal',
       kind: 'app',
       desktop: true,
-      tint: ['#42568C', '#1A2744'],
+      object: 'crt',
       description: 'A real shell — try `help`',
       window: { width: 720, height: 460, minWidth: 420, minHeight: 260 },
       build(win) {
@@ -147,7 +147,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       icon: 'document',
       kind: 'file',
       desktop: true,
-      tint: ['#FBF4E4', '#E2D2B0'],
+      object: 'letter',
       description: 'The one-page version',
       window: { width: 620, height: 560 },
       build: () => buildResume(),
@@ -158,7 +158,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       icon: 'chart',
       kind: 'app',
       desktop: true,
-      tint: ['#BFDCC0', '#82B589'],
+      object: 'plant',
       description: 'Languages, tools and concepts',
       window: { width: 640, height: 440 },
       build: () => buildSkills({ onOpen }),
@@ -169,7 +169,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       icon: 'mail',
       kind: 'app',
       desktop: true,
-      tint: ['#F5BDB6', '#DE8B84'],
+      object: 'crane',
       description: 'Email, GitHub, LinkedIn',
       window: { width: 560, height: 380 },
       build: () => lift('#contact .container'),

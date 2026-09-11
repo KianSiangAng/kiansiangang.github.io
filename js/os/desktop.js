@@ -17,14 +17,14 @@
 ================================================================ */
 
 import { el, clamp } from './dom.js';
-import { appGlyph } from './icons.js';
+import { objectIcon } from './icons.js';
 import { createLogger } from '../core/logger.js';
 
 const log = createLogger('desktop');
 
-const GRID = 104;
-const ICON_WIDTH = 104;
-const ICON_HEIGHT = 106;
+const GRID = 116;
+const ICON_WIDTH = 116;
+const ICON_HEIGHT = 116;
 const TOP_MARGIN = 54;
 const LEFT_MARGIN = 30;
 const STORAGE_KEY = 'portfolio:desktop-icons';
@@ -66,8 +66,15 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
       spread across the right-hand side read as a folder someone
       forgot to tidy. Left-hand also matches reading order, and it
       keeps the right side of the wallpaper clear. */
-  function defaultPosition(index) {
-    const perColumn = Math.max(1, Math.floor((window.innerHeight - TOP_MARGIN - 130) / ICON_HEIGHT));
+  function defaultPosition(index, total = icons.length || 6) {
+    const fits = Math.max(1, Math.floor((window.innerHeight - TOP_MARGIN - 118) / ICON_HEIGHT));
+
+    /* Balance the columns instead of filling the first one to the
+       brim. Six launchers in a 5 + 1 split look like a layout that
+       ran out of room; 3 + 3 looks deliberate. */
+    const columns = Math.ceil(total / fits);
+    const perColumn = Math.ceil(total / columns);
+
     const column = Math.floor(index / perColumn);
     const row = index % perColumn;
     return {
@@ -131,14 +138,10 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
 
   function buildIcon(app, index) {
     const label = el('span.desktop-icon__label', { text: app.title });
-    /* The tile's gradient comes from the app definition, written
-       through CSSOM custom properties — which CSP permits, unlike a
-       style attribute in markup. */
-    const [from, to] = app.tint || ['#cfd8e6', '#a8b8cc'];
-    const glyph = el('span.desktop-icon__glyph', {
-      dataset: { kind: app.kind || 'app', app: app.id },
-      style: { '--icon-from': from, '--icon-to': to },
-    }, appGlyph(app.icon, 38));
+    /* No tile: the illustration sits straight on the wallpaper. */
+    const glyph = el('span.desktop-icon__art', {
+      dataset: { app: app.id },
+    }, objectIcon(app.object || app.icon, 86));
 
     const node = el('div.desktop-icon', {
       role: 'option',
@@ -154,7 +157,7 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
 
     const entry = { app, el: node, x: 0, y: 0 };
     const saved = positions[app.id];
-    const initial = saved || defaultPosition(index);
+    const initial = saved || defaultPosition(index, apps.length);
     place(entry, initial.x, initial.y);
 
     /* -- open -- */
@@ -314,7 +317,7 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
 
   function tidy() {
     icons.forEach((entry, index) => {
-      const spot = defaultPosition(index);
+      const spot = defaultPosition(index, icons.length);
       place(entry, spot.x, spot.y);
       positions[entry.app.id] = { x: entry.x, y: entry.y };
     });

@@ -37,23 +37,26 @@ in either presentation.
 | `Ctrl-Tab` | Cycle windows |
 | Right-click | Context menus on icons and the desktop |
 | Drag icons | Positions snap to a grid and persist |
+| `⌥D` | Toggle dark mode |
+| Type `sakura` | A storm of blossom |
 | `#/projects` | Every app is deep-linkable; back/forward work |
 
-## Two worlds
+## The desktop
 
-The site exists in two complete themes, not one theme with a filter over it:
+Six launchers, each drawn as an object rather than an icon in a tile: a
+stack of books for Projects, a small CRT for Terminal, a folded paper crane
+for Contact, a potted plant for Skills, a sealed letter for Résumé, and the
+kitsune for About Me. They sit directly on the wallpaper with a contact
+shadow and lift when you point at them.
 
-| | **Ghibli** | **Hacker** |
-|---|---|---|
-| Sky | Procedural fBm cloud shader, sun glow | Falling glyph columns, CRT scanlines |
-| Particles | Sakura petals in a curl-noise wind field | The same physics, rendered as code glyphs |
-| Wildlife | A boids flock of birds | — |
-| Type | Nunito | Space Mono |
-| Soundtrack | Pentatonic pad and bells | Saw drone and a 16th-note arpeggio |
+They are deliberately bespoke rather than fashionable — a grid of glossy
+gradient squares is an app-store shelf, and it dates the moment the trend
+moves on. These are also the objects that will be on the desk in the 3D
+room, so the desktop and the room share one vocabulary.
 
-Switch with the button in the navbar, `⌘K → switch world`, the terminal
-command `theme hacker`, by typing `hack` anywhere, or with the Konami code.
-The light/dark colour scheme is a separate axis and still works in both.
+Utilities and links live in the dock as quiet line glyphs. Nothing appears
+on both surfaces: a desktop that mirrors its own dock is twice the clutter
+and half the hierarchy.
 
 ## Tech stack
 
@@ -83,11 +86,10 @@ js/
 │   ├── store.js            ← reducer store, middleware, time travel
 │   ├── di.js               ← service container, cycle detection
 │   ├── kernel.js           ← module lifecycle, Kahn topological boot
-│   ├── fsm.js              ← finite state machine
 │   └── logger.js           ← namespaced logging, ring buffer, perf marks
 ├── gfx/
 │   ├── gl.js               ← WebGL2 wrapper, shader diagnostics
-│   ├── shaders.js          ← GLSL: fBm sky · glyph rain
+│   ├── shaders.js          ← GLSL: procedural fBm sky, day and night
 │   ├── scene.js            ← the single rAF loop, world crossfade
 │   ├── petals.js           ← particles in a curl-noise wind field
 │   └── birds.js            ← boids flock (separation/alignment/cohesion)
@@ -114,10 +116,10 @@ js/
 │   ├── router.js           ← #/app/param deep links, bidirectional
 │   ├── registry.js         ← the app table; lifts content from the document
 │   ├── contextmenu.js      ← right-click menus
-│   ├── dom.js · icons.js   ← element helpers, inline SVG icon set
+│   ├── dom.js · icons.js   ← element helpers; line glyphs + object icons
 │   └── apps/panels.js      ← Finder, résumé, settings, achievements, help
 ├── audio/synth.js          ← Web Audio synthesiser, lookahead scheduler
-├── theme/duality.js        ← the world switch, as a state machine
+├── theme/scheme.js         ← the light/dark colour scheme
 └── data/portfolio.js       ← single source of truth for all content
 ```
 
@@ -170,7 +172,7 @@ portfolio/
 ├── index.html              ← single-page HTML (all 7 sections)
 ├── css/
 │   ├── style.css           ← the original Ghibli site
-│   ├── duality.css         ← hacker world + every runtime component
+│   ├── runtime.css         ← everything the JS renders at load
 │   └── os.css              ← the desktop presentation
 ├── js/                     ← see Architecture above
 ├── libs/typed.min.js       ← Typed.js v2.0.16 (self-hosted)
@@ -212,8 +214,6 @@ trace-level logging.
 
 ## Colour palette
 
-### Ghibli
-
 | Name | Hex | Usage |
 |------|-----|-------|
 | Parchment | `#E8E0D0` | Background |
@@ -221,15 +221,6 @@ trace-level logging.
 | Sage green | `#B8D4B8` | Secondary accent |
 | Peach | `#F0C8A0` | Highlights, CTA buttons |
 | Navy | `#1A2744` | Text, footer background |
-
-### Hacker
-
-| Name | Hex | Usage |
-|------|-----|-------|
-| Void | `#04070A` | Background |
-| Phosphor | `#3BFF88` | Primary accent, headings |
-| Signal | `#23D977` | Secondary accent |
-| Mint | `#C6FFD9` | Body text |
 
 ## License
 
