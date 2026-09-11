@@ -21,16 +21,25 @@
    visitor pinned to old assets.
 ================================================================ */
 
-const VERSION = 'v2.0.0';
+const VERSION = 'v3.0.0';
 const CACHE = `portfolio-${VERSION}`;
 
-/* The shell: everything needed to render the page offline. */
+/* The shell: everything needed to render the page offline.
+
+   Deliberately NOT in here: Three.js and js/room/*. The room is only
+   ever used by the desktop presentation, and Three.js is 720KB across
+   two chunks. Precaching it would charge that to every visitor on
+   install — including every phone, which never loads the room at all.
+   The stale-while-revalidate handler below caches both on first use,
+   so the room is offline-capable from the second visit onward, which
+   is the right trade. */
 const PRECACHE = [
   './',
   'index.html',
   'css/style.css',
   'css/runtime.css',
   'css/os.css',
+  'css/room.css',
   'libs/typed.min.js',
   'js/theme-init.js',
   'js/main.js',

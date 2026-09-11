@@ -171,6 +171,91 @@ kernel.use({
   },
 });
 
+/* The room is the desktop's wallpaper, in three dimensions. It only
+   boots for the OS presentation, and Three.js is pulled in with a
+   dynamic import so the plain page and every phone never download it. */
+kernel.use({
+  name: 'room',
+  deps: ['bus', 'os'],
+  enabled: () => {
+    if (new URLSearchParams(location.search).get('room') === '0') return false;
+    const os = container.has('os') ? container.resolve('os') : null;
+    return Boolean(os && os.mode() === 'os');
+  },
+  async setup({ container }) {
+    const host = document.getElementById('os-root');
+    if (!host) return null;
+
+    let scene = null;
+    try {
+      const { createRoomScene } = await import('./room/room.js');
+      scene = createRoomScene({ bus, desktopElement: host, reducedMotion });
+    } catch (err) {
+      // No WebGL, a blocked module, a driver that gives up — the flat
+      // wallpaper is still there and the desktop is unaffected.
+      log.warn('room unavailable, keeping the flat wallpaper', err);
+      return null;
+    }
+
+    /* The flat wallpaper renderer is now redundant: its canvases are
+       hidden by CSS, but a hidden full-screen fragment shader still
+       costs a draw every frame. Park it. */
+    container.resolve('gfx')?.stop?.();
+
+    /* The desktop moves out of <body> and onto the screen plane. */
+    document.body.appendChild(scene.canvas);
+    scene.stage.querySelector('.room-stage__camera').appendChild(host);
+    document.body.appendChild(scene.stage);
+
+    const hint = document.createElement('div');
+    hint.className = 'room-hint';
+    hint.textContent = 'Click the screen';
+    document.body.appendChild(hint);
+
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'room-back';
+    back.textContent = 'Back to the room';
+    back.addEventListener('click', () => scene.undock());
+    document.body.appendChild(back);
+
+    bus.on('room.toggle', () => scene.toggle());
+    bus.on('room.dock', () => scene.dock());
+    bus.on('room.undock', () => scene.undock());
+
+    window.addEventListener('keydown', (event) => {
+      if (event.altKey && event.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        scene.toggle();
+      }
+    });
+
+    return {
+      ...scene,
+      start() {
+        scene.mount(document.body);
+
+        /* First visit gets the establishing shot, then flies in on its
+           own so nobody is stranded looking at a desk they did not
+           know was clickable. After that, straight to the desktop:
+           a cinematic you cannot skip stops being a gift. */
+        let seen = true;
+        try { seen = Boolean(localStorage.getItem('portfolio:room-seen')); } catch { /* ignore */ }
+
+        if (reducedMotion || seen) {
+          scene.dock();
+        } else {
+          setTimeout(() => {
+            if (scene.mode === 'room') scene.dock();
+            try { localStorage.setItem('portfolio:room-seen', '1'); } catch { /* ignore */ }
+          }, 1800);
+        }
+      },
+      stop: scene.dispose,
+    };
+  },
+});
+
 kernel.use({
   name: 'hud',
   deps: ['bus'],
@@ -357,6 +442,15 @@ function buildActions(container, palette) {
       icon: '♪',
       keywords: ['audio', 'music', 'sound', 'synth'],
       run: () => bus.emit('audio.request', { mode: 'toggle' }),
+    },
+    {
+      title: 'Step back into the room',
+      group: 'Appearance',
+      icon: '⌂',
+      hint: '⌥R',
+      keywords: ['room', 'desk', '3d', 'camera', 'zoom out'],
+      when: () => container.has('room'),
+      run: () => bus.emit('room.toggle'),
     },
     {
       title: 'Toggle performance HUD',

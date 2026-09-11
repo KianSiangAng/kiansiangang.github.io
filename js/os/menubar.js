@@ -150,6 +150,8 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
     { label: 'Toggle dark mode', shortcut: '⌥D', action: () => bus.emit('theme.set', { theme: 'toggle' }) },
     { label: 'Summon petals', action: () => bus.emit('petals.storm', { intensity: 1.8 }) },
     'separator',
+    { label: 'Step back into the room', shortcut: '⌥R', action: () => bus.emit('room.toggle') },
+    'separator',
     { label: 'Close all windows', action: () => wm.closeAll() },
     { label: 'View as a plain page', action: () => shell.setMode('page') },
   ];

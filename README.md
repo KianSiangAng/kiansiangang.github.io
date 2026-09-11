@@ -38,8 +38,34 @@ in either presentation.
 | Right-click | Context menus on icons and the desktop |
 | Drag icons | Positions snap to a grid and persist |
 | `⌥D` | Toggle dark mode |
+| `⌥R` | Step back into the room |
 | Type `sakura` | A storm of blossom |
 | `#/projects` | Every app is deep-linkable; back/forward work |
+
+## The room
+
+On a desktop the site opens on a cozy desk at dusk: a lamp, a mug, a stack
+of books, a plant, a paper crane, and a monitor. The camera drifts with your
+pointer, then flies into the screen — and the desktop takes over.
+
+The monitor is not showing a picture of the desktop. The desktop is **live
+DOM**, placed onto the screen plane with a `matrix3d` derived from the
+Three.js camera every frame, so the windows on that monitor are real HTML:
+selectable, focusable, screen-reader-readable and crawlable. A canvas
+texture would have thrown all of that away at the last step.
+
+The whole room is procedural — no model files, no textures to download.
+Every object is assembled from boxes, cylinders, lathes and planes, which
+is why the scene costs a few kilobytes of JavaScript instead of a
+multi-megabyte glTF. The objects are the same ones as the desktop
+launchers, so the two surfaces are one place.
+
+Dark mode is the same room after dark: the sun goes down behind the
+window, the lamp becomes the only warm light, and the monitor lights the
+desk. `⌥R`, the menu bar, or the button in the corner steps back out.
+
+Three.js is self-hosted in `/libs` and pulled in with a **dynamic import**,
+so the plain page and every phone never download a byte of it.
 
 ## The desktop
 
@@ -69,6 +95,7 @@ and half the hierarchy.
 | Audio | Web Audio API (generated at runtime — no audio files) |
 | Offline | Service worker + web app manifest |
 | Fonts | Google Fonts — Nunito (body), Space Mono (terminal) |
+| 3D | [Three.js](https://threejs.org) r180, self-hosted, dynamically imported |
 | Libraries | [Typed.js](https://github.com/mattboldt/typed.js) v2.0.16, self-hosted |
 
 ## Architecture
@@ -118,6 +145,12 @@ js/
 │   ├── contextmenu.js      ← right-click menus
 │   ├── dom.js · icons.js   ← element helpers; line glyphs + object icons
 │   └── apps/panels.js      ← Finder, résumé, settings, achievements, help
+├── room/
+│   ├── room.js             ← scene, lights, frame loop, dock/undock
+│   ├── props.js            ← every object, built from primitives
+│   ├── materials.js        ← one palette, re-lit for day or night
+│   ├── camera-rig.js       ← two poses and the flight between them
+│   └── screen.js           ← the DOM desktop, projected onto the monitor
 ├── audio/synth.js          ← Web Audio synthesiser, lookahead scheduler
 ├── theme/scheme.js         ← the light/dark colour scheme
 └── data/portfolio.js       ← single source of truth for all content
@@ -175,7 +208,10 @@ portfolio/
 │   ├── runtime.css         ← everything the JS renders at load
 │   └── os.css              ← the desktop presentation
 ├── js/                     ← see Architecture above
-├── libs/typed.min.js       ← Typed.js v2.0.16 (self-hosted)
+├── libs/
+│   ├── three.module.min.js ← Three.js r180 (self-hosted, no CDN)
+│   ├── three.core.min.js   ← its core chunk
+│   └── typed.min.js        ← Typed.js v2.0.16
 ├── assets/icons/           ← favicon, PWA icons
 ├── sw.js                   ← service worker (offline support)
 ├── site.webmanifest        ← PWA manifest
@@ -200,7 +236,8 @@ portfolio/
 
 3. Open <http://127.0.0.1:8080>.
 
-Useful query parameters: `?shell=os` and `?shell=page` force a presentation,
+Useful query parameters: `?room=0` skips the 3D room, `?shell=os` and
+`?shell=page` force a presentation,
 `?boot=1` replays the boot screen, `?boot=0` skips it, and `?debug=1` turns on
 trace-level logging.
 

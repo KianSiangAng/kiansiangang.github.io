@@ -116,6 +116,13 @@
     <link rel="stylesheet" href="css/os.css" />
 
     <!-- ============================================================
+         The 3D room. Only ever used by the desktop presentation, and
+         Three.js itself is loaded with a dynamic import so phones and
+         the plain page never download a byte of it.
+    ============================================================ -->
+    <link rel="stylesheet" href="css/room.css" />
+
+    <!-- ============================================================
          PWA — installable, and fully readable offline once the
          service worker has primed its cache.
     ============================================================ -->

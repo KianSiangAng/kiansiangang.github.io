@@ -1,0 +1,188 @@
+/* ================================================================
+   ROOM.CSS — Layering for the 3D room
+
+   Three layers, bottom to top:
+
+     .room-canvas    the WebGL room
+     .room-stage     the CSS 3D stage holding the desktop
+     .room-stage .os the desktop itself, transformed onto the screen
+
+   The desktop inside the stage is a TRANSFORMED element, which makes
+   it the containing block for its own `position: fixed` children.
+   That is what keeps the menu bar, the dock and every window laid out
+   correctly inside the monitor instead of against the viewport — the
+   window manager's maths needs no knowledge of the room at all.
+================================================================ */
+
+.room-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.room-canvas.is-over-screen { cursor: pointer; }
+
+/* Once docked, the canvas has no job left: the only thing a click
+   can land on is the desktop in front of it. Leaving it hit-testable
+   let it intercept events in the strip along the top of the screen,
+   which made the menu bar unclickable — the desktop was there and
+   laid out correctly, the canvas was simply winning the hit test. */
+html[data-room="docked"] .room-canvas { pointer-events: none; }
+
+.room-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  /* Never intercept while the camera is out in the room: clicks there
+     belong to the canvas, which raycasts them to the monitor. */
+  pointer-events: none;
+}
+
+/* This element MUST be the size of the viewport and MUST keep the
+   default 50% 50% transform-origin.
+
+   Its transform ends in `translate(halfW, halfH)`, and CSS applies a
+   transform about its origin. With origin 0 0 that final translate
+   lands on the wrong side of the camera matrix and is applied in
+   WORLD units instead of pixels — i.e. the scene is shifted by 720
+   *metres*, which put the desktop at -70496px and squashed it to
+   3x3. With the origin at the centre the translate resolves to
+   "move the world origin to the middle of the viewport", which is
+   what it is for. */
+.room-stage__camera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* The desktop, once adopted onto the screen plane. Its width, height
+   and transform are written every frame by js/room/screen.js. */
+.room-stage > .room-stage__camera > .os {
+  position: absolute;
+  top: 0;
+  left: 0;
+  inset: auto;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  border-radius: 2px;
+
+  /* Clipped so a window dragged past the edge does not hang out of
+     the monitor and float in the room. See the docked override
+     below — this clip is deliberately dropped once docked. */
+  overflow: hidden;
+  /* The screen's own light, so the UI reads as emissive rather than
+     as a sticker on a dark rectangle. */
+  box-shadow: 0 0 22px rgba(150, 190, 255, 0.14);
+}
+
+.room-stage.is-interactive > .room-stage__camera > .os { pointer-events: auto; }
+
+/* `position: fixed` inside a 3D-transformed subtree lays out
+   correctly — the transformed ancestor becomes the containing block,
+   so the menu bar sat exactly where it should — but it does not
+   reliably hit-test there. The bar was visible, correctly placed and
+   completely unclickable.
+
+   `.os` is already the containing block, so `absolute` produces
+   identical geometry with none of the 3D hit-testing ambiguity. */
+/* ---- flattened, once docked ----
+   Chrome loses hit-testing across a band at the top of every
+   `overflow: hidden` container inside a 3D-transformed subtree. The
+   menu bar and the topmost desktop icon rendered in exactly the right
+   place, reported correct bounding boxes, and were unclickable.
+
+   Rather than hunt down every clipping container, the desktop stops
+   being 3D the moment it stops needing to be: on arrival the screen
+   fills the viewport, so a plain pinned overlay is pixel-identical
+   and behaves like the ordinary DOM it is. js/room/screen.js toggles
+   this and stops writing transforms while it is on. */
+.room-stage.is-flat > .room-stage__camera {
+  transform: none !important;
+  transform-style: flat;
+}
+
+.room-stage.is-flat > .room-stage__camera > .os {
+  transform: none !important;
+  transform-style: flat;
+  position: fixed;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  box-shadow: none;
+}
+
+/* The flat wallpaper is redundant once the room exists. */
+html[data-room] .gfx-layer,
+html[data-room] .landscape { display: none !important; }
+
+html[data-room] body { background: #14161d; }
+
+/* Out in the room the desktop is scenery: dim it slightly and keep
+   its focus rings from flashing at a UI nobody can touch yet. */
+html[data-room="away"] .os { filter: saturate(0.94); }
+html[data-room="away"] .os :focus-visible { outline: none; }
+
+/* A hint, shown only while the camera is out in the room. */
+.room-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  z-index: 3;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  background: rgba(20, 22, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #f2ece0;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+html[data-room="away"] .room-hint { opacity: 1; }
+
+/* Return control, shown only once docked. */
+.room-back {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--clr-card-bg);
+  border: 1px solid var(--palette-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--clr-navy);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  box-shadow: var(--shadow-sm);
+  opacity: 0.75;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+html[data-room="docked"] .room-back { display: inline-flex; }
+
+.room-back:hover,
+.room-back:focus-visible { opacity: 1; transform: translateY(-1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .room-hint { display: none; }
+}
