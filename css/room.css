@@ -136,6 +136,16 @@ html[data-shell="os"][data-room] .landscape { display: none !important; }
    to its own colour. */
 html[data-shell="os"][data-room] body { background: #14161d; }
 
+/* Petals drifting across the desktop wallpaper. First child of `.os`
+   so everything else paints over it, and never a click target. */
+.os-petals {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
 /* ---- the desktop's own wallpaper ----
    Hiding the flat layers above left `.os` with no background at all,
    so the desktop rendered as a black rectangle on the monitor — it

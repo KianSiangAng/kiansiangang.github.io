@@ -301,16 +301,24 @@ export function buildLamp(materials) {
 
   /* The bulb: an unlit sphere so the source itself is visible, paired
      with the point light the lighting rig adds. MeshBasic ignores
-     lighting, which is exactly right for something that IS the
-     light — shading it would make the bulb darker than the glow it
-     is supposed to be casting. */
+     lighting, which is exactly right for something that IS the light.
+
+     It is a CHILD OF THE SHADE, not a sibling. Positioning it in the
+     lamp's own space meant hand-guessing a point that matched the
+     shade's rotation, and it did not — the bulb hung outside the
+     shade instead of sitting in its mouth. Parented, it inherits the
+     rotation for free and stays put however the shade is aimed.
+
+     Cone local space runs from the wide opening at y = -0.05 to the
+     apex at +0.05, and the radius there is 0.085·0.65 ≈ 0.055, so a
+     26mm bulb at y = -0.015 sits inside with room to spare. */
   const bulb = new THREE.Mesh(
     new THREE.SphereGeometry(0.026, 14, 14),
     new THREE.MeshBasicMaterial({ color: 0xfff3d6 }),
   );
-  bulb.position.set(0, 0.345, 0.185);
+  bulb.position.set(0, -0.015, 0);
   bulb.name = 'bulb';
-  group.add(bulb);
+  shade.add(bulb);
 
   return group;
 }

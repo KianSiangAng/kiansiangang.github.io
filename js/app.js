@@ -248,26 +248,19 @@ kernel.use({
       start() {
         scene.mount(document.body);
 
-        /* First visit gets the establishing shot, then flies in on its
-           own so nobody is stranded looking at a desk they did not
-           know was clickable. After that, straight to the desktop:
-           a cinematic you cannot skip stops being a gift. */
-        let seen = true;
-        try { seen = Boolean(localStorage.getItem('portfolio:room-seen')); } catch { /* ignore */ }
+        /* Always hold in the room before flying in.
 
-        if (reducedMotion || seen) {
+           This used to skip the hold entirely for anyone who had
+           visited before, which meant every timing change made here
+           was invisible to exactly the people asking for it: a
+           returning visitor docked instantly and saw the site open
+           mid-zoom. Clicking the screen still goes immediately, so
+           the wait only costs someone who has not decided yet. */
+        if (reducedMotion) {
           scene.dock();
         } else {
-          /* Five seconds before the camera moves, and the flight
-             itself is slower (see FLIGHT_MS in camera-rig.js). Three
-             seconds still read as "the site opened mid-zoom": the
-             establishing shot has to outlast the moment it takes to
-             work out you are looking at a room. Clicking the screen
-             still goes immediately, so the wait only applies to
-             people who have not decided yet. */
           setTimeout(() => {
             if (scene.mode === 'room') scene.dock();
-            try { localStorage.setItem('portfolio:room-seen', '1'); } catch { /* ignore */ }
           }, 5000);
         }
       },
@@ -334,6 +327,22 @@ kernel.use({
   setup() {
     return {
       async start() {
+        /* Whether a worker was already in charge when this page
+           loaded. If one was, its replacement taking over means the
+           page is running code the new worker has superseded. */
+        const hadController = Boolean(navigator.serviceWorker.controller);
+        let reloading = false;
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!hadController || reloading) return;
+          reloading = true;
+          // Without this, a visitor keeps running the previous
+          // version until they think to hard-reload — which is how
+          // shipped fixes appear not to have shipped.
+          log.info('new service worker took over — reloading for the update');
+          location.reload();
+        });
+
         try {
           const registration = await navigator.serviceWorker.register('sw.js');
           log.info('service worker registered', registration.scope);
@@ -353,12 +362,26 @@ kernel.use({
   setup() {
     /* A storm of petals, requested from the terminal, the Konami
        code or by typing "sakura". */
+    /* A storm of petals, from the terminal, the Konami code, or by
+       typing "sakura".
+
+       There are two petal systems and only one of them is ever on
+       screen: the flat wallpaper's, which the room parks and hides,
+       and the desktop's own, which only exists inside the room. The
+       burst goes to both — whichever is parked ignores it. Sending it
+       only to the flat one is why `sakura` did nothing on the
+       desktop: it was spawning petals into a stopped renderer behind
+       a `display: none` canvas. */
     bus.on('petals.storm', ({ intensity = 1.5 }) => {
-      const scene = container.resolve('gfx');
       const count = Math.round(18 * intensity);
+      const flat = container.resolve('gfx');
+      const room = container.has('room') ? container.resolve('room') : null;
+
       for (let i = 0; i < 3; i++) {
         setTimeout(() => {
-          scene?.burst?.(Math.random() * window.innerWidth, -20, count);
+          const x = Math.random() * window.innerWidth;
+          flat?.burst?.(x, -20, count);
+          room?.burstPetals?.(x, -20, count);
         }, i * 220);
       }
       bus.emit('achievement.unlock', { id: 'storm' });

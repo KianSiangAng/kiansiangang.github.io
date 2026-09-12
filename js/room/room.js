@@ -25,6 +25,7 @@ import {
   buildMug, buildLamp, buildBooks, buildPlant, buildMouse, buildPoster,
   SCREEN,
 } from './props.js';
+import { createPetalSystem } from '../gfx/petals.js';
 import { createCameraRig } from './camera-rig.js';
 import { createScreenProjection } from './screen.js';
 import { createLogger } from '../core/logger.js';
@@ -72,11 +73,14 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
   const monitor = buildMonitor(materials);
 
   scene.add(room, windowFrame, desk, monitor);
+  const lampProp = buildLamp(materials);
   scene.add(
-    buildKeyboard(materials), buildMug(materials), buildLamp(materials),
+    buildKeyboard(materials), buildMug(materials), lampProp,
     buildBooks(materials), buildPlant(materials), buildMouse(materials),
     buildPoster(materials),
   );
+
+
 
   /* ---- lights ---- */
   const ambient = new THREE.AmbientLight(0xbcc9d8, 0.55);
@@ -107,8 +111,19 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
      left a desk lamp sitting there switched off through the entire
      daytime scene. It is on now, and simply turns up after dark. */
   const lamp = new THREE.PointLight(0xffc978, 0.7, 2.4, 2);
-  lamp.position.set(-0.62, 1.09, 0.02);
   scene.add(lamp);
+
+  /* Put the light exactly where the bulb ended up rather than at
+     coordinates copied by hand. The bulb hangs off the shade, so its
+     world position depends on the shade's rotation; a hard-coded
+     light let the glow and the visible bulb drift apart.
+
+     This has to come after `lamp` exists — reading it up in the prop
+     block threw "Cannot access 'lamp' before initialization", and
+     the room's own failure isolation caught it and fell back to the
+     flat wallpaper, so the whole room silently did not load. */
+  scene.updateMatrixWorld(true);
+  lampProp.getObjectByName('bulb').getWorldPosition(lamp.position);
 
   /* The monitor's own glow, spilling onto the desk and the keyboard. */
   const screenGlow = new THREE.PointLight(0x9fc4ff, 0.25, 1.4, 2);
@@ -177,6 +192,17 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
   }
   paintView(false);
 
+  /* ---- petals on the desktop wallpaper ----
+     The flat wallpaper's petal system is parked and hidden while the
+     room is up, which left the desktop's wallpaper static AND left
+     `sakura` with nothing to render into. The desktop gets its own
+     petal canvas, inside the screen plane, driven by this loop. */
+  const petalCanvas = document.createElement('canvas');
+  petalCanvas.className = 'os-petals';
+  petalCanvas.setAttribute('aria-hidden', 'true');
+  desktopElement.insertBefore(petalCanvas, desktopElement.firstChild);
+  const desktopPetals = createPetalSystem(petalCanvas, { maxCount: 42 });
+
   /* ---- the desktop, on the screen ---- */
   const anchor = monitor.getObjectByName('anchor');
   const projection = createScreenProjection({
@@ -210,6 +236,12 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
 
     const metrics = projection.resize(width, height);
     rig.setScreenHeight(metrics.worldHeight);
+
+    // The petal canvas is sized in the screen's pixel space, which is
+    // the viewport's, so it matches the desktop exactly.
+    petalCanvas.style.setProperty('width', `${width}px`);
+    petalCanvas.style.setProperty('height', `${height}px`);
+    desktopPetals.resize();
 
     screenGlow.position.set(0, SCREEN.centre.y, SCREEN.centre.z + 0.3);
   }
@@ -274,6 +306,10 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
 
     rig.update();
     camera.updateMatrixWorld(true);
+
+    desktopPetals.update(dt, now / 1000);
+    desktopPetals.clearFrame();
+    desktopPetals.draw();
 
     renderer.render(scene, camera);
 
@@ -434,6 +470,8 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
     dock,
     undock,
     toggle: () => (rig.mode === 'screen' ? undock() : dock()),
+    /** Petals onto the desktop wallpaper — this is what `sakura` hits. */
+    burstPetals: (x, y, n) => desktopPetals.burst(x, y, n),
     get mode() { return rig.mode; },
     stats: () => ({ ...stats }),
 
@@ -445,6 +483,7 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
       document.removeEventListener('visibilitychange', onVisibility);
       schemeObserver.disconnect();
       projection.dispose();
+      petalCanvas.remove();
       materials.dispose();
       renderer.dispose();
       canvas.remove();
