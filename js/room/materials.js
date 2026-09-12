@@ -57,6 +57,8 @@ export const PALETTE = {
   paperShade: 0xe5d8be,
 
   frame: 0x7d6450,
+  curtain: 0xe8dcc6,
+  curtainRod: 0x6b5645,
   glassDay: 0xbcd8ee,
   glassNight: 0x1d2740,
 };
@@ -115,6 +117,8 @@ export function createMaterials() {
     paperShade: lambert(PALETTE.paperShade, { side: THREE.DoubleSide }),
 
     frame: lambert(PALETTE.frame),
+    curtain: lambert(PALETTE.curtain, { side: THREE.DoubleSide }),
+    curtainRod: lambert(PALETTE.curtainRod),
     glass: new THREE.MeshBasicMaterial({
       color: PALETTE.glassDay,
       transparent: true,
@@ -138,6 +142,7 @@ export function createMaterials() {
     materials.mouseShell.color.copy(mix(PALETTE.mouseShell, 0x8b8172));
     materials.monitorShellDark.color.copy(mix(PALETTE.monitorShellDark, 0x6b6153));
     materials.glass.color.copy(mix(PALETTE.glassDay, PALETTE.glassNight));
+    materials.curtain.color.copy(mix(PALETTE.curtain, 0x4a4458));
     materials.glass.opacity = 0.32 + amount * 0.34;
 
     // The shade is lit from the inside at all times, more so at night.

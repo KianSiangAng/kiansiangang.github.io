@@ -23,6 +23,7 @@ import { createMaterials } from './materials.js';
 import {
   buildRoom, buildWindow, buildDesk, buildMonitor, buildKeyboard,
   buildMug, buildLamp, buildBooks, buildPlant, buildMouse, buildPoster,
+  buildCurtains,
   SCREEN,
 } from './props.js';
 import { createPetalSystem } from '../gfx/petals.js';
@@ -73,6 +74,9 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
   const monitor = buildMonitor(materials);
 
   scene.add(room, windowFrame, desk, monitor);
+  const curtains = buildCurtains(materials);
+  scene.add(curtains);
+
   const lampProp = buildLamp(materials);
   scene.add(
     buildKeyboard(materials), buildMug(materials), lampProp,
@@ -307,7 +311,13 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
     rig.update();
     camera.updateMatrixWorld(true);
 
-    desktopPetals.update(dt, now / 1000);
+    /* Nothing that moves for its own sake should move when the
+       visitor has asked for stillness. The camera already obeys
+       this; the curtains and the petals have to as well. */
+    if (!reducedMotion) {
+      curtains.userData.animate(now / 1000);
+      desktopPetals.update(dt, now / 1000);
+    }
     desktopPetals.clearFrame();
     desktopPetals.draw();
 

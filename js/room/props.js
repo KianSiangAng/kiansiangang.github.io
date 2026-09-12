@@ -80,7 +80,10 @@ export function buildWindow(materials) {
   /* The wall's front face is at z = -1.10, so every part of the
      window has to sit in FRONT of that or the wall draws over it —
      which rendered the view as a flat grey pane. */
-  group.position.set(-1.35, 1.55, -1.085);
+  /* Lowered from 1.55: at the old height the top of the window — and
+     the curtain rod above it — sat outside the camera's framing, so
+     the curtains appeared to hang down out of nothing. */
+  group.position.set(-1.35, 1.33, -1.085);
 
   const W = 1.15;
   const H = 1.25;
@@ -105,6 +108,93 @@ export function buildWindow(materials) {
   group.add(mesh(box(0.03, H, 0.05), materials.frame, { z: 0.024 }));      // centre mullion
   group.add(mesh(box(W, 0.03, 0.05), materials.frame, { z: 0.024 }));      // centre transom
   group.add(mesh(box(W + 0.22, 0.05, 0.16), materials.frame, { y: -H / 2 - frame - 0.02, z: 0.07 })); // sill
+
+  return group;
+}
+
+/* ----------------------------------------------------------------
+   Curtains
+
+   Two hanging panels on a rod, swayed by displacing their vertices
+   every frame rather than by any physics. A cloth simulation for
+   something the camera only ever sees from one angle would be a lot
+   of solver for a little movement; a travelling sine wave, pinned at
+   the rod and free at the hem, reads as fabric and costs a few
+   hundred multiplications.
+
+   The rest positions are kept in a Float32Array so each frame
+   displaces from the ORIGINAL shape. Displacing from the previous
+   frame's positions compounds the error and the curtain slowly
+   wanders off the rod.
+---------------------------------------------------------------- */
+
+export function buildCurtains(materials) {
+  const group = new THREE.Group();
+  group.name = 'curtains';
+
+  const CENTRE_X = -1.35;
+  const Z = -1.03;                 // just in front of the window frame
+  const TOP = 2.00;                // a little above the window head
+  const HEIGHT = 1.24;
+  const WIDTH = 0.40;
+
+  const rod = mesh(new THREE.CylinderGeometry(0.013, 0.013, 1.44, 12), materials.curtainRod, {
+    x: CENTRE_X, y: TOP + 0.03, z: Z, rz: Math.PI / 2, cast: false,
+  });
+  group.add(rod);
+
+  for (const side of [-1, 1]) {
+    group.add(mesh(new THREE.SphereGeometry(0.024, 12, 12), materials.curtainRod, {
+      x: CENTRE_X + side * 0.73, y: TOP + 0.03, z: Z, cast: false,
+    }));
+  }
+
+  const panels = [];
+  [-0.47, 0.47].forEach((offset, index) => {
+    const geometry = new THREE.PlaneGeometry(WIDTH, HEIGHT, 16, 12);
+    const panel = new THREE.Mesh(geometry, materials.curtain);
+    panel.position.set(CENTRE_X + offset, TOP - HEIGHT / 2, Z);
+    panel.castShadow = false;       // a shadow-casting curtain darkens the whole room
+    panel.receiveShadow = true;
+    panel.userData.rest = Float32Array.from(geometry.attributes.position.array);
+    panel.userData.phase = index * 2.3;
+    group.add(panel);
+    panels.push(panel);
+  });
+
+  const HALF = HEIGHT / 2;
+
+  group.userData.animate = (time) => {
+    for (const panel of panels) {
+      const positions = panel.geometry.attributes.position;
+      const rest = panel.userData.rest;
+      const phase = panel.userData.phase;
+
+      for (let i = 0; i < positions.count; i++) {
+        const x = rest[i * 3];
+        const y = rest[i * 3 + 1];
+
+        /* Pinned at the rod, free at the hem. Squaring it keeps the
+           top few centimetres almost still, which is what stops the
+           panel looking like it is flapping off its hooks. */
+        const hang = Math.max(0, (HALF - y) / HEIGHT);
+        const freedom = hang * hang;
+
+        const pleat = Math.sin(x * 30) * 0.013;
+        const sway = Math.sin(time * 0.9 + x * 4 + phase) * 0.05 * freedom;
+        const drift = Math.sin(time * 0.55 + phase) * 0.012 * freedom;
+
+        positions.setZ(i, pleat + sway);
+        positions.setX(i, x + drift);
+      }
+
+      positions.needsUpdate = true;
+      panel.geometry.computeVertexNormals();
+    }
+  };
+
+  // One pass at rest, so the pleats exist before the first frame.
+  group.userData.animate(0);
 
   return group;
 }
@@ -292,8 +382,16 @@ export function buildLamp(materials) {
     y: 0.31, z: 0.07, rx: 0.9,
   }));
 
+  /* ConeGeometry already opens downward — its apex is at +Y and its
+     wide mouth at -Y — so a desk lamp needs only a small tilt, not a
+     flip. The old `Math.PI + 0.75` turned the head right over and
+     aimed the mouth up and back at the viewer, which is why the bulb
+     was staring out of the screen instead of lighting the desk.
+
+     A small NEGATIVE rotation about X tips the mouth toward +Z, out
+     over the desk where the books and keyboard are. */
   const shade = mesh(new THREE.ConeGeometry(0.085, 0.10, 20, 1, true), materials.lampShade, {
-    y: 0.365, z: 0.155, rx: Math.PI + 0.75,
+    y: 0.368, z: 0.148, rx: -0.55,
   });
   shade.material = materials.lampShade;
   shade.material.side = THREE.DoubleSide;

@@ -146,7 +146,8 @@ js/
 │   └── apps/panels.js      ← Finder, résumé, settings, achievements, help
 ├── room/
 │   ├── room.js             ← scene, lights, frame loop, dock/undock
-│   ├── props.js            ← every object, built from primitives
+│   ├── props.js            ← every object, built from primitives; the
+│   │                          curtains sway by vertex displacement
 │   ├── materials.js        ← one palette, re-lit for day or night
 │   ├── camera-rig.js       ← two poses and the flight between them
 │   └── screen.js           ← the DOM desktop, projected onto the monitor

@@ -22,8 +22,12 @@
 import * as THREE from '../../libs/three.module.min.js';
 import { SCREEN } from './props.js';
 
-const ROOM_POSITION = new THREE.Vector3(0.82, 1.44, 1.78);
-const ROOM_TARGET = new THREE.Vector3(-0.02, 1.02, -0.16);
+/* Raised a little so the head of the window — and the curtain rod
+   above it — sit inside the frame. Previously the top of the shot
+   landed at roughly y = 1.94 in world space, below the window's own
+   head, so the curtains hung down out of nothing. */
+const ROOM_POSITION = new THREE.Vector3(0.82, 1.58, 1.82);
+const ROOM_TARGET = new THREE.Vector3(-0.02, 1.12, -0.16);
 const FLIGHT_MS = 2200;
 
 /* smoothstep-squared: slow to leave, slow to arrive, quick through
