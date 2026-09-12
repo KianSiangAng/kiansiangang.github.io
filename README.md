@@ -129,7 +129,6 @@ js/
 │   ├── palette.js          ← ⌘K command palette
 │   ├── fuzzy.js            ← fzf-style subsequence scoring
 │   ├── hud.js              ← FPS / frame time / module state
-│   ├── cursor.js           ← custom cursor with magnetism
 │   ├── tilt.js             ← 3D card tilt, gyroscope on mobile
 │   ├── boot.js             ← BIOS-style POST screen
 │   ├── konami.js           ← typed input sequences

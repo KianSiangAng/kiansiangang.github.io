@@ -62,6 +62,12 @@
   --transition-fast:   150ms ease;
   --transition-normal: 300ms ease;
   --transition-slow:   500ms ease;
+
+  /* --- The landscape artwork ---
+     Held in a custom property rather than written straight onto
+     <body>, so the desktop wallpaper inside the 3D room can use the
+     very same image without the data URI being duplicated. */
+  --landscape-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23E8E0D0' stop-opacity='0'/%3E%3Cstop offset='35%25' stop-color='%23f0c8a0' stop-opacity='0.32'/%3E%3Cstop offset='65%25' stop-color='%23e8a0a0' stop-opacity='0.40'/%3E%3Cstop offset='100%25' stop-color='%23d08070' stop-opacity='0.32'/%3E%3C/linearGradient%3E%3CradialGradient id='sun' cx='75%25' cy='55%25' r='22%25'%3E%3Cstop offset='0%25' stop-color='%23f0d0a0' stop-opacity='0.45'/%3E%3Cstop offset='50%25' stop-color='%23f0c090' stop-opacity='0.25'/%3E%3Cstop offset='100%25' stop-color='%23f0c090' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1440' height='900' fill='url(%23sky)'/%3E%3Crect width='1440' height='900' fill='url(%23sun)'/%3E%3Cpath d='M-50 500 Q100 320 200 400 Q300 280 420 350 Q520 240 680 340 Q800 220 920 310 Q1050 230 1180 320 Q1300 260 1490 380 L1490 900 L-50 900Z' fill='%23605078' opacity='0.40'/%3E%3Cpath d='M-50 560 Q120 420 280 490 Q400 380 560 460 Q700 360 860 440 Q1000 370 1150 450 Q1300 390 1490 470 L1490 900 L-50 900Z' fill='%23886080' opacity='0.35'/%3E%3Cpath d='M-50 640 Q100 540 260 590 Q400 500 560 560 Q720 480 880 540 Q1040 470 1200 530 Q1350 490 1490 550 L1490 900 L-50 900Z' fill='%23b07060' opacity='0.30'/%3E%3Cpath d='M-50 720 Q180 660 360 700 Q540 640 720 680 Q900 620 1080 670 Q1260 630 1490 680 L1490 900 L-50 900Z' fill='%23906050' opacity='0.25'/%3E%3Cellipse cx='400' cy='530' rx='300' ry='20' fill='%23f0e0d0' opacity='0.28'/%3E%3Cellipse cx='1000' cy='480' rx='250' ry='15' fill='%23f0e0d0' opacity='0.22'/%3E%3Cellipse cx='700' cy='600' rx='350' ry='18' fill='%23f0e0d0' opacity='0.25'/%3E%3Cellipse cx='250' cy='350' rx='120' ry='12' fill='%23f0e8e0' opacity='0.28'/%3E%3Cellipse cx='800' cy='300' rx='100' ry='10' fill='%23f0e8e0' opacity='0.25'/%3E%3Cpath d='M350 280 Q355 274 360 280' fill='none' stroke='%23604050' stroke-width='1.8' opacity='0.22'/%3E%3Cpath d='M370 270 Q375 264 380 270' fill='none' stroke='%23604050' stroke-width='1.8' opacity='0.18'/%3E%3Cpath d='M390 276 Q395 270 400 276' fill='none' stroke='%23604050' stroke-width='1.5' opacity='0.15'/%3E%3C/svg%3E")
 }
 
 
@@ -81,17 +87,27 @@ html {
   /* Smooth scrolling when clicking nav links */
   scroll-behavior: smooth;
 
-  /* ---- SCROLL SNAP: page-by-page navigation ----
-     mandatory = browser always snaps to the nearest snap point.
-     Combined with scroll-snap-align: start on each section, this
-     makes each section feel like turning a page in a book.
+  /* ---- WHY THERE IS NO SCROLL SNAP HERE ----
+     This used to be `scroll-snap-type: y mandatory`, to make each
+     section feel like turning a page. It silently broke scrolling
+     altogether.
 
-     NOTE: overflow-x: hidden is on <body> only (not here).
-     Having it on both html AND body confuses the browser about
-     which element is the viewport scroll container, breaking
-     scroll-snap. Keeping html clean lets it act as the snap
-     scroll container. */
-  scroll-snap-type: y mandatory;
+     The cause is a mismatch about which box is actually scrolling.
+     `overflow-x: hidden` on <body> computes the other axis to `auto`,
+     which makes BODY the element whose overflow propagates to the
+     viewport — so body is the scroll container. The snap points were
+     declared here on <html>, which is then not the snap container at
+     all. The result was a scroller you could not escape: every wheel
+     delta was pulled straight back to the current snap point, the
+     page never moved past the hero, and every section below it stayed
+     unrevealed and blank.
+
+     The horizontal clamp now lives here as `overflow-x: clip`, which
+     clips without creating a scroll container, so <html> stays the
+     scroller. Snap is gone for good: mandatory full-page snap fights
+     the reader, breaks find-in-page, and bought nothing the reveal
+     animation was not already doing on scroll position alone. */
+  overflow-x: clip;
 }
 
 body {
@@ -100,14 +116,13 @@ body {
   font-family: var(--font-body);
   font-size: var(--fs-base);
   line-height: 1.7;
-  overflow-x: hidden;
 
   /* ---- BACKGROUND: Ghibli sunset mountain landscape ----
      Warm, layered mountain silhouettes in purple / mauve /
      terracotta gradients with a soft sun glow — evoking a
      Studio Ghibli twilight scene. Inline SVG data URI for
      zero network cost. Fixed attachment creates parallax. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23E8E0D0' stop-opacity='0'/%3E%3Cstop offset='35%25' stop-color='%23f0c8a0' stop-opacity='0.32'/%3E%3Cstop offset='65%25' stop-color='%23e8a0a0' stop-opacity='0.40'/%3E%3Cstop offset='100%25' stop-color='%23d08070' stop-opacity='0.32'/%3E%3C/linearGradient%3E%3CradialGradient id='sun' cx='75%25' cy='55%25' r='22%25'%3E%3Cstop offset='0%25' stop-color='%23f0d0a0' stop-opacity='0.45'/%3E%3Cstop offset='50%25' stop-color='%23f0c090' stop-opacity='0.25'/%3E%3Cstop offset='100%25' stop-color='%23f0c090' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1440' height='900' fill='url(%23sky)'/%3E%3Crect width='1440' height='900' fill='url(%23sun)'/%3E%3Cpath d='M-50 500 Q100 320 200 400 Q300 280 420 350 Q520 240 680 340 Q800 220 920 310 Q1050 230 1180 320 Q1300 260 1490 380 L1490 900 L-50 900Z' fill='%23605078' opacity='0.40'/%3E%3Cpath d='M-50 560 Q120 420 280 490 Q400 380 560 460 Q700 360 860 440 Q1000 370 1150 450 Q1300 390 1490 470 L1490 900 L-50 900Z' fill='%23886080' opacity='0.35'/%3E%3Cpath d='M-50 640 Q100 540 260 590 Q400 500 560 560 Q720 480 880 540 Q1040 470 1200 530 Q1350 490 1490 550 L1490 900 L-50 900Z' fill='%23b07060' opacity='0.30'/%3E%3Cpath d='M-50 720 Q180 660 360 700 Q540 640 720 680 Q900 620 1080 670 Q1260 630 1490 680 L1490 900 L-50 900Z' fill='%23906050' opacity='0.25'/%3E%3Cellipse cx='400' cy='530' rx='300' ry='20' fill='%23f0e0d0' opacity='0.28'/%3E%3Cellipse cx='1000' cy='480' rx='250' ry='15' fill='%23f0e0d0' opacity='0.22'/%3E%3Cellipse cx='700' cy='600' rx='350' ry='18' fill='%23f0e0d0' opacity='0.25'/%3E%3Cellipse cx='250' cy='350' rx='120' ry='12' fill='%23f0e8e0' opacity='0.28'/%3E%3Cellipse cx='800' cy='300' rx='100' ry='10' fill='%23f0e8e0' opacity='0.25'/%3E%3Cpath d='M350 280 Q355 274 360 280' fill='none' stroke='%23604050' stroke-width='1.8' opacity='0.22'/%3E%3Cpath d='M370 270 Q375 264 380 270' fill='none' stroke='%23604050' stroke-width='1.8' opacity='0.18'/%3E%3Cpath d='M390 276 Q395 270 400 276' fill='none' stroke='%23604050' stroke-width='1.5' opacity='0.15'/%3E%3C/svg%3E");
+  background-image: var(--landscape-art);
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
@@ -156,7 +171,6 @@ button {
 .section {
   padding-block: var(--space-xl);
   min-height: 100vh;
-  scroll-snap-align: start;
 
   /* Vertical content centering */
   display: flex;
@@ -1706,7 +1720,6 @@ button {
   font-size: var(--fs-xs);
   /* Snap to the end so the footer is reachable and
      doesn't get stuck between mandatory snap points */
-  scroll-snap-align: end;
 }
 
 .footer__inner {

@@ -118,11 +118,50 @@ html[data-room="docked"] .room-canvas { pointer-events: none; }
   box-shadow: none;
 }
 
-/* The flat wallpaper is redundant once the room exists. */
+/* The flat wallpaper layers belong to the page presentation. In the
+   room they would be painted over the whole viewport, behind the
+   monitor rather than on it. */
 html[data-room] .gfx-layer,
 html[data-room] .landscape { display: none !important; }
 
+/* Whatever is behind the room itself is never seen; the scene clears
+   to its own colour. */
 html[data-room] body { background: #14161d; }
+
+/* ---- the desktop's own wallpaper ----
+   Hiding the flat layers above left `.os` with no background at all,
+   so the desktop rendered as a black rectangle on the monitor — it
+   had been transparent all along, showing the page's wallpaper
+   through it, and in the room there is nothing behind it to show.
+
+   It gets a real wallpaper of its own: the warm sky the page uses,
+   plus the same mountain artwork, referenced through the custom
+   property in style.css so the data URI exists exactly once. */
+.room-stage > .room-stage__camera > .os {
+  background-color: var(--clr-bg);
+  background-image:
+    var(--landscape-art),
+    linear-gradient(180deg,
+      #9dc4e8 0%,
+      #c4d6e6 26%,
+      #dfd2c6 52%,
+      #d3b2ab 76%,
+      #c09a94 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center bottom, center;
+  background-size: cover, cover;
+}
+
+[data-theme="dark"] .room-stage > .room-stage__camera > .os {
+  background-image:
+    var(--landscape-art),
+    linear-gradient(180deg,
+      #141a2e 0%,
+      #1d2540 30%,
+      #2a2a3e 58%,
+      #34293a 80%,
+      #3a2c34 100%);
+}
 
 /* Out in the room the desktop is scenery: dim it slightly and keep
    its focus rings from flashing at a UI nobody can touch yet. */

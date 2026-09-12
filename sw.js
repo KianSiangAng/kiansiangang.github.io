@@ -63,7 +63,6 @@ const PRECACHE = [
   'js/ui/palette.js',
   'js/ui/fuzzy.js',
   'js/ui/hud.js',
-  'js/ui/cursor.js',
   'js/ui/tilt.js',
   'js/ui/boot.js',
   'js/ui/konami.js',

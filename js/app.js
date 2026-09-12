@@ -29,7 +29,6 @@ import { createTerminalUI } from './term/term-ui.js';
 
 import { createPalette } from './ui/palette.js';
 import { createHUD } from './ui/hud.js';
-import { createCursor } from './ui/cursor.js';
 import { createTilt } from './ui/tilt.js';
 import { createAchievements } from './ui/achievements.js';
 import { createSequences } from './ui/konami.js';
@@ -245,10 +244,16 @@ kernel.use({
         if (reducedMotion || seen) {
           scene.dock();
         } else {
+          /* Three seconds before the camera moves. The first version
+             flew in after 1.8s, which was not long enough to register
+             that there was a room at all — the site appeared to open
+             mid-zoom. This is long enough to look around, short
+             enough not to feel like being held. Clicking the screen
+             still goes immediately. */
           setTimeout(() => {
             if (scene.mode === 'room') scene.dock();
             try { localStorage.setItem('portfolio:room-seen', '1'); } catch { /* ignore */ }
-          }, 1800);
+          }, 3000);
         }
       },
       stop: scene.dispose,
@@ -293,12 +298,6 @@ kernel.use({
 
     return palette;
   },
-});
-
-kernel.use({
-  name: 'cursor',
-  deps: [],
-  setup: () => createCursor({ reducedMotion }),
 });
 
 kernel.use({

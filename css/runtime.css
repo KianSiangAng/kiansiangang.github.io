@@ -398,46 +398,19 @@ html:not(.has-webgl) .gfx-layer--gl { display: none; }
 
 
 /* ================================================================
-   7. CUSTOM CURSOR
+   7. (the custom cursor used to live here)
+
+   A dot with a trailing ring, magnetised to interactive elements.
+   It looked good and was actively worse to use: the ring sat over
+   whatever you were aiming at, so small targets were hidden behind
+   the very thing meant to point at them.
+
+   Worse, it required `cursor: none` across the page, which silently
+   destroyed every cursor the browser gives you for free — including
+   the ns-/ew-/nwse-resize cursors on the window manager's eight
+   resize handles. A windowing UI needs those far more than it needs
+   a bespoke pointer.
 ================================================================ */
-
-.cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9500;
-  pointer-events: none;
-  border-radius: 50%;
-  will-change: transform;
-  transition: opacity 200ms ease;
-}
-
-.cursor--dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background: var(--accent);
-}
-
-.cursor--ring {
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
-  border: 1.5px solid color-mix(in srgb, var(--accent) 70%, transparent);
-  transition: border-color 200ms ease, opacity 200ms ease;
-}
-
-.cursor--ring.is-pressed { border-width: 3px; }
-
-/* Only hide the system cursor once ours is definitely running. */
-html.has-custom-cursor,
-html.has-custom-cursor a,
-html.has-custom-cursor button,
-html.has-custom-cursor label { cursor: none; }
-
-/* …but never over text fields, where the caret matters. */
-html.has-custom-cursor input,
-html.has-custom-cursor textarea { cursor: text; }
 
 
 /* ================================================================
@@ -661,7 +634,6 @@ html.is-booting { overflow: hidden; }
   .terminal--closed { animation: none; }
   .project-card.is-tilting,
   .stat-card.is-tilting { transform: none; }
-  .cursor { display: none; }
 }
 
 /* Focus visibility, in both colour schemes. */
