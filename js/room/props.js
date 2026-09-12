@@ -260,7 +260,7 @@ export function buildKeyboard(materials) {
 export function buildMug(materials) {
   const group = new THREE.Group();
   group.name = 'mug';
-  group.position.set(0.42, DESK_HEIGHT, 0.13);
+  group.position.set(0.62, DESK_HEIGHT, 0.15);
 
   const body = mesh(new THREE.CylinderGeometry(0.038, 0.033, 0.085, 20, 1, true), materials.mug, { y: 0.0425 });
   body.material = materials.mug.clone();
@@ -299,11 +299,14 @@ export function buildLamp(materials) {
   shade.material.side = THREE.DoubleSide;
   group.add(shade);
 
-  /* The bulb: a small unlit sphere so the source is visible, paired
-     with the actual point light added by the lighting rig. */
+  /* The bulb: an unlit sphere so the source itself is visible, paired
+     with the point light the lighting rig adds. MeshBasic ignores
+     lighting, which is exactly right for something that IS the
+     light — shading it would make the bulb darker than the glow it
+     is supposed to be casting. */
   const bulb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.022, 12, 12),
-    new THREE.MeshBasicMaterial({ color: 0xffe9c4 }),
+    new THREE.SphereGeometry(0.026, 14, 14),
+    new THREE.MeshBasicMaterial({ color: 0xfff3d6 }),
   );
   bulb.position.set(0, 0.345, 0.185);
   bulb.name = 'bulb';
@@ -373,29 +376,55 @@ export function buildPlant(materials) {
   return group;
 }
 
-export function buildCrane(materials) {
+export function buildMouse(materials) {
   const group = new THREE.Group();
-  group.name = 'crane';
-  group.position.set(0.52, DESK_HEIGHT + 0.002, 0.06);
-  group.rotation.y = -0.5;
+  group.name = 'mouse';
+  group.position.set(0.33, DESK_HEIGHT, 0.20);
+  group.rotation.y = -0.12;
 
-  /* Folded paper is flat triangles, which is exactly what a
-     BufferGeometry of raw positions is best at. */
-  function triangle(a, b, c, material) {
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b, ...c], 3));
-    geometry.computeVertexNormals();
-    const m = new THREE.Mesh(geometry, material);
-    m.castShadow = true;
-    return m;
-  }
+  /* The body is a sphere squashed on two axes and cropped at the
+     desk — cheaper and rounder than any hand-built shell, and a
+     mouse is very nearly half an ellipsoid. */
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 24, 18, 0, Math.PI * 2, 0, Math.PI / 2), materials.mouseShell);
+  body.scale.set(0.062, 0.052, 0.098);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
 
-  const body = [0, 0.012, 0];
-  group.add(triangle(body, [-0.055, 0.055, -0.02], [-0.02, 0.005, -0.05], materials.paperShade)); // far wing
-  group.add(triangle(body, [0.055, 0.055, -0.02], [0.02, 0.005, -0.05], materials.paper));        // near wing
-  group.add(triangle(body, [-0.075, 0.045, 0.03], [-0.03, 0.004, 0.02], materials.paper));        // neck
-  group.add(triangle(body, [0.07, 0.05, 0.035], [0.03, 0.004, 0.025], materials.paperShade));     // tail
-  group.add(triangle([-0.025, 0.002, -0.02], [0.025, 0.002, -0.02], [0, 0.002, 0.04], materials.paper));
+  // A flat base so it does not read as a floating dome.
+  const base = mesh(new THREE.CircleGeometry(1, 24), materials.mouseShell, {
+    y: 0.0015, rx: -Math.PI / 2, cast: false,
+  });
+  base.scale.set(0.062, 0.098, 1);
+  group.add(base);
+
+  /* The shell is a hemisphere of radius 0.5 scaled to semi-axes
+     (0.031, 0.026, 0.049), so its crown is only 26mm off the desk.
+     The button seam and wheel have to be placed against THAT surface,
+     not at the sphere's unscaled radius — the first attempt put the
+     wheel at y = 53mm and left it hovering above the mouse like an
+     antenna. Surface height at a given z is y = 0.026·√(1 − (z/0.049)²). */
+  group.add(mesh(box(0.0025, 0.006, 0.052), materials.mouseSeam, { y: 0.0215, z: -0.020 }));
+
+  const wheel = mesh(new THREE.CylinderGeometry(0.0055, 0.0055, 0.005, 14), materials.mouseWheel, {
+    y: 0.0225, z: -0.031, rz: Math.PI / 2,
+  });
+  group.add(wheel);
+
+  /* A cable running off toward the monitor. Without it the silhouette
+     is just a rounded lump; the tail is most of what says "mouse". */
+  const cable = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.014, -0.048),
+    new THREE.Vector3(0.01, 0.012, -0.090),
+    new THREE.Vector3(-0.02, 0.010, -0.135),
+    new THREE.Vector3(-0.06, 0.008, -0.175),
+  ]);
+  const cableMesh = new THREE.Mesh(
+    new THREE.TubeGeometry(cable, 24, 0.0022, 6, false),
+    materials.mouseWheel,
+  );
+  cableMesh.castShadow = true;
+  group.add(cableMesh);
 
   return group;
 }

@@ -218,6 +218,20 @@ kernel.use({
     back.addEventListener('click', () => scene.undock());
     document.body.appendChild(back);
 
+    /* The room owns <html data-room> and the desktop's wallpaper, so
+       it has to stand down completely when the visitor switches to
+       the plain page — and the flat wallpaper renderer has to come
+       back, since the room was the thing replacing it. */
+    bus.on('shell.changed', ({ mode }) => {
+      if (mode === 'page') {
+        scene.suspend();
+        container.resolve('gfx')?.start?.();
+      } else {
+        container.resolve('gfx')?.stop?.();
+        scene.resume();
+      }
+    });
+
     bus.on('room.toggle', () => scene.toggle());
     bus.on('room.dock', () => scene.dock());
     bus.on('room.undock', () => scene.undock());
@@ -244,16 +258,17 @@ kernel.use({
         if (reducedMotion || seen) {
           scene.dock();
         } else {
-          /* Three seconds before the camera moves. The first version
-             flew in after 1.8s, which was not long enough to register
-             that there was a room at all — the site appeared to open
-             mid-zoom. This is long enough to look around, short
-             enough not to feel like being held. Clicking the screen
-             still goes immediately. */
+          /* Five seconds before the camera moves, and the flight
+             itself is slower (see FLIGHT_MS in camera-rig.js). Three
+             seconds still read as "the site opened mid-zoom": the
+             establishing shot has to outlast the moment it takes to
+             work out you are looking at a room. Clicking the screen
+             still goes immediately, so the wait only applies to
+             people who have not decided yet. */
           setTimeout(() => {
             if (scene.mode === 'room') scene.dock();
             try { localStorage.setItem('portfolio:room-seen', '1'); } catch { /* ignore */ }
-          }, 3000);
+          }, 5000);
         }
       },
       stop: scene.dispose,

@@ -59,6 +59,33 @@ export function buildWelcome({ onOpen, onDismiss }) {
       action('Read my résumé', 'The one-page version', 'resume', 'letter'),
     ]),
 
+    /* Straight to a reply, without opening anything. Someone who has
+       already decided they want to get in touch should not have to
+       navigate a desktop metaphor to do it. Real links, not buttons:
+       they are navigations, so they should be middle-clickable,
+       copyable and openable in a new tab like any other link. */
+    el('div.welcome__contact', {}, [
+      el('span.welcome__contact-label', { text: 'Or get in touch:' }),
+      el('div.welcome__contact-row', {}, [
+        el('a.welcome__contact-btn', {
+          href: `mailto:${identity.email}`,
+          'aria-label': `Email ${identity.name}`,
+        }, [icon('mail', 16), el('span', { text: 'Email' })]),
+        el('a.welcome__contact-btn', {
+          href: identity.linkedin,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          'aria-label': 'LinkedIn profile (opens in a new tab)',
+        }, [icon('linkedin', 16), el('span', { text: 'LinkedIn' })]),
+        el('a.welcome__contact-btn', {
+          href: identity.github,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          'aria-label': 'GitHub profile (opens in a new tab)',
+        }, [icon('github', 16), el('span', { text: 'GitHub' })]),
+      ]),
+    ]),
+
     el('button.welcome__dismiss', {
       type: 'button',
       text: 'I\u2019ll explore on my own',

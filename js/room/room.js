@@ -22,7 +22,7 @@ import * as THREE from '../../libs/three.module.min.js';
 import { createMaterials } from './materials.js';
 import {
   buildRoom, buildWindow, buildDesk, buildMonitor, buildKeyboard,
-  buildMug, buildLamp, buildBooks, buildPlant, buildCrane, buildPoster,
+  buildMug, buildLamp, buildBooks, buildPlant, buildMouse, buildPoster,
   SCREEN,
 } from './props.js';
 import { createCameraRig } from './camera-rig.js';
@@ -74,7 +74,7 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
   scene.add(room, windowFrame, desk, monitor);
   scene.add(
     buildKeyboard(materials), buildMug(materials), buildLamp(materials),
-    buildBooks(materials), buildPlant(materials), buildCrane(materials),
+    buildBooks(materials), buildPlant(materials), buildMouse(materials),
     buildPoster(materials),
   );
 
@@ -103,8 +103,10 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
   sun.shadow.normalBias = 0.02;
   scene.add(sun, sun.target);
 
-  /* The lamp, which only matters after dark. */
-  const lamp = new THREE.PointLight(0xffc978, 0, 2.2, 2);
+  /* The lamp. It used to be wired to come on only after dark, which
+     left a desk lamp sitting there switched off through the entire
+     daytime scene. It is on now, and simply turns up after dark. */
+  const lamp = new THREE.PointLight(0xffc978, 0.7, 2.4, 2);
   lamp.position.set(-0.62, 1.09, 0.02);
   scene.add(lamp);
 
@@ -235,7 +237,7 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
     hemisphere.color.setHex(night > 0.5 ? 0x3a4566 : 0xcfe2f2);
 
     sun.intensity = 1.5 * (1 - night);
-    lamp.intensity = night * 2.4;
+    lamp.intensity = 0.7 + night * 1.9;
     screenGlow.intensity = 0.25 + night * 0.85;
 
     backgroundScratch.copy(backgroundDay).lerp(backgroundNight, night);
@@ -362,9 +364,40 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
     };
   }
 
+  /* ---- suspend / resume ----
+     Switching to the plain page does not tear the room down, it just
+     steps out of it — but everything the room puts on <html> and
+     <body> has to come off, or the page inherits it. Leaving
+     data-room set painted the page's background near-black while the
+     body text stayed dark navy: the content rendered perfectly and
+     was invisible. */
+  let suspended = false;
+
+  function suspend() {
+    if (suspended) return;
+    suspended = true;
+    stop();
+    canvas.hidden = true;
+    projection.stage.hidden = true;
+    delete document.documentElement.dataset.room;
+  }
+
+  function resume() {
+    if (!suspended) return;
+    suspended = false;
+    canvas.hidden = false;
+    projection.stage.hidden = false;
+    document.documentElement.dataset.room = rig.mode === 'screen' ? 'docked' : 'away';
+    resize();
+    start();
+  }
+
   return {
     canvas,
     stage: projection.stage,
+    suspend,
+    resume,
+    get suspended() { return suspended; },
 
     mount(host) {
       host.append(canvas, projection.stage);

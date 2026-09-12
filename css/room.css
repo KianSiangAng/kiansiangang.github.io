@@ -84,6 +84,14 @@ html[data-room="docked"] .room-canvas { pointer-events: none; }
 
 .room-stage.is-interactive > .room-stage__camera > .os { pointer-events: auto; }
 
+/* `pointer-events: none` on the stage is inherited, but a descendant
+   is free to set it back to `auto`, and then it quietly eats clicks
+   aimed at the monitor behind it — which made the screen unclickable
+   wherever the welcome window happened to be sitting. Nail every
+   descendant shut while the camera is out in the room. */
+.room-stage:not(.is-interactive),
+.room-stage:not(.is-interactive) * { pointer-events: none !important; }
+
 /* `position: fixed` inside a 3D-transformed subtree lays out
    correctly — the transformed ancestor becomes the containing block,
    so the menu bar sat exactly where it should — but it does not
@@ -121,12 +129,12 @@ html[data-room="docked"] .room-canvas { pointer-events: none; }
 /* The flat wallpaper layers belong to the page presentation. In the
    room they would be painted over the whole viewport, behind the
    monitor rather than on it. */
-html[data-room] .gfx-layer,
-html[data-room] .landscape { display: none !important; }
+html[data-shell="os"][data-room] .gfx-layer,
+html[data-shell="os"][data-room] .landscape { display: none !important; }
 
 /* Whatever is behind the room itself is never seen; the scene clears
    to its own colour. */
-html[data-room] body { background: #14161d; }
+html[data-shell="os"][data-room] body { background: #14161d; }
 
 /* ---- the desktop's own wallpaper ----
    Hiding the flat layers above left `.os` with no background at all,

@@ -35,6 +35,10 @@ export const PALETTE = {
   mug: 0xdcb08a,
   mugInner: 0x5a4436,
 
+  mouseShell: 0xe6dccb,
+  mouseSeam: 0xb3a894,
+  mouseWheel: 0x6f6558,
+
   lampShade: 0xf2d7a8,
   lampArm: 0x6f5a4a,
 
@@ -86,6 +90,10 @@ export function createMaterials() {
     mug: lambert(PALETTE.mug),
     mugInner: lambert(PALETTE.mugInner),
 
+    mouseShell: lambert(PALETTE.mouseShell),
+    mouseSeam: lambert(PALETTE.mouseSeam),
+    mouseWheel: lambert(PALETTE.mouseWheel),
+
     lampShade: new THREE.MeshLambertMaterial({
       color: PALETTE.lampShade,
       emissive: 0x000000,
@@ -127,13 +135,14 @@ export function createMaterials() {
     materials.deskEdge.color.copy(mix(PALETTE.deskEdge, 0x503620));
     materials.deskLeg.color.copy(mix(PALETTE.deskLeg, 0x412c1c));
     materials.monitorShell.color.copy(mix(PALETTE.monitorShell, 0x7d7161));
+    materials.mouseShell.color.copy(mix(PALETTE.mouseShell, 0x8b8172));
     materials.monitorShellDark.color.copy(mix(PALETTE.monitorShellDark, 0x6b6153));
     materials.glass.color.copy(mix(PALETTE.glassDay, PALETTE.glassNight));
     materials.glass.opacity = 0.32 + amount * 0.34;
 
-    // The lampshade glows once the room is dark enough to need it.
+    // The shade is lit from the inside at all times, more so at night.
     materials.lampShade.emissive.setHex(0xffc978);
-    materials.lampShade.emissiveIntensity = amount * 0.9;
+    materials.lampShade.emissiveIntensity = 0.28 + amount * 0.72;
   };
 
   materials.dispose = () => {

@@ -91,7 +91,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       icon: 'star',
       kind: 'app',
       description: 'Start here',
-      window: { width: 486, height: 548, minWidth: 380 },
+      window: { width: 486, height: 648, minWidth: 380 },
       build: (win) => buildWelcome({
         onOpen,
         onDismiss: (explicit) => {

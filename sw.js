@@ -8,8 +8,18 @@
                         page to a recruiter, but it should still
                         open on a train.
 
-     same-origin static stale-while-revalidate: answer instantly
-                        from cache, refresh in the background.
+     same-origin code    network-first. This was
+                        stale-while-revalidate, which answers from
+                        cache and refreshes behind you — so the first
+                        load after every deploy ran the PREVIOUS
+                        JavaScript and CSS against fresh HTML. That is
+                        invisible when it works and baffling when it
+                        does not: fixes appeared not to have shipped.
+                        Correctness beats a few milliseconds here.
+
+     /libs/             cache-first. Vendor code is large and changes
+                        only when its version does, so it is worth
+                        keeping instant.
 
      Google Fonts       cache-first with a long life; the files are
                         immutable and versioned by URL.
@@ -21,7 +31,7 @@
    visitor pinned to old assets.
 ================================================================ */
 
-const VERSION = 'v3.0.0';
+const VERSION = 'v4.0.0';
 const CACHE = `portfolio-${VERSION}`;
 
 /* The shell: everything needed to render the page offline.
@@ -117,20 +127,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE);
-  const cached = await cache.match(request);
-
-  const network = fetch(request)
-    .then((response) => {
-      if (response.ok && response.type === 'basic') cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => cached);
-
-  return cached || network;
-}
-
 async function networkFirst(request) {
   const cache = await caches.open(CACHE);
   try {
@@ -138,7 +134,16 @@ async function networkFirst(request) {
     if (response.ok) cache.put(request, response.clone());
     return response;
   } catch {
-    return (await cache.match(request)) || (await cache.match('index.html')) || Response.error();
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    // Only a navigation should fall back to the shell. Handing
+    // index.html to a failed .js request produces a syntax error
+    // rather than an honest network failure.
+    if (request.mode === 'navigate') {
+      const shell = await cache.match('index.html');
+      if (shell) return shell;
+    }
+    return Response.error();
   }
 }
 
@@ -166,7 +171,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (url.origin === self.location.origin) {
-    event.respondWith(staleWhileRevalidate(request));
+    // Pinned vendor bundles are immutable in practice; everything
+    // else is our own code and must never be served stale.
+    if (url.pathname.includes('/libs/')) event.respondWith(cacheFirst(request));
+    else event.respondWith(networkFirst(request));
   }
 });
 
