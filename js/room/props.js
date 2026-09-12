@@ -21,6 +21,29 @@ const DESK_HEIGHT = 0.74;
 const DESK_WIDTH = 1.8;
 const DESK_DEPTH = 0.72;
 
+/**
+ * The window's metrics, published because the curtains hang off them.
+ * The curtains used to carry their own copies of these numbers, which
+ * is how they ended up swinging through the frame: two sets of
+ * constants describing the same object, free to disagree.
+ */
+export const WINDOW = {
+  x: -1.35,
+  y: 1.33,
+  z: -1.085,
+  width: 1.15,
+  height: 1.25,
+  frameThickness: 0.055,
+  frameDepth: 0.06,
+  frameOffsetZ: 0.02,
+};
+
+/** Frontmost face of the window's timbers — what the curtains must clear. */
+WINDOW.frontZ = WINDOW.z + WINDOW.frameOffsetZ + WINDOW.frameDepth / 2;
+
+/** Top of the head casing, where a curtain rod would sit. */
+WINDOW.headY = WINDOW.y + WINDOW.height / 2 + WINDOW.frameThickness;
+
 /** Screen dimensions, exported because the camera rig needs them. */
 export const SCREEN = {
   width: 0.62,
@@ -79,14 +102,15 @@ export function buildWindow(materials) {
   group.name = 'window';
   /* The wall's front face is at z = -1.10, so every part of the
      window has to sit in FRONT of that or the wall draws over it —
-     which rendered the view as a flat grey pane. */
-  /* Lowered from 1.55: at the old height the top of the window — and
-     the curtain rod above it — sat outside the camera's framing, so
-     the curtains appeared to hang down out of nothing. */
-  group.position.set(-1.35, 1.33, -1.085);
+     which rendered the view as a flat grey pane.
 
-  const W = 1.15;
-  const H = 1.25;
+     The height was lowered from 1.55: at the old one the head of the
+     window, and any curtain rod above it, sat outside the camera's
+     framing. */
+  group.position.set(WINDOW.x, WINDOW.y, WINDOW.z);
+
+  const W = WINDOW.width;
+  const H = WINDOW.height;
 
   // The view: an unlit plane the room's lighting cannot touch, so it
   // reads as bright daylight (or night) rather than a lit surface.
@@ -100,11 +124,13 @@ export function buildWindow(materials) {
 
   group.add(mesh(new THREE.PlaneGeometry(W, H), materials.glass, { z: 0.018, cast: false, receive: false }));
 
-  const frame = 0.055;
-  group.add(mesh(box(W + frame * 2, frame, 0.06), materials.frame, { y: H / 2 + frame / 2, z: 0.02 }));
-  group.add(mesh(box(W + frame * 2, frame, 0.06), materials.frame, { y: -H / 2 - frame / 2, z: 0.02 }));
-  group.add(mesh(box(frame, H + frame * 2, 0.06), materials.frame, { x: -W / 2 - frame / 2, z: 0.02 }));
-  group.add(mesh(box(frame, H + frame * 2, 0.06), materials.frame, { x: W / 2 + frame / 2, z: 0.02 }));
+  const frame = WINDOW.frameThickness;
+  const depth = WINDOW.frameDepth;
+  const fz = WINDOW.frameOffsetZ;
+  group.add(mesh(box(W + frame * 2, frame, depth), materials.frame, { y: H / 2 + frame / 2, z: fz }));
+  group.add(mesh(box(W + frame * 2, frame, depth), materials.frame, { y: -H / 2 - frame / 2, z: fz }));
+  group.add(mesh(box(frame, H + frame * 2, depth), materials.frame, { x: -W / 2 - frame / 2, z: fz }));
+  group.add(mesh(box(frame, H + frame * 2, depth), materials.frame, { x: W / 2 + frame / 2, z: fz }));
   group.add(mesh(box(0.03, H, 0.05), materials.frame, { z: 0.024 }));      // centre mullion
   group.add(mesh(box(W, 0.03, 0.05), materials.frame, { z: 0.024 }));      // centre transom
   group.add(mesh(box(W + 0.22, 0.05, 0.16), materials.frame, { y: -H / 2 - frame - 0.02, z: 0.07 })); // sill
@@ -132,9 +158,25 @@ export function buildCurtains(materials) {
   const group = new THREE.Group();
   group.name = 'curtains';
 
-  const CENTRE_X = -1.35;
-  const Z = -1.03;                 // just in front of the window frame
-  const TOP = 2.00;                // a little above the window head
+  /* ---- how far the fabric travels ----
+     Every displacement the sway applies is declared here, because the
+     standoff from the wall is COMPUTED from them. Previously the
+     rest plane was a hand-picked -1.03 while the sway swung the hem
+     63mm backwards from it — and the frame's front face is at
+     -1.035, five millimetres behind. The curtains passed clean
+     through the timber on every swing.
+
+     Deriving the standoff means the two can never disagree again:
+     raise the amplitude and the rod simply stands further off the
+     wall to accommodate it. */
+  const PLEAT = 0.012;             // fixed vertical folds
+  const SWAY = 0.042;              // travelling wave, at the hem
+  const DRIFT = 0.012;             // sideways, so it costs no depth
+  const CLEARANCE = 0.02;          // daylight between fabric and frame
+
+  const CENTRE_X = WINDOW.x;
+  const Z = WINDOW.frontZ + PLEAT + SWAY + CLEARANCE;
+  const TOP = WINDOW.headY - 0.01; // hung just under the head casing
   const HEIGHT = 1.24;
   const WIDTH = 0.40;
 
@@ -180,9 +222,9 @@ export function buildCurtains(materials) {
         const hang = Math.max(0, (HALF - y) / HEIGHT);
         const freedom = hang * hang;
 
-        const pleat = Math.sin(x * 30) * 0.013;
-        const sway = Math.sin(time * 0.9 + x * 4 + phase) * 0.05 * freedom;
-        const drift = Math.sin(time * 0.55 + phase) * 0.012 * freedom;
+        const pleat = Math.sin(x * 30) * PLEAT;
+        const sway = Math.sin(time * 0.9 + x * 4 + phase) * SWAY * freedom;
+        const drift = Math.sin(time * 0.55 + phase) * DRIFT * freedom;
 
         positions.setZ(i, pleat + sway);
         positions.setX(i, x + drift);
