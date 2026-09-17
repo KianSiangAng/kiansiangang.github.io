@@ -1,0 +1,5 @@
+/* Written by tools/vendor-demo.mjs — not part of the upstream tool.
+   Feedback for the guided demo, which drives this page from the parent. */
+.demo-pressed { outline: 3px solid #7FE3A8; outline-offset: 3px; transform: translateY(1px); }
+.demo-glow    { outline: 3px solid #7FE3A8; outline-offset: 4px; border-radius: 12px; }
+@media (prefers-reduced-motion: reduce) { .demo-pressed { transform: none; } }

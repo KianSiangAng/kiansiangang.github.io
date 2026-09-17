@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SUSS Timetable → ICS</title>
+  <link rel="stylesheet" href="app.css" />
+  <link rel="stylesheet" href="demo-drive.css" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'" />
+  <!-- Vendored from efb0dd24049fd37d4254bf3faffc56ffbbaab8bf for offline embedding. Do not edit here:
+       change it upstream and re-run tools/vendor-demo.mjs. -->
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>SUSS Timetable → ICS Generator</h1>
+    <p>
+      Paste your timetable copied from the student portal. Choose <b>Entire timetable</b> or <b>Single module</b>.
+      Click <b>Preview</b>, then <b>Download / Share .ics</b>.
+    </p>
+
+    <div class="card">
+      <textarea id="input" placeholder="Paste timetable text here... (tab-separated rows like your portal copy)"></textarea>
+
+      <div class="row">
+        <button id="paste" class="secondary">Paste from clipboard</button>
+        <button id="preview" class="secondary">Preview</button>
+        <button id="download" disabled>Download / Share .ics</button>
+
+        <label class="opt" title="Export format: full timetable includes module columns; single module does not">
+          <input type="radio" name="mode" id="modeFull" value="full" checked />
+          <span>Entire timetable</span>
+        </label>
+
+        <label class="opt">
+          <input type="radio" name="mode" id="modeSingle" value="single" />
+          <span>Single module</span>
+        </label>
+
+        <label class="opt" title="Adds a reminder for each event">
+          <input type="checkbox" id="alarm" />
+          <span>Add 15-min reminder</span>
+        </label>
+
+        <label class="opt" title="Put Course Group in the title">
+          <input type="checkbox" id="groupInTitle" checked />
+          <span>Include group in title</span>
+        </label>
+
+        <label class="opt" title="Put venue in the title (helps if calendar UI hides location)">
+          <input type="checkbox" id="venueInTitle" />
+          <span>Include venue in title</span>
+        </label>
+
+        <label class="opt" title="Removes the standard '[Lesson is recorded ...]' notice from Remarks/Description">
+          <input type="checkbox" id="stripRecorded" checked />
+          <span>Remove “Lesson is recorded…”</span>
+        </label>
+
+        <span class="small">Timezone: Asia/Singapore</span>
+      </div>
+
+      <!-- Single-module metadata (only shown in single mode) -->
+      <div id="singleMeta" class="metaRow" style="display:none;">
+        <div class="field">
+          <label for="singleCourse">Module Code (required)</label>
+          <input id="singleCourse" placeholder="e.g. ICT162" />
+        </div>
+        <div class="field">
+          <label for="singleGroup">Course Group (optional)</label>
+          <input id="singleGroup" placeholder="e.g. TG01" />
+        </div>
+        <div class="field">
+          <label for="singleSemType">Semester Type (optional)</label>
+          <input id="singleSemType" placeholder="e.g. Regular" />
+        </div>
+      </div>
+
+      <div class="panel" id="previewPanel" style="display:none;">
+        <h2>Preview</h2>
+        <div class="status" id="summary"></div>
+        <div style="overflow:auto; margin-top:8px;">
+          <table id="previewTable"></table>
+        </div>
+      </div>
+
+      <div class="panel" id="errorPanel" style="display:none;">
+        <h2>Notes / Skipped rows</h2>
+        <div class="status" id="errors"></div>
+      </div>
+
+      <div class="hint" id="mobileHint" style="display:none;">
+        Phone tip: If a share sheet appears, choose <b>Save to Files</b> (iPhone) or your file app, then open the .ics to import.
+      </div>
+    </div>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -355,6 +355,51 @@ kernel.use({
   },
 });
 
+/* The demo players, for the plain page. The OS presentation opens
+   the same panel in a window through the registry instead, so this
+   module deliberately does nothing there: two live copies of an
+   embedded tool is one more than anybody needs.
+
+   The section already contains a readable transcript and a direct
+   link to the tool, written into index.html. This upgrades that to
+   the players; if it fails, the static version is what stays, which
+   is the right failure. */
+kernel.use({
+  name: 'demos',
+  deps: ['bus', 'os'],
+  enabled: () => Boolean(document.getElementById('demos-mount')),
+  async setup() {
+    let panel = null;
+
+    async function mount() {
+      if (panel) return;
+      const { mountPageDemos } = await import('./demos/index.js');
+      panel = mountPageDemos();
+    }
+
+    function unmount() {
+      panel?.destroy?.();
+      panel = null;
+      const host = document.getElementById('demos-mount');
+      if (host) delete host.dataset.mounted;
+    }
+
+    /* `shell` is the terminal's command interpreter; the presentation
+       mode lives on `os`, same as the room module reads it. */
+    const os = container.has('os') ? container.resolve('os') : null;
+    if (!os || os.mode() === 'page') await mount();
+
+    /* Switching into the desktop tears the page copy down: an iframe
+       left running behind a hidden section is still a running iframe. */
+    bus.on('shell.changed', ({ mode }) => {
+      if (mode === 'page') mount();
+      else unmount();
+    });
+
+    return { mount, unmount, mounted: () => Boolean(panel) };
+  },
+});
+
 /* Small page-level behaviours that do not deserve their own file. */
 kernel.use({
   name: 'page',

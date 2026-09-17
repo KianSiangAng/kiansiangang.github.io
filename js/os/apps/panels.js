@@ -14,6 +14,7 @@
 import { el, clear } from '../dom.js';
 import { icon, objectIcon } from '../icons.js';
 import { projects, identity, skills, experience, education } from '../../data/portfolio.js';
+import { demoForProject } from '../../data/demos.js';
 
 
 /* ----------------------------------------------------------------
@@ -154,13 +155,28 @@ export function buildProjects({ onOpenProject }) {
 }
 
 /** One project, opened from the folder. */
-export function buildProject(project) {
+export function buildProject(project, { onOpenDemo = null } = {}) {
+  const demo = demoForProject(project.slug);
+
   return el('article.app.app--project', {}, [
     el('header.project__head', {}, [
       el('h1.project__title', { text: project.title }),
       el('span.project__badge', { text: project.badge }),
     ]),
     el('p.project__summary', { text: project.summary }),
+
+    /* A description of a tool is an assertion. The demo is the
+       evidence, so it gets the prominent button and the GitHub
+       link goes below it. */
+    demo && onOpenDemo
+      ? el('button.project__demo', {
+          type: 'button',
+          onclick: () => onOpenDemo(demo.slug),
+        }, [
+          icon('play', 16),
+          el('span', { text: demo.kind === 'live' ? 'Try it running' : 'Watch it run' }),
+        ])
+      : null,
     project.threatModel
       ? el('section.project__note', {}, [
           el('h2', { text: 'Threat modelling' }),

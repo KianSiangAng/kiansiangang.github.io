@@ -105,6 +105,12 @@ export function createShell({ bus, services }) {
 
       const existing = wm.byApp(appId);
       if (existing) {
+        /* A deep link to an app that is already open should move it
+           to the right place, not be swallowed by the raise. */
+        if (options.param && options.param !== existing.param) {
+          existing.param = options.param;
+          existing.setParam?.(options.param);
+        }
         existing.focus();
         return existing;
       }

@@ -90,6 +90,10 @@ const SHAPES = {
     svg('circle', { fill: 'currentColor', cx: 5.6, cy: 6.5, r: 0.8 }),
     svg('circle', { fill: 'currentColor', cx: 8, cy: 6.5, r: 0.8 }),
   ],
+  play: () => [
+    svg('circle', { ...stroke, cx: 12, cy: 12, r: 8.8 }),
+    svg('path', { ...stroke, d: 'M10 8.4l5.4 3.6L10 15.6z' }),
+  ],
   info: () => [
     svg('circle', { ...stroke, cx: 12, cy: 12, r: 8.8 }),
     svg('path', { ...stroke, d: 'M12 11v5.5' }),
@@ -239,6 +243,36 @@ const OBJECTS = {
     svg('path', { d: 'M21 41h22l-2.6 12.6a3 3 0 0 1-3 2.4H26.6a3 3 0 0 1-3-2.4z', fill: '#D08A62' }),
     svg('path', { d: 'M19.6 37.4h24.8a1.7 1.7 0 0 1 1.7 1.7v1.4a1.7 1.7 0 0 1-1.7 1.7H19.6a1.7 1.7 0 0 1-1.7-1.7v-1.4a1.7 1.7 0 0 1 1.7-1.7z', fill: '#E0A17A' }),
     svg('path', { d: 'M25.4 45l-1 8', stroke: 'rgba(255,255,255,.3)', 'stroke-width': 2, 'stroke-linecap': 'round' }),
+  ],
+
+  /* ---- Demos: a little projector throwing a beam ---- */
+  projector: () => [
+    svg('ellipse', { cx: 32, cy: 57, rx: 19, ry: 3, fill: 'rgba(70,52,44,.17)' }),
+    // the beam, thrown up and to the right, behind the body
+    svg('path', { d: 'M46 30l16-9v22z', fill: 'rgba(255,214,140,.38)' }),
+    svg('path', { d: 'M46 30l16-9v10z', fill: 'rgba(255,229,178,.42)' }),
+    // feed and take-up reels
+    svg('circle', { cx: 23, cy: 19, r: 8.2, fill: '#8FB6C9' }),
+    svg('circle', { cx: 23, cy: 19, r: 8.2, fill: 'none', stroke: 'rgba(60,90,105,.35)', 'stroke-width': 1.1 }),
+    svg('circle', { cx: 23, cy: 19, r: 2.4, fill: '#EDE2CC' }),
+    svg('circle', { cx: 39, cy: 22, r: 5.8, fill: '#A8C8D8' }),
+    svg('circle', { cx: 39, cy: 22, r: 5.8, fill: 'none', stroke: 'rgba(60,90,105,.3)', 'stroke-width': 1 }),
+    svg('circle', { cx: 39, cy: 22, r: 1.8, fill: '#EDE2CC' }),
+    // body
+    svg('path', { d: 'M12 32h34a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H12a3 3 0 0 1-3-3V35a3 3 0 0 1 3-3z', fill: '#EDE2CC' }),
+    svg('path', { d: 'M12 32h34a3 3 0 0 1 3 3v2.2H9V35a3 3 0 0 1 3-3z', fill: '#FBF6EA' }),
+    svg('path', { d: 'M12 32h34a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H12a3 3 0 0 1-3-3V35a3 3 0 0 1 3-3z', fill: 'none', stroke: PAPER_EDGE, 'stroke-width': 1.2 }),
+    // lens barrel
+    svg('rect', { x: 45, y: 36, width: 8.5, height: 9, rx: 2.2, fill: '#C9BBA4' }),
+    svg('circle', { cx: 53, cy: 40.5, r: 4.2, fill: '#FFE7B4' }),
+    svg('circle', { cx: 53, cy: 40.5, r: 4.2, fill: 'none', stroke: 'rgba(150,128,96,.4)', 'stroke-width': 1 }),
+    svg('circle', { cx: 51.6, cy: 39.2, r: 1.2, fill: 'rgba(255,255,255,.75)' }),
+    // vents and a switch, so it reads as a machine
+    svg('path', { d: 'M15 41h10M15 45h10', stroke: INK, 'stroke-width': 1.6, 'stroke-linecap': 'round' }),
+    svg('circle', { cx: 33, cy: 43.5, r: 2.6, fill: '#E07A6A' }),
+    // feet
+    svg('rect', { x: 14, y: 50, width: 5, height: 3.4, rx: 1.2, fill: '#C9BBA4' }),
+    svg('rect', { x: 39, y: 50, width: 5, height: 3.4, rx: 1.2, fill: '#C9BBA4' }),
   ],
 
   /* ---- Contact: a paper crane ---- */

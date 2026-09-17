@@ -1,0 +1,6 @@
+1	ICT239	T01	Regular	13 JAN 2026	Monday	7:00 PM	10:00 PM	SUSS Campus, Blk B, Room B.1.07	[Lesson is recorded and may be used for attendance-management purposes.]
+2	ICT239	T01	Regular	27 JAN 2026	Monday	7:00 PM	10:00 PM	SUSS Campus, Blk B, Room B.1.07	[Lesson is recorded and may be used for attendance-management purposes.]
+3	ICT262	T02	Regular	15 JAN 2026	Wednesday	7:00 PM	10:00 PM	SUSS Campus, Blk A, Room A.2.14	Bring a laptop; lab exercise.
+4	ICT262	T02	Regular	29 JAN 2026	Wednesday	7:00 PM	10:00 PM	SUSS Campus, Blk A, Room A.2.14	Quiz 1 in the first hour.
+5	ICT283	T01	Regular	17 JAN 2026	Friday	7:30 PM	10:30 PM	Online via Zoom	[Lesson is recorded and may be used for attendance-management purposes.]
+6	ICT283	T01	Regular	31 JAN 2026	Friday	7:30 PM	10:30 PM	Online via Zoom	[Lesson is recorded and may be used for attendance-management purposes.]

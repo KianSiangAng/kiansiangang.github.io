@@ -47,7 +47,9 @@
               actual .woff2 font files are served from.
             - img-src 'self' data: → allows our images + inline SVG
               data URIs (like the padlock icons).
-            - frame-src 'none' → prevents clickjacking via iframes.
+            - frame-src 'self' → only our own origin can be framed,
+              which the Calendar Exporter demo needs and an attacker
+              cannot use to frame anything of theirs.
             - object-src 'none' → blocks Flash/Java plugin embeds.
 
          2. X-Content-Type-Options: nosniff
@@ -70,7 +72,7 @@
     ============================================================ -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -121,6 +123,13 @@
          the plain page never download a byte of it.
     ============================================================ -->
     <link rel="stylesheet" href="css/room.css" />
+
+    <!-- ============================================================
+         Demo players. One stylesheet for both presentations: the
+         desktop opens the panel in a window, the plain page mounts
+         the same panel in a section.
+    ============================================================ -->
+    <link rel="stylesheet" href="css/demos.css" />
 
     <!-- ============================================================
          PWA — installable, and fully readable offline once the
@@ -198,6 +207,7 @@
         <ul class="navbar__links">
           <li><a href="#about"    class="navbar__link">About</a></li>
           <li><a href="#projects" class="navbar__link">Projects</a></li>
+          <li><a href="#demos"    class="navbar__link">Demos</a></li>
           <li><a href="#skills"   class="navbar__link">Skills</a></li>
           <li><a href="#contact"  class="navbar__link">Contact</a></li>
         </ul>
@@ -391,6 +401,16 @@
               <span class="tag">Entropy Analysis</span>
             </div>
 
+            <!-- The demo is the evidence for the paragraph above, so it
+                 is offered before the source link. -->
+            <a href="#demos" class="project-card__btn project-card__demo-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M10 8.5l5.5 3.5L10 15.5z"/>
+              </svg>
+              Watch it run
+            </a>
+
             <!-- GitHub link -->
             <a
               href="https://github.com/KianSiangAng/password-analyzer"
@@ -430,6 +450,16 @@
               <span class="tag">Web Tool</span>
             </div>
 
+            <!-- The demo is the evidence for the paragraph above, so it
+                 is offered before the source link. -->
+            <a href="#demos" class="project-card__btn project-card__demo-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M10 8.5l5.5 3.5L10 15.5z"/>
+              </svg>
+              Try it running
+            </a>
+
             <!-- GitHub link -->
             <a
               href="https://github.com/KianSiangAng/suss-calendar-exporter"
@@ -449,10 +479,127 @@
     </section>
 
     <!-- ============================================================
-         5. SKILLS
+         5. DEMOS
+         The projects, actually running.
+
+         Everything inside #demos-mount is the no-JavaScript
+         version: a real transcript of the recorded session and a
+         direct link to the live tool, both of which work on their
+         own. When the demo module boots it replaces this with the
+         players. It is replaced rather than hidden so a screen
+         reader is not read the same content twice.
+    ============================================================ -->
+    <section id="demos" class="section demos page-flip" data-section-index="3">
+      <div class="container">
+
+        <h2 class="section-title">Demos</h2>
+        <p class="demos__lede fade-in">
+          Claims about software are cheap. These run.
+        </p>
+
+        <div id="demos-mount" class="demos__mount fade-in">
+
+          <article class="demo-static">
+            <h3 class="demo-static__title">Password Analyzer</h3>
+            <p class="demo-static__blurb">
+              A real session, recorded by running the tool against the live
+              Have I Been Pwned API. The breach counts below are what that API
+              returned &mdash; they are not illustrations.
+            </p>
+            <p class="demo-static__takeaway">
+              Watch the middle case. <code>Summer2024!</code> passes every
+              complexity rule a corporate password policy checks &mdash; upper,
+              lower, digit, symbol, 72 bits of entropy &mdash; and HIBP still
+              finds it in 3,614 breaches. Complexity rules measure the shape of
+              a password. Only a breach corpus measures whether anyone has
+              already guessed it.
+            </p>
+            <pre class="demo-static__transcript"><code>kian@portfolio:~/password-analyzer$ python analyzer.py
+Enter password to analyze (input hidden): •••••••••••
+
+
+--- Password Summary ---
+╒════════════╤══════════════╤════════════╤════════════╤══════════════╕
+│ Length     │ Complexity   │ Entropy    │   Breaches │ Risk Score   │
+╞════════════╪══════════════╪════════════╪════════════╪══════════════╡
+│ Acceptable │ 2/4          │ 56.87 bits │    2266543 │ 100/100      │
+╘════════════╧══════════════╧════════════╧════════════╧══════════════╛
+
+--- Detailed Analysis ---
+Rating: Weak
+Extremely common breached password
+
+Suggestions:
+• Add uppercase letters
+• Add special characters
+
+
+kian@portfolio:~/password-analyzer$ python analyzer.py
+Enter password to analyze (input hidden): •••••••••••
+
+
+--- Password Summary ---
+╒════════════╤══════════════╤═══════════╤════════════╤══════════════╕
+│ Length     │ Complexity   │ Entropy   │   Breaches │ Risk Score   │
+╞════════════╪══════════════╪═══════════╪════════════╪══════════════╡
+│ Acceptable │ 4/4          │ 72.1 bits │       3614 │ 100/100      │
+╘════════════╧══════════════╧═══════════╧════════════╧══════════════╛
+
+--- Detailed Analysis ---
+Rating: Weak
+Password found in breaches
+
+
+kian@portfolio:~/password-analyzer$ python analyzer.py
+Enter password to analyze (input hidden): •••••••••••••••••••••••••••••••
+
+
+--- Password Summary ---
+╒══════════╤══════════════╤═════════════╤════════════╤══════════════╕
+│ Length   │ Complexity   │ Entropy     │   Breaches │ Risk Score   │
+╞══════════╪══════════════╪═════════════╪════════════╪══════════════╡
+│ Strong   │ 3/4          │ 188.71 bits │          0 │ 0/100        │
+╘══════════╧══════════════╧═════════════╧════════════╧══════════════╛
+
+--- Detailed Analysis ---
+Rating: Strong
+Password not found in known breaches
+
+Suggestions:
+• Add uppercase letters</code></pre>
+            <a class="demo-static__link" href="https://github.com/KianSiangAng/password-analyzer"
+               target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+          </article>
+
+          <article class="demo-static">
+            <h3 class="demo-static__title">SUSS Calendar Exporter</h3>
+            <p class="demo-static__blurb">
+              Not a recording &mdash; the tool itself, vendored into this site so
+              it keeps working offline. Paste a timetable copied from SUSS
+              e-services and it produces a real <code>.ics</code> file. Nothing is
+              uploaded anywhere; there is no server in this project at all.
+            </p>
+            <p class="demo-static__takeaway">
+              SUSS e-services can show you a timetable and cannot export one.
+              This is about a hundred lines of parsing standing between that and
+              a calendar that updates itself.
+            </p>
+            <a class="demo-static__link" href="assets/demos/suss-calendar-exporter/index.html">
+              Open the tool
+            </a>
+            <a class="demo-static__link" href="https://github.com/KianSiangAng/suss-calendar-exporter"
+               target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. SKILLS
          Terminal-styled block grouped by category.
     ============================================================ -->
-    <section id="skills" class="section skills page-flip" data-section-index="3">
+    <section id="skills" class="section skills page-flip" data-section-index="4">
       <div class="container">
 
         <h2 class="section-title">Skills</h2>
@@ -533,7 +680,7 @@
          6. CONTACT
          Centered minimal layout with email / GitHub / LinkedIn.
     ============================================================ -->
-    <section id="contact" class="section contact page-flip" data-section-index="4">
+    <section id="contact" class="section contact page-flip" data-section-index="5">
       <div class="container">
 
         <h2 class="section-title">Get In Touch</h2>

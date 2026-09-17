@@ -36,11 +36,13 @@
   #   font-src    ...          → font files from Google's CDN
   #   img-src     'self' data: → images from us + inline SVG data URIs
   #   connect-src 'self'       → fetch/XHR only to our own domain
-  #   frame-src   'none'       → no iframes allowed (prevents clickjacking)
+  #   frame-src   'self'       → iframes only from our own origin. The Calendar
+  #                             Exporter demo runs the real tool in a sandboxed
+  #                             same-origin frame; nothing third-party is framable.
   #   object-src  'none'       → no Flash/Java plugins (legacy attack vector)
   #   base-uri    'self'       → prevents <base> tag hijacking
   #   form-action 'self'       → forms can only submit to our own domain
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
 
   # ---- Prevent MIME type sniffing ----
   # Without this, browsers might "guess" a file's type and execute
@@ -48,10 +50,13 @@
   X-Content-Type-Options: nosniff
 
   # ---- Clickjacking protection ----
-  # DENY means our page cannot be loaded inside an <iframe> on ANY
-  # other site. This prevents clickjacking attacks where an attacker
-  # overlays invisible frames to trick users into clicking things.
-  X-Frame-Options: DENY
+  # SAMEORIGIN means this page cannot be framed by any OTHER site,
+  # which is the part that stops clickjacking, while still allowing
+  # the one same-origin frame this site uses: the Calendar Exporter
+  # demo embeds a vendored copy of that tool so visitors can run it
+  # for real. That frame states `frame-ancestors 'self'` in its own
+  # CSP, which is the modern half of the same sentence.
+  X-Frame-Options: SAMEORIGIN
 
   # ---- Referrer Policy ----
   # Controls what URL info is sent in the Referer header when

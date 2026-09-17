@@ -26,7 +26,8 @@
 ================================================================ */
 
 import { el } from './dom.js';
-import { identity } from '../data/portfolio.js';
+import { identity, projects } from '../data/portfolio.js';
+import { buildDemos } from '../demos/index.js';
 import {
   buildProjects, buildProject, buildResume, buildSkills,
   buildSettings, buildAchievements, buildHelp, buildWelcome,
@@ -80,7 +81,9 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       width: 560,
       height: 460,
       minWidth: 340,
-      content: buildProject(project),
+      content: buildProject(project, {
+        onOpenDemo: (slug) => onOpen('demos', { param: slug }),
+      }),
     });
   }
 
@@ -122,6 +125,30 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
       description: 'A folder of things I have built',
       window: { width: 700, height: 470 },
       build: () => buildProjects({ onOpenProject: openProject }),
+    },
+    {
+      id: 'demos',
+      title: 'Demos',
+      icon: 'play',
+      kind: 'app',
+      desktop: true,
+      object: 'projector',
+      description: 'Watch the projects actually run',
+      window: { width: 860, height: 640, minWidth: 420, minHeight: 380 },
+      build(win) {
+        const panel = buildDemos({
+          initial: win.param,
+          onOpenProject: (slug) => {
+            const project = projects.find((p) => p.slug === slug);
+            if (project) openProject(project);
+          },
+        });
+        /* Re-opening with a different deep link should switch demos
+           rather than be swallowed by the already-open window. */
+        win.setParam = (slug) => panel.selectDemo?.(slug);
+        win.onClose = () => panel.destroy?.();
+        return panel;
+      },
     },
     {
       id: 'terminal',

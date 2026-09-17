@@ -1,0 +1,600 @@
+/* ================================================================
+   DEMOS.CSS — The project demos, in both presentations
+
+   One stylesheet serves the desktop window and the plain-page
+   section, because it is one component in two frames. Sizing is
+   therefore container-relative throughout: the panel has no idea
+   whether it is 860px inside a window or the full width of a
+   phone, and must not need to.
+
+   Contents:
+     1. Panel shell — tabs, metadata, stage
+     2. Cast player — the recorded terminal
+     3. ANSI palette
+     4. Live embed
+     5. Video and walkthrough
+     6. Plain-page section and the no-JavaScript fallback
+     7. Responsive and reduced motion
+================================================================ */
+
+
+/* ================================================================
+   1. PANEL SHELL
+================================================================ */
+
+.app--demos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem 1.4rem;
+}
+
+.demos__intro {
+  margin: 0;
+  font-size: var(--fs-sm);
+  opacity: 0.72;
+}
+
+/* --- the demo picker ------------------------------------------- */
+
+.demo__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.demo__tab {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.85rem 0.5rem 0.55rem;
+  border: 1px solid rgba(26, 39, 68, 0.12);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.demo__tab:hover { transform: translateY(-1px); border-color: rgba(26, 39, 68, 0.28); }
+.demo__tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.demo__tab[aria-selected="true"] {
+  border-color: var(--clr-navy-light);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-sm);
+}
+
+.demo__tab-icon { display: flex; flex: 0 0 auto; }
+
+.demo__tab-text { display: flex; flex-direction: column; line-height: 1.25; }
+.demo__tab-text strong { font-size: var(--fs-sm); }
+.demo__tab-text span { font-size: var(--fs-xs); opacity: 0.62; }
+
+[data-theme="dark"] .demo__tab {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+[data-theme="dark"] .demo__tab[aria-selected="true"] {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.11);
+}
+
+/* --- the selected demo's prose --------------------------------- */
+
+.demo__head { display: flex; flex-direction: column; gap: 0.15rem; }
+.demo__title { margin: 0; font-size: var(--fs-lg); line-height: 1.2; }
+.demo__subtitle { margin: 0; font-size: var(--fs-sm); opacity: 0.68; }
+
+.demo__blurb { margin: 0.55rem 0 0; font-size: var(--fs-sm); line-height: 1.55; }
+
+.demo__takeaway {
+  margin: 0.8rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid var(--clr-peach);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: rgba(240, 200, 160, 0.16);
+}
+.demo__takeaway h3 {
+  margin: 0 0 0.3rem;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+.demo__takeaway p { margin: 0; font-size: var(--fs-sm); line-height: 1.55; }
+
+.demo__notes {
+  margin: 0.8rem 0 0;
+  padding-left: 1.1rem;
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  opacity: 0.74;
+}
+.demo__notes li + li { margin-top: 0.35rem; }
+
+.demo__provenance {
+  margin: 0.7rem 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  opacity: 0.62;
+}
+.demo__provenance:empty { display: none; }
+.demo__commit { color: inherit; }
+
+.demo__links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem; }
+
+.demo__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.8rem;
+  border: 1px solid rgba(26, 39, 68, 0.16);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.demo__link:hover { background: rgba(168, 200, 232, 0.22); border-color: var(--clr-navy-light); }
+.demo__link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .demo__link { border-color: rgba(255, 255, 255, 0.18); }
+
+/* --- stage states ---------------------------------------------- */
+
+.demo__stage { margin-top: 0.4rem; }
+
+.demo__pending,
+.demo__failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 180px;
+  padding: 1.5rem;
+  border: 1px dashed rgba(26, 39, 68, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  text-align: center;
+  opacity: 0.8;
+}
+[data-theme="dark"] .demo__pending,
+[data-theme="dark"] .demo__failed { border-color: rgba(255, 255, 255, 0.18); }
+
+.demo__pending p, .demo__failed p { margin: 0; }
+.demo__failed-detail { font-family: var(--font-mono); font-size: var(--fs-xs); opacity: 0.6; }
+
+.demo__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(26, 39, 68, 0.2);
+  border-top-color: var(--clr-navy-light);
+  border-radius: 50%;
+  animation: demo-spin 700ms linear infinite;
+}
+@keyframes demo-spin { to { transform: rotate(360deg); } }
+
+
+/* ================================================================
+   2. CAST PLAYER
+================================================================ */
+
+.cast { display: flex; flex-direction: column; gap: 0.55rem; }
+
+.cast__frame {
+  border-radius: var(--radius-md);
+  background: #161b2b;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.cast__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+.cast__dots { display: flex; gap: 0.3rem; }
+.cast__dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+.cast__dot:nth-child(1) { background: #e0796b; }
+.cast__dot:nth-child(2) { background: #e2b567; }
+.cast__dot:nth-child(3) { background: #7fc98b; }
+
+.cast__name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: rgba(232, 224, 208, 0.62);
+}
+
+/* The recording draws a table out of box-drawing characters, and
+   those are unusually demanding of a font:
+
+     Space Mono -- the site's display monospace -- has no box-drawing
+     glyphs at all, so every - and | fell back to another family at a
+     different advance width and the table came out as dashes. This
+     needs a stack of fonts that actually ship U+2500..257F, which
+     the platform terminal fonts all do.
+
+     Line height has to be ~1 or the verticals cannot reach the row
+     below and the table is drawn as a column of disconnected bars.
+     1.5 is right for prose and wrong for this.
+
+   The recording is 78 columns wide. Rather than wrap -- box drawing
+   wraps into nonsense -- the type scales with the container and then
+   scrolls sideways past the point where shrinking would stop being
+   readable. */
+.cast__screen {
+  margin: 0;
+  padding: 0.85rem 0.95rem 1rem;
+  max-height: min(58vh, 460px);
+  overflow: auto;
+  color: #d7dcea;
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo,
+               'Cascadia Mono', 'Segoe UI Mono', Consolas,
+               'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  font-size: clamp(0.5rem, 1.42cqi, 0.78rem);
+  line-height: 1.15;
+  font-variant-ligatures: none;
+  white-space: pre;
+  tab-size: 8;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(160, 180, 210, 0.35) transparent;
+}
+.cast__screen:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.cast-shell { color: #7fc98b; }
+.cast-typed { color: #f4f7ff; }
+.cast-masked { color: rgba(215, 220, 234, 0.55); }
+
+/* --- transport ------------------------------------------------- */
+
+.cast__controls { display: flex; align-items: center; gap: 0.6rem; }
+
+.cast__play {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: var(--clr-navy-light);
+  color: #fff;
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+.cast__play:hover { transform: scale(1.06); }
+.cast__play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .cast__play { background: var(--clr-blue); color: #101423; }
+
+.cast__scrub {
+  flex: 1 1 auto;
+  min-width: 60px;
+  height: 4px;
+  accent-color: var(--clr-navy-light);
+  cursor: pointer;
+}
+[data-theme="dark"] .cast__scrub { accent-color: var(--clr-blue); }
+
+.cast__clock {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  opacity: 0.66;
+  font-variant-numeric: tabular-nums;
+}
+
+.cast__text-toggle {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid rgba(26, 39, 68, 0.16);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+.cast__text-toggle:hover { background: rgba(168, 200, 232, 0.22); }
+.cast__text-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .cast__text-toggle { border-color: rgba(255, 255, 255, 0.18); }
+
+.cast__caption { min-height: 2.6em; }
+.cast__caption-text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  opacity: 0.82;
+}
+
+.cast__transcript {
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  max-height: 340px;
+  overflow: auto;
+  border: 1px solid rgba(26, 39, 68, 0.14);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.5);
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo,
+               'Cascadia Mono', 'Segoe UI Mono', Consolas,
+               'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  font-size: var(--fs-xs);
+  line-height: 1.15;
+  white-space: pre;
+}
+[data-theme="dark"] .cast__transcript {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+
+/* ================================================================
+   3. ANSI PALETTE
+
+   Tuned against the dark terminal ground rather than taken from a
+   stock 16-colour table: the recording only ever uses red, green,
+   yellow and cyan, and those four need to stay legible next to
+   each other inside a box-drawn table.
+================================================================ */
+
+.cast__screen .fg-red     { color: #ff9a8f; }
+.cast__screen .fg-green   { color: #86e0a0; }
+.cast__screen .fg-yellow  { color: #f2cd76; }
+.cast__screen .fg-blue    { color: #8fb8f0; }
+.cast__screen .fg-magenta { color: #d9a6e8; }
+.cast__screen .fg-cyan    { color: #7fd8e0; }
+.cast__screen .fg-white   { color: #f2f5ff; }
+.cast__screen .fg-black,
+.cast__screen .fg-grey    { color: #8a93a8; }
+.cast__screen .is-bold    { font-weight: 700; }
+
+
+/* ================================================================
+   4. LIVE EMBED
+================================================================ */
+
+.live { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.live__controls { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; }
+
+.live__run {
+  padding: 0.5rem 1.05rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--clr-navy-light);
+  color: #fff;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+.live__run:hover { transform: translateY(-1px); }
+.live__run:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.live__run[data-state="running"] { background: #c4685c; }
+[data-theme="dark"] .live__run { background: var(--clr-blue); color: #101423; }
+
+.live__reset {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgba(26, 39, 68, 0.16);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+.live__reset:hover { background: rgba(168, 200, 232, 0.22); }
+.live__reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .live__reset { border-color: rgba(255, 255, 255, 0.18); }
+
+.live__hint { font-size: var(--fs-xs); opacity: 0.6; }
+
+.live__caption-row { min-height: 2.6em; }
+.live__caption { margin: 0; font-size: var(--fs-sm); line-height: 1.5; opacity: 0.85; }
+
+.live__status { margin: 0; font-size: var(--fs-xs); color: #c4685c; }
+.live__status:empty { display: none; }
+
+.live__stage {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  background: #0b1020;
+}
+
+.live__frame {
+  display: block;
+  width: 100%;
+  height: clamp(380px, 52vh, 620px);
+  border: 0;
+}
+
+
+/* ================================================================
+   5. VIDEO AND WALKTHROUGH
+================================================================ */
+
+.video__frame {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #0b1020;
+  box-shadow: var(--shadow-md);
+}
+.video__el { display: block; width: 100%; height: auto; }
+.video__transcript-note { margin: 0.5rem 0 0; font-size: var(--fs-xs); opacity: 0.7; }
+
+.walk { display: flex; flex-direction: column; gap: 0.55rem; }
+.walk:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.walk__stage {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
+}
+.walk__image { display: block; width: 100%; height: auto; }
+
+.walk__controls { display: flex; align-items: center; gap: 0.5rem; }
+
+.walk__nav {
+  width: 30px; height: 30px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(26, 39, 68, 0.16);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.walk__nav:hover { background: rgba(168, 200, 232, 0.22); }
+.walk__nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.walk__dots { display: flex; gap: 0.35rem; flex: 1 1 auto; }
+.walk__dot {
+  width: 8px; height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(26, 39, 68, 0.22);
+  cursor: pointer;
+}
+.walk__dot[aria-selected="true"] { background: var(--clr-navy-light); }
+.walk__dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.walk__counter { font-size: var(--fs-xs); opacity: 0.6; font-variant-numeric: tabular-nums; }
+.walk__caption { margin: 0; font-size: var(--fs-sm); line-height: 1.5; opacity: 0.82; }
+
+
+/* ================================================================
+   6. PLAIN PAGE SECTION AND NO-JS FALLBACK
+================================================================ */
+
+.demos__lede {
+  margin: 0 0 var(--space-md);
+  font-size: var(--fs-md);
+  opacity: 0.78;
+}
+
+/* The mount is a container so the cast's clamp() can size against
+   it in both presentations rather than against the viewport. */
+.demos__mount,
+.app--demos {
+  container-type: inline-size;
+}
+
+.demos__mount {
+  padding: var(--space-sm);
+  border-radius: var(--radius-lg);
+  background: var(--clr-card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Inside the page the panel supplies its own padding via the card. */
+.demos__mount .app--demos { padding: 0; }
+
+.demo-static + .demo-static {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(26, 39, 68, 0.12);
+}
+
+.demo-static__title { margin: 0 0 0.4rem; font-size: var(--fs-lg); }
+.demo-static__blurb { margin: 0 0 0.6rem; line-height: 1.6; }
+
+.demo-static__takeaway {
+  margin: 0 0 0.9rem;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid var(--clr-peach);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: rgba(240, 200, 160, 0.16);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+
+.demo-static__transcript {
+  margin: 0 0 0.9rem;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: #161b2b;
+  color: #d7dcea;
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo,
+               'Cascadia Mono', 'Segoe UI Mono', Consolas,
+               'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+
+.demo-static__link {
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+/* --- the button on a project card / window --------------------- */
+
+.project__demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.2rem 0 0.9rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--clr-navy-light);
+  color: #fff;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+.project__demo:hover { transform: translateY(-1px); }
+.project__demo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .project__demo { background: var(--clr-blue); color: #101423; }
+
+.project-card__demo-link { margin-right: 0.75rem; }
+
+
+/* ================================================================
+   7. RESPONSIVE AND REDUCED MOTION
+================================================================ */
+
+@container (max-width: 520px) {
+  .demo__tab { flex: 1 1 100%; }
+  .live__frame { height: clamp(420px, 70vh, 560px); }
+}
+
+@media (max-width: 640px) {
+  .demos__mount { padding: var(--space-xs); }
+  .cast__controls { flex-wrap: wrap; }
+  .cast__scrub { order: 3; flex-basis: 100%; }
+  .demo-static__transcript { font-size: 0.6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo__tab,
+  .cast__play,
+  .live__run,
+  .project__demo { transition: none; }
+  .demo__tab:hover,
+  .cast__play:hover,
+  .live__run:hover,
+  .project__demo:hover { transform: none; }
+  .demo__spinner { animation: none; }
+}

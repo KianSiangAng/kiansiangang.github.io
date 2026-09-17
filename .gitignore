@@ -1,0 +1,10 @@
+# Screenshot artifacts from the Playwright verification scripts. Those
+# scripts take their output directory from an environment variable, and
+# when it is unset Node writes to a literal "undefined/" folder in here.
+# Ignoring it stops 3MB of stale test stills being committed to a site
+# that would then serve them.
+undefined/
+
+# Editor and OS noise
+.DS_Store
+*.swp
