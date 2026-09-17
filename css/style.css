@@ -325,11 +325,21 @@ button {
 
 /* Content emerges after the petal wave passes midpoint.
    Staggered so elements appear one by one. */
-.page-flip--active .container > *:nth-child(1) { animation: contentReveal 0.35s ease-out 0.2s forwards; }
-.page-flip--active .container > *:nth-child(2) { animation: contentReveal 0.35s ease-out 0.28s forwards; }
-.page-flip--active .container > *:nth-child(3) { animation: contentReveal 0.35s ease-out 0.36s forwards; }
-.page-flip--active .container > *:nth-child(4) { animation: contentReveal 0.35s ease-out 0.44s forwards; }
-.page-flip--active .container > *:nth-child(5) { animation: contentReveal 0.35s ease-out 0.52s forwards; }
+/* These delays used to run 0.2s to 0.52s with a 0.35s fade, so the
+   last block of a section finished 0.87s after the reveal began —
+   and the reveal itself only began once scrolling had stopped. The
+   petal wipe was being treated as a curtain that had to finish
+   before the content underneath could be read.
+
+   It is decoration, so it no longer gates anything. The text starts
+   arriving almost immediately and the petals fly over it. Total
+   reveal is now ~0.36s rather than ~0.87s, on top of a trigger that
+   fires roughly a second earlier. */
+.page-flip--active .container > *:nth-child(1) { animation: contentReveal 0.28s ease-out 0.02s forwards; }
+.page-flip--active .container > *:nth-child(2) { animation: contentReveal 0.28s ease-out 0.05s forwards; }
+.page-flip--active .container > *:nth-child(3) { animation: contentReveal 0.28s ease-out 0.08s forwards; }
+.page-flip--active .container > *:nth-child(4) { animation: contentReveal 0.28s ease-out 0.11s forwards; }
+.page-flip--active .container > *:nth-child(5) { animation: contentReveal 0.28s ease-out 0.14s forwards; }
 
 /* When scrolling UP, use the reverse content reveal direction */
 .page-flip--active.page-flip--up .container > *:nth-child(1) { animation-name: contentRevealUp; }

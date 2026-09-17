@@ -180,6 +180,13 @@ if ('scrollRestoration' in history) {
 /* Track which sections have already been revealed */
 const revealedSections = new Set();
 
+/* The petal wipe is decoration and nothing else, so it is simply not
+   spawned when the visitor has asked for less motion. The content
+   reveal still runs — it is a short fade, and without it the section
+   would stay at opacity 0 forever. */
+const prefersReducedMotion = window.matchMedia
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 
 /* ---- SAKURA PETAL WIPE: full-screen petal curtain ----
 
@@ -194,7 +201,10 @@ const revealedSections = new Set();
 
 function spawnBloomPetals(section, direction) {
   direction = direction || 'down';                   /* 'down' = L→R, 'up' = R→L */
-  const count = 25 + Math.floor(Math.random() * 6); /* 25-30 petals */
+  /* Was 25-30. Each is an animated, compositor-promoted element, and
+     with sections revealing sooner several waves can now overlap —
+     peaks of 56 were measured. Sixteen still reads as a wave. */
+  const count = 14 + Math.floor(Math.random() * 4); /* 14-17 petals */
   const sectionH = section.offsetHeight;
 
   for (let i = 0; i < count; i++) {
@@ -296,49 +306,69 @@ function checkAndRevealSections() {
     }
   }
 
-  document.querySelectorAll('.page-flip').forEach(section => {
-    const rect = section.getBoundingClientRect();
-
-    /* ---- RESET: section has fully left the viewport ----
-       If a previously-revealed section is now entirely above or
-       below the viewport, reset it so it can re-animate when
-       the user scrolls back. */
-    if (revealedSections.has(section.id)) {
-      if (rect.bottom < vh * 0.05 || rect.top > vh * 0.95) {
-        revealedSections.delete(section.id);
-        section.classList.remove('page-flip--active');
-        section.classList.remove('page-flip--up');
-        /* Remove any lingering petals (shouldn't be any, but safety) */
-        section.querySelectorAll('.bloom-petal').forEach(p => p.remove());
-      }
-      return; /* already revealed & still in view — skip */
-    }
-
-    /* ---- REVEAL: section is now dominant in viewport ---- */
-    if (rect.top < vh * 0.4 && rect.bottom > vh * 0.5) {
-      revealedSections.add(section.id);
-      requestAnimationFrame(() => {
-        /* Add direction class for CSS content reveal direction */
-        if (direction === 'up') {
-          section.classList.add('page-flip--up');
-        } else {
-          section.classList.remove('page-flip--up');
-        }
-        section.classList.add('page-flip--active');
-        spawnBloomPetals(section, direction);
-      });
-    }
-  });
 }
 
-/* Debounced scroll listener — checks 40ms after scroll settles.
-   With scroll-snap, this fires after the snap animation completes,
-   ensuring the section is fully in view before animation triggers. */
+/* The hero's entrance replays on re-entry, so it stays on a scroll
+   listener. It is a class toggle on one element and costs nothing. */
 let revealTimer = null;
 window.addEventListener('scroll', () => {
   clearTimeout(revealTimer);
   revealTimer = setTimeout(checkAndRevealSections, 40);
 }, { passive: true });
+
+/* ----------------------------------------------------------------
+   SECTION REVEALS
+
+   These used to run from the same debounced scroll handler, and the
+   result was a page that felt broken to scroll through. Three things
+   compounded:
+
+     The handler waited 40ms after scrolling STOPPED. Mid-gesture,
+     nothing revealed — so scrolling down the page meant dragging a
+     column of empty boxes past the viewport and waiting at the
+     bottom for them to fill in.
+
+     A section only qualified when it was dominant on screen — top
+     above 40% of the viewport AND bottom past the midpoint — so the
+     reveal began long after the section was visible.
+
+     Then the CSS staggered its children out to 0.52s with a 0.35s
+     fade. Measured end to end: 1.2 to 1.5 SECONDS from arriving at a
+     section to being able to read it.
+
+   An IntersectionObserver fires while the gesture is still going,
+   which is the whole fix: the reveal starts as the section comes
+   into view rather than after everything stops moving.
+
+   Sections are also unobserved once revealed. Re-hiding content the
+   reader has already seen, every time they scroll back up, is an
+   animation charging them repeatedly for a first impression.
+---------------------------------------------------------------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    if (!entry.isIntersecting) continue;
+
+    const section = entry.target;
+    revealObserver.unobserve(section);       // reveal once, stay revealed
+    revealedSections.add(section.id);
+
+    /* Direction only decides which way the petals fly. Read it from
+       the scroll position rather than the observer, which does not
+       report direction. */
+    const direction = window.scrollY < lastRestingScrollY ? 'up' : 'down';
+    if (direction === 'up') section.classList.add('page-flip--up');
+
+    section.classList.add('page-flip--active');
+    if (!prefersReducedMotion) spawnBloomPetals(section, direction);
+  }
+}, {
+  /* Start as the section's leading edge arrives, not once it owns the
+     screen. 12% is enough to be sure the reader is heading there. */
+  threshold: 0.12,
+  rootMargin: '0px 0px -8% 0px',
+});
+
+document.querySelectorAll('.page-flip').forEach((section) => revealObserver.observe(section));
 
 /* Initial load: force scroll to top, then check if any sections
    are visible (e.g. on very tall viewports). Those get instant

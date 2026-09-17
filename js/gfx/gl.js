@@ -110,12 +110,24 @@ export function createRenderer(canvas) {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
-  /** Size the drawing buffer to the display size, DPR-capped. */
-  function resize(maxDpr = 1.75) {
-    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    const width = Math.floor(canvas.clientWidth * dpr);
-    const height = Math.floor(canvas.clientHeight * dpr);
-    if (width === 0 || height === 0) return false;
+  /**
+   * Size the drawing buffer to the display size, DPR-capped and
+   * scaled.
+   *
+   * `scale` is the quality dial. This shader is fragment-bound —
+   * every pixel runs several octaves of noise — so cost is very
+   * nearly linear in the number of pixels drawn, and halving the
+   * scale quarters the work. What it costs in return is almost
+   * nothing visible: the output is soft, slow-moving cloud, and the
+   * browser's bilinear upscale to the CSS size is indistinguishable
+   * from rendering it at full resolution. This is the cheapest
+   * quality to give away and the most expensive to keep.
+   */
+  function resize(maxDpr = 1.75, scale = 1) {
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr) * scale;
+    const width = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+    const height = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+    if (canvas.clientWidth === 0 || canvas.clientHeight === 0) return false;
     if (canvas.width === width && canvas.height === height) return false;
     canvas.width = width;
     canvas.height = height;
