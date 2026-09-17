@@ -87,26 +87,27 @@ html {
   /* Smooth scrolling when clicking nav links */
   scroll-behavior: smooth;
 
-  /* ---- WHY THERE IS NO SCROLL SNAP HERE ----
-     This used to be `scroll-snap-type: y mandatory`, to make each
-     section feel like turning a page. It silently broke scrolling
-     altogether.
+  /* ---- SCROLL SNAP ----
+     Each section is a page you turn. The declaration lives further
+     down, gated, because turning it on unconditionally is how it
+     broke the last two times.
 
-     The cause is a mismatch about which box is actually scrolling.
-     `overflow-x: hidden` on <body> computes the other axis to `auto`,
-     which makes BODY the element whose overflow propagates to the
-     viewport — so body is the scroll container. The snap points were
-     declared here on <html>, which is then not the snap container at
-     all. The result was a scroller you could not escape: every wheel
-     delta was pulled straight back to the current snap point, the
-     page never moved past the hero, and every section below it stayed
-     unrevealed and blank.
+     First failure: it was declared here while `overflow-x: hidden`
+     on <body> made BODY the scroll container. Snap points on a box
+     that is not the scroller do nothing except, in that case, break
+     scrolling entirely. The horizontal clamp is now `overflow-x:
+     clip` below, which does NOT create a scroll container, so <html>
+     really is the scroller and snap really does apply to it. Do not
+     change that back to `hidden`.
 
-     The horizontal clamp now lives here as `overflow-x: clip`, which
-     clips without creating a scroll container, so <html> stays the
-     scroller. Snap is gone for good: mandatory full-page snap fights
-     the reader, breaks find-in-page, and bought nothing the reveal
-     animation was not already doing on scroll position alone. */
+     Second hazard, and the reason for the gate: `mandatory` means
+     the scroller must always come to rest on a snap point. Any
+     section taller than the viewport then has a middle that cannot
+     be rested on — the content is simply unreachable. Measured at
+     390x844, About is 1753px: more than twice the viewport, so two
+     snap points cannot cover it and mandatory snap would hide half
+     the page. Hence the media gate, and hence the second snap point
+     on .container. */
   overflow-x: clip;
 }
 
@@ -354,6 +355,54 @@ button {
   transform: none !important;
   animation: none !important;
 }
+
+/* ----------------------------------------------------------------
+   SCROLL SNAP — turning pages
+
+   Conditions, all of which have to hold:
+
+     min-width 900px / min-height 640px — below this, sections stop
+     being viewport-sized. At 390x844 About is 1753px tall, and two
+     snap points cannot cover something more than twice the
+     viewport, so anything mandatory would make content unreachable.
+     Phones get ordinary scrolling, which is what they want anyway.
+
+     prefers-reduced-motion: no-preference — snap glides the page to
+     a position the reader did not scroll to. That is exactly the
+     kind of un-asked-for motion the setting is about.
+
+   Two snap points per section, not one:
+
+     the section's own start, which is the page turn, and
+
+     the end of its .container, which matters when a section is
+     slightly taller than the viewport — Demos is 1006px against a
+     900px screen. Without it, mandatory snap pins the section's top
+     and the last 106px can never be rested on. With it there is a
+     second resting place showing the bottom, and between the two
+     every pixel is readable.
+
+   scroll-snap-stop: always on the sections is what makes it feel
+   like turning pages rather than flicking through them: one gesture
+   advances one page instead of sailing past three. It is
+   deliberately NOT set on the container end points, which would
+   make every section stop twice and feel sticky.
+---------------------------------------------------------------- */
+@media (min-width: 900px) and (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+
+  .section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .section > .container {
+    scroll-snap-align: end;
+  }
+}
+
 
 /* Page edge shadow — thin gradient at the bottom of each section
    that mimics the shadow between stacked pages in a book. */

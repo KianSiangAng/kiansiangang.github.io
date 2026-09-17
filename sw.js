@@ -31,7 +31,7 @@
    visitor pinned to old assets.
 ================================================================ */
 
-const VERSION = 'v5.1.0';
+const VERSION = 'v5.2.0';
 const CACHE = `portfolio-${VERSION}`;
 
 /* The shell: everything needed to render the page offline.
