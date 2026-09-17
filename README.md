@@ -5,16 +5,18 @@ No frameworks, no build tools, one runtime dependency — hand-written code
 with a security-first mindset, and rather more engineering than a
 portfolio strictly requires.
 
-**Live site:** *(to be added after GitHub Pages deployment)*
+**Live site:** <https://kiansiangang.github.io>
 
 ---
 
 ## About
 
-I'm an ICT undergraduate at the Singapore University of Social Sciences
-(SUSS), specialising in cybersecurity. This portfolio showcases my
-projects, skills and certifications — and doubles as the place I get to
-build the things I find interesting.
+I'm reading for a Bachelor of Information and Communication Technology at
+the Singapore University of Social Sciences, and I hold a Diploma in
+Cybersecurity and Digital Forensics from Temasek Polytechnic. My goal is to
+work as a cybersecurity analyst. This portfolio showcases my projects,
+skills and certifications — and doubles as the place I get to build the
+things I find interesting.
 
 ## Two presentations
 
@@ -176,14 +178,42 @@ As a cybersecurity student, I practise what I learn:
 
 | Practice | Detail |
 |----------|--------|
-| Self-hosted libraries | All JS in `/libs/` — no CDN runtime dependencies (supply chain) |
-| Content Security Policy | `script-src 'self'`, `style-src 'self'` — no `unsafe-inline`, anywhere |
+| No third parties at all | Every byte — scripts, styles, **fonts** — is served from this origin. The page makes zero external requests, so nobody but this server learns who is reading it |
+| Content Security Policy | `default-src 'self'`, `script-src 'self'`, `style-src 'self'`, `font-src 'self'`, `object-src 'none'` — no `unsafe-inline` anywhere |
 | No inline styles | Typed.js's runtime `<style>` injection is switched off and replaced with a real rule, so the strict policy holds |
-| Link protection | `rel="noopener noreferrer"` on all external links |
-| MIME sniffing prevention | `X-Content-Type-Options: nosniff` |
-| Referrer control | `strict-origin-when-cross-origin` |
-| Zero tracking | No analytics, no cookies, no third-party requests for JS |
+| Safe DOM construction | The `el()` helper writes text with `textContent`, and refuses `javascript:`, `vbscript:`, `data:` and `blob:` in any URL attribute — control characters stripped first, so `java\tscript:` does not slip past |
 | Safe rendering | The terminal writes with `textContent` only — command output can never become markup |
+| Clickjacking | The page refuses to render its UI when framed (see `js/theme-init.js`). It does **not** bust out by rewriting `top.location`; it just presents nothing worth clicking |
+| Sandboxed embed | The one iframe (the Calendar Exporter demo) carries its own `default-src 'none'; connect-src 'none'` policy — it has no network and cannot exfiltrate a timetable |
+| Link protection | `rel="noopener noreferrer"` on every external link |
+| Referrer control | `strict-origin-when-cross-origin` |
+| Zero tracking | No analytics, no cookies, no fingerprinting |
+
+### Known limitations, stated rather than hidden
+
+Honesty is part of the practice, so:
+
+- **`X-Content-Type-Options: nosniff` is not delivered.** It cannot be set
+  from a `<meta>` tag — browsers ignore `http-equiv` for it — and GitHub
+  Pages serves no custom headers. `_headers` carries it for a host that
+  reads that file. Exposure is small: every response is a static asset
+  from this origin with a correct `Content-Type`, and `script-src 'self'`
+  means a mis-sniffed file still could not run as third-party script.
+- **`frame-ancestors` / `X-Frame-Options` likewise.** Same cause. The
+  script-based guard above is the mitigation available on this host.
+- **The demo iframe uses `allow-scripts allow-same-origin`.** Those two
+  together mean the frame could drop its own sandbox, so it is not a
+  boundary that would contain hostile code. It does not need to be — the
+  content is a vendored copy of my own tool from my own origin, and its
+  real containment is the CSP it carries, which permits it no network.
+- **No Subresource Integrity on `/libs/`.** SRI guards against a CDN
+  serving something other than what you pinned; these files are
+  same-origin and committed to this repository, so it would be checking
+  this server against itself.
+- **No Trusted Types.** `require-trusted-types-for 'script'` would be a
+  good fit — nothing here touches `innerHTML` — except that Typed.js
+  does, internally. Enforcing it would mean forking a dependency to win
+  a header.
 
 ## Accessibility and performance
 

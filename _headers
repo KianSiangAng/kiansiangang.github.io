@@ -32,8 +32,10 @@
   # Breaking down each directive:
   #   default-src 'self'       → by default, only load from our own domain
   #   script-src  'self'       → JS only from our /libs and /js folders (no CDNs, no inline)
-  #   style-src   'self' ...   → CSS from us + Google Fonts
-  #   font-src    ...          → font files from Google's CDN
+  #   style-src   'self'       → CSS from us only; the typefaces are
+  #                             self-hosted, so no third party is
+  #                             contacted and none is told who is here
+  #   font-src    'self'       → .woff2 files from our own origin
   #   img-src     'self' data: → images from us + inline SVG data URIs
   #   connect-src 'self'       → fetch/XHR only to our own domain
   #   frame-src   'self'       → iframes only from our own origin. The Calendar
@@ -42,7 +44,7 @@
   #   object-src  'none'       → no Flash/Java plugins (legacy attack vector)
   #   base-uri    'self'       → prevents <base> tag hijacking
   #   form-action 'self'       → forms can only submit to our own domain
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
   # ---- Prevent MIME type sniffing ----
   # Without this, browsers might "guess" a file's type and execute

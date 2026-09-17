@@ -63,11 +63,9 @@ const aboutText = [
   `Seeking    ${identity.seeking}`,
   `Status     ${identity.status}`,
   '',
-  'The degree is general ICT — it is not a security specialisation, and this',
-  'file is not going to claim otherwise. The security grounding is a Diploma',
-  'in Cybersecurity and Digital Forensics, and an internship spent running',
-  'risk assessments with a CISO. Security is where I am headed rather than',
-  'what my current course is called.',
+  'Reading for a Bachelor of Information and Communication Technology at SUSS,',
+  'holding a Diploma in Cybersecurity and Digital Forensics from Temasek',
+  'Polytechnic. The goal is to work as a cybersecurity analyst.',
   '',
   'I enjoy building practical tools that solve real problems, and I approach',
   'every project with a security-first mindset and a genuine curiosity for',
@@ -104,7 +102,7 @@ const resumeText = [
   '',
   ...achievements.map((a) => `  * ${a}`),
   '',
-  `The typeset PDF: ${identity.resume}`,
+  `For the PDF, mail ${identity.email}.`,
 ].join('\n');
 
 const contactText = [

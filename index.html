@@ -41,10 +41,10 @@
             Why this matters:
             - script-src 'self' → only OUR JS files can run (no CDN,
               no inline <script> tags). This blocks XSS payloads.
-            - style-src includes fonts.googleapis.com because we load
-              Google Fonts CSS from there.
-            - font-src includes fonts.gstatic.com — that's where the
-              actual .woff2 font files are served from.
+            - style-src 'self' and font-src 'self' → the typefaces
+              are served from this origin, so no third party is
+              contacted on any page load and none of them learns
+              who is reading the page.
             - img-src 'self' data: → allows our images + inline SVG
               data URIs (like the padlock icons).
             - frame-src 'self' → only our own origin can be framed,
@@ -72,9 +72,23 @@
     ============================================================ -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <!-- There was a <meta http-equiv="X-Content-Type-Options"> here. It
+         has been removed because it did nothing: browsers honour only
+         a few headers via http-equiv — CSP among them — and nosniff is
+         not one of them. A tag that looks like protection and delivers
+         none is worse than its absence on a site about security.
+
+         Being straight about the consequence: GitHub Pages sends HSTS
+         but does NOT send nosniff, so this site genuinely ships
+         without it. _headers carries it for the day this moves to a
+         host that reads that file. The exposure is small — every
+         response is a static asset served from this origin with a
+         correct Content-Type, and script-src 'self' means a
+         mis-sniffed file still could not run as third-party script —
+         but "small" is not "none", and the honest place to record
+         that is here rather than in a tag pretending otherwise. -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- ============================================================
@@ -86,16 +100,22 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E" />
 
     <!-- ============================================================
-         Google Fonts
-         Nunito  — friendly, rounded body text
+         Typefaces — self-hosted
+         Nunito     — friendly, rounded body text
          Space Mono — techy monospace for code/terminal elements
+
+         These used to be loaded from fonts.googleapis.com. They are
+         served from this origin now, which removes the last third
+         party the site depended on: no external request is made on
+         any page load, so nobody but this server learns who is
+         reading it, and there is no supply chain here that isn't
+         mine. Regenerate with tools/vendor-fonts.mjs.
+
+         Preloaded because the body face blocks first paint; the rest
+         of the faces are fetched by fonts.css as needed.
     ============================================================ -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="assets/fonts/nunito-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/fonts.css" />
 
     <!-- ============================================================
          Main Stylesheet
@@ -271,28 +291,8 @@
         </p>
 
         <!-- CTA button — scrolls smoothly to the Projects section.
-             The <a> tag is styled as a button via CSS.
-
-             Beside it, the résumé. It is a direct download of the
-             typeset PDF rather than a print of this page: printing a
-             web page produces a worse document than the one that
-             already exists, and the print path used to produce an
-             empty one. -->
-        <div class="hero__actions">
-          <a href="#projects" class="hero__cta">View My Work</a>
-          <a
-            href="assets/resume/Ang-Kian-Siang-Resume.pdf"
-            class="hero__cta hero__cta--ghost"
-            download
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download Résumé
-          </a>
-        </div>
+             The <a> tag is styled as a button via CSS. -->
+        <a href="#projects" class="hero__cta">View My Work</a>
 
       </div>
     </section>
@@ -315,23 +315,21 @@
           <!-- ---- LEFT COLUMN: bio ---- -->
           <div class="about__bio">
             <p>
-              I'm an ICT undergraduate at the <strong>Singapore University of Social
-              Sciences</strong>, reading for a general Bachelor of Information and
-              Communication Technology. It isn't a cybersecurity degree, and I'd rather
-              say so than imply otherwise — security is the direction I'm heading, not
-              the title on the course.
+              I'm reading for a <strong>Bachelor of Information and Communication
+              Technology</strong> at the Singapore University of Social Sciences, and
+              I hold a <strong>Diploma in Cybersecurity and Digital Forensics</strong>
+              from Temasek Polytechnic. My goal is to work as a cybersecurity analyst.
             </p>
             <p>
-              The security grounding came earlier: a <strong>Diploma in Cybersecurity
-              and Digital Forensics</strong> at Temasek Polytechnic, and an internship as
-              a <strong>Cybersecurity Analyst at DHL Supply Chain</strong>, running
-              end-to-end risk assessments for APAC-region applications alongside the
-              CISO. That is where I learned what a real threat landscape looks like,
-              how vulnerability management actually gets done, and how much of security
-              is explaining findings clearly to people who would rather not hear them.
+              I've had a first run at it: I interned as a <strong>Cybersecurity Analyst
+              at DHL Supply Chain</strong>, running end-to-end risk assessments for
+              APAC-region applications alongside the CISO. That is where I learned what
+              a real threat landscape looks like, how vulnerability management actually
+              gets done, and how much of the job is explaining findings clearly to
+              people who would rather not hear them.
             </p>
             <p>
-              In the meantime I build practical tools that solve real problems — a CLI
+              In between I build practical tools that solve real problems — a CLI
               password analyser, a timetable exporter SUSS students actually use — and
               I teach Python and robotics to school students. Every project gets
               approached with a security-first mindset and a genuine curiosity for how

@@ -705,24 +705,6 @@
    the plain page both use it, same as the demo panel does.
 ================================================================ */
 
-.resume__download {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.7rem;
-  padding: 0.45rem 0.95rem;
-  border-radius: var(--radius-pill);
-  background: var(--clr-navy-light);
-  color: #fff;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  text-decoration: none;
-  transition: transform var(--transition-fast);
-}
-.resume__download:hover { transform: translateY(-1px); }
-.resume__download:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-[data-theme="dark"] .resume__download { background: var(--clr-blue); color: #101423; }
-
 .resume__period {
   margin: 0.1rem 0 0.35rem;
   font-size: var(--fs-xs);
@@ -737,7 +719,3 @@
 }
 .resume__points li + li { margin-top: 0.25rem; }
 
-@media (prefers-reduced-motion: reduce) {
-  .resume__download { transition: none; }
-  .resume__download:hover { transform: none; }
-}

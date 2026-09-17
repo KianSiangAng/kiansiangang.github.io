@@ -43,12 +43,36 @@ export function capableOfOS() {
   return wideEnough && finePointer;
 }
 
+/**
+ * Which presentation to open in.
+ *
+ * The choice is remembered for the SESSION, not forever, and that
+ * distinction turned out to matter a lot. It used to live in
+ * localStorage, which meant a single click of "View as a plain page"
+ * permanently retired the 3D room: every subsequent visit, on that
+ * browser, went straight to the scrolling page and the landing
+ * nobody had asked to disable was simply gone.
+ *
+ * Remembering it within a session is still right — switching back
+ * and forth inside one visit should stick. Remembering it across
+ * visits is a decision the visitor did not make: they asked to see
+ * the page now, not to never be shown the room again.
+ */
 export function preferredMode() {
   const forced = new URLSearchParams(location.search).get('shell');
   if (forced === 'os' || forced === 'page') return forced;
 
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    /* Clear the old permanent key on sight. Without this, everyone who
+       ever pressed the button stays stuck on whatever they picked
+       months ago, and the fix reaches nobody who needs it. */
+    if (localStorage.getItem(STORAGE_KEY) !== null) localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
     if (saved === 'os' || saved === 'page') return saved;
   } catch {
     /* ignore */
@@ -208,7 +232,8 @@ export function createShell({ bus, services }) {
       if (next === mode) return mode;
       mode = next;
       if (persist) {
-        try { localStorage.setItem(STORAGE_KEY, next); } catch { /* ignore */ }
+        // Session-scoped on purpose — see preferredMode().
+        try { sessionStorage.setItem(STORAGE_KEY, next); } catch { /* ignore */ }
       }
       if (next === 'os') enterOS();
       else enterPage();

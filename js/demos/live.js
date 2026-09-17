@@ -44,9 +44,11 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
     src: demo.src,
     title: `${demo.title} — running live`,
     loading: 'lazy',
-    /* allow-scripts lets the tool run, allow-same-origin lets the guided
-       run reach in, allow-downloads lets it hand over the .ics. Popups,
-       top-level navigation, form submission and pointer lock stay denied.
+    /* allow-scripts lets the tool run and allow-same-origin lets the
+       guided run reach in. Downloads, popups, top-level navigation,
+       form submission and pointer lock all stay denied — the demo no
+       longer saves anything, so the frame has no need to be trusted
+       with writing to the visitor's disk.
 
        Worth being straight about what this sandbox is and is not: those
        first two together mean the frame could remove its own sandboxing,
@@ -56,7 +58,7 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
        which permits it no network at all. The sandbox here is the
        narrower statement that this frame has no business navigating the
        page or opening windows. */
-    sandbox: 'allow-scripts allow-same-origin allow-downloads',
+    sandbox: 'allow-scripts allow-same-origin',
   });
 
   const caption = el('p.live__caption', { text: '' });
@@ -139,13 +141,26 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
       target.classList.remove('demo-glow');
     },
 
-    /* Press the real Download button, and keep a copy of what came
-       out. The bytes are captured by watching URL.createObjectURL --
-       the tool hands its Blob to exactly that on its way to the
-       anchor it clicks -- rather than by rebuilding the file here.
-       A demo that re-derived the .ics could agree with itself while
-       the real download was broken; this one cannot. */
-    async download(doc, step) {
+    /* Press the real Download button and keep what it produced —
+       without letting the file reach the disk.
+
+       The first version of this genuinely downloaded, and that was
+       wrong: a visitor pressing "Run the demo" is asking to be shown
+       something, not to have their file manager open and a file
+       appear in Downloads. A demo that leaves litter on your machine
+       is not a demo.
+
+       So the tool's own code path runs in full — parse, buildICS,
+       Blob, createObjectURL — and only the final act of saving is
+       intercepted. The anchor the tool creates carries a `download`
+       attribute, which is exactly what distinguishes a save from any
+       other click, so prototype click is wrapped for the duration of
+       this step and swallows precisely those. Everything measured
+       afterwards is still the tool's real output: the bytes come
+       from the Blob it handed to createObjectURL, not from anything
+       rebuilt here. If the real download broke, this would break
+       with it. */
+    async generate(doc, step) {
       const button = doc.querySelector(step.target);
       if (!button) throw new Error(`no ${step.target}`);
       const win = doc.defaultView;
@@ -154,35 +169,42 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
       let captured = null;
       win.URL.createObjectURL = (obj) => {
         if (obj instanceof win.Blob && !captured) captured = obj;
+        /* A blob URL is still minted so the tool's own bookkeeping —
+           it revokes this later — has something real to work with. */
         return nativeCreate(obj);
       };
 
-      /* On a device with a share sheet the tool offers one before
-         falling back to a download. Mid-demo that hijacks the screen
-         with an OS dialog nobody asked for, so the share path is
-         stood down for the duration of this step and put back
-         immediately. The download path it falls through to is the
-         tool's own, unmodified. */
+      const nativeClick = win.HTMLAnchorElement.prototype.click;
+      win.HTMLAnchorElement.prototype.click = function swallowSaves() {
+        if (this.hasAttribute('download')) return;   // the save: skipped
+        return nativeClick.call(this);
+      };
+
+      /* On a device with a share sheet the tool offers one first. Mid
+         demo that throws an OS dialog over the page, which is the same
+         intrusion in a different costume. */
       const nativeShare = win.navigator.share;
       if (nativeShare) {
         try {
           Object.defineProperty(win.navigator, 'share', { configurable: true, value: undefined });
-        } catch { /* locked down: let the share sheet happen */ }
+        } catch { /* locked down: nothing to be done */ }
       }
 
       button.classList.add('demo-pressed');
       await wait(reducedMotion ? 0 : 260);
-      button.click();
-      button.classList.remove('demo-pressed');
-
-      // saveICS is async; give it a moment to reach createObjectURL.
-      for (let i = 0; i < 40 && !captured; i += 1) await wait(50);
-
-      win.URL.createObjectURL = nativeCreate;
-      if (nativeShare) {
-        try {
-          Object.defineProperty(win.navigator, 'share', { configurable: true, value: nativeShare });
-        } catch { /* nothing to restore */ }
+      try {
+        button.click();
+        // saveICS is async; give it a moment to reach createObjectURL.
+        for (let i = 0; i < 40 && !captured; i += 1) await wait(50);
+      } finally {
+        button.classList.remove('demo-pressed');
+        win.URL.createObjectURL = nativeCreate;
+        win.HTMLAnchorElement.prototype.click = nativeClick;
+        if (nativeShare) {
+          try {
+            Object.defineProperty(win.navigator, 'share', { configurable: true, value: nativeShare });
+          } catch { /* nothing to restore */ }
+        }
       }
 
       if (captured) {
@@ -191,7 +213,7 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
       await wait(reducedMotion ? 0 : (step.hold || 900));
     },
 
-    /* Read the downloaded file back and draw it as a month. */
+    /* Read the generated file back and draw it as a month. */
     async calendar(doc, step) {
       if (!generated) {
         throw new Error('nothing was generated to show');

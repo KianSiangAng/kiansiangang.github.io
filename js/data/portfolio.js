@@ -43,11 +43,6 @@ export const identity = {
   email: 'ksang017@suss.edu.sg',
   github: 'https://github.com/KianSiangAng',
   linkedin: 'https://linkedin.com/in/kiansiangang',
-
-  /* The authored PDF, which is the document that actually gets sent
-     to people. The site's own résumé view is a convenience; this is
-     the artefact. */
-  resume: 'assets/resume/Ang-Kian-Siang-Resume.pdf',
 };
 
 export const experience = [

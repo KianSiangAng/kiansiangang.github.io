@@ -113,22 +113,24 @@ export const demos = [
         action: 'highlight', target: '#download', hold: 2200,
       },
       {
-        caption: 'Downloading it for real — that file is now in your downloads '
-          + 'folder, exactly as a visitor would get it.',
-        action: 'download', target: '#download', hold: 1200,
+        caption: 'Pressing Download runs the real generator. Nothing is saved to '
+          + 'your machine during the demo — the file is caught mid-flight instead.',
+        action: 'generate', target: '#download', hold: 1200,
       },
       {
-        caption: 'And here is that file read back and drawn as a calendar. Import '
-          + 'it and this is the term that appears.',
+        caption: 'And here is that file, read back and drawn as a calendar. Press '
+          + 'Download yourself and this is the term that lands in it.',
         action: 'calendar', hold: 3200,
       },
     ],
 
     notes: [
-      'The guided run ends by pressing Download for real, so a small .ics does land '
-      + 'in your downloads folder. The calendar underneath is that exact file parsed '
-      + 'back — not a re-derivation from the input, so if the download ever broke, '
-      + 'the calendar would break with it.',
+      'The guided run presses Download for real but stops the file reaching your '
+      + 'disk: a demo has no business opening your file manager or leaving litter in '
+      + 'Downloads. Everything up to the save is the tool\'s own code — the calendar '
+      + 'below is built from the bytes it actually produced, not from a re-derivation '
+      + 'of the input, so if the real download broke this would break with it. Press '
+      + 'the button yourself and you get the file.',
       'Actually importing into Google Calendar would mean signing you in and writing '
       + 'to your account, which a portfolio has no business asking for. Rendering the '
       + 'file is the honest end of the flow; the import itself is two clicks in your '
@@ -138,12 +140,9 @@ export const demos = [
       + 'records which commit it took.',
       'The frame runs under its own content security policy: no network, no forms, '
       + 'no plugins. It could not phone home with your timetable if it wanted to.',
-      'After the download the tool also calls window.open on the same blob, as a '
-      + 'fallback for browsers that ignore the download attribute. The frame has no '
-      + 'allow-popups, so that is blocked and the browser says so in the console. '
-      + 'That is the sandbox working, not a failure: the file has already arrived, '
-      + 'and granting popups just to silence the message would trade a log line for '
-      + 'a stray tab.',
+      'The tool also calls window.open on the blob as a fallback for browsers that '
+      + 'ignore the download attribute. The frame has no allow-popups, so that is '
+      + 'blocked — which is the sandbox doing its job, not a failure.',
     ],
   },
 ];

@@ -1,7 +1,7 @@
 {
-  "name": "Ang Kian Siang — Cybersecurity Analyst",
+  "name": "Ang Kian Siang \u2014 ICT Undergraduate",
   "short_name": "Kian Siang",
-  "description": "Portfolio of Ang Kian Siang, ICT undergraduate at SUSS and aspiring Cybersecurity Analyst. Two worlds, one site.",
+  "description": "Portfolio of Ang Kian Siang \u2014 ICT undergraduate at SUSS with a diploma in cybersecurity and digital forensics, working towards a cybersecurity analyst role.",
   "id": "/",
   "start_url": "./",
   "scope": "./",
@@ -9,7 +9,11 @@
   "orientation": "portrait-primary",
   "background_color": "#E8E0D0",
   "theme_color": "#1A2744",
-  "categories": ["portfolio", "education", "productivity"],
+  "categories": [
+    "portfolio",
+    "education",
+    "productivity"
+  ],
   "lang": "en-SG",
   "dir": "ltr",
   "icons": [

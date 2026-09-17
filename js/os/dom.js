@@ -16,6 +16,33 @@
 
 const TAG_PATTERN = /^([a-z0-9-]+)?(#[\w-]+)?((?:\.[\w-]+)*)$/i;
 
+/* Attributes whose value the browser will treat as a URL to fetch or
+   navigate to. Everything this site puts in one today is a constant
+   from the data model, so none of it is attacker-controlled — but
+   that is a property of today's callers, not of this helper, and the
+   helper is what every future caller will reach for. */
+const URL_ATTRS = new Set(['href', 'src', 'action', 'formaction', 'poster', 'srcset', 'data']);
+
+/* javascript: and vbscript: execute on click; data: and blob: in an
+   href can be navigated to and launder an origin. None has a
+   legitimate use here, so the helper refuses rather than trusting
+   its caller. Control characters and whitespace are stripped first:
+   browsers ignore them when resolving a scheme, so a tab or a NUL
+   dropped inside "javascript:" defeats a naive prefix check. */
+const DANGEROUS_SCHEME = /^(?:javascript|vbscript|data|blob|file):/i;
+const URL_NOISE = /[\u0000-\u0020\u00a0\u1680\u2000-\u200d\u2028\u2029\u202f\u205f\u3000\ufeff]/g;
+
+function assertSafeUrl(value, attr, tag) {
+  const cleaned = String(value).replace(URL_NOISE, '');
+  if (!DANGEROUS_SCHEME.test(cleaned)) return;
+
+  /* One exception: inline images. <img src="data:image/..."> cannot
+     navigate or execute, and the icon set depends on it. */
+  if (attr === 'src' && tag === 'img' && /^data:image\//i.test(cleaned)) return;
+
+  throw new Error(`[dom] refused a "${cleaned.slice(0, 24)}" URL in ${tag}[${attr}]`);
+}
+
 /**
  * @param {string} spec      tag with optional #id and .classes
  * @param {object} props     attributes, plus on* handlers and style
@@ -33,6 +60,8 @@ export function el(spec, props = {}, children = []) {
 
   for (const [key, value] of Object.entries(props)) {
     if (value === null || value === undefined || value === false) continue;
+
+    if (URL_ATTRS.has(key.toLowerCase())) assertSafeUrl(value, key.toLowerCase(), tag);
 
     if (key === 'style' && typeof value === 'object') {
       // Written through CSSOM, which CSP permits — unlike a style attribute.

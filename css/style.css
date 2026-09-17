@@ -591,6 +591,49 @@ button {
 
 
 /* ----------------------------------------------------------------
+   FRAMED — refusing to be clickjacked
+
+   theme-init.js sets data-framed before first paint when the page
+   finds itself inside someone else's frame. Everything the visitor
+   could click is removed from the layout, leaving only the notice
+   that script appends. See the comment in theme-init.js for why this
+   is done in script at all rather than with frame-ancestors.
+---------------------------------------------------------------- */
+html[data-framed="true"] body > *:not(.framed-notice) {
+  display: none !important;
+}
+
+html[data-framed="true"] body {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  /* Explicit rather than tokenised. This state has to be legible even
+     if a stylesheet fails to load or the theme tokens resolve oddly
+     inside someone else's frame — a notice nobody can read is the
+     same as no notice. */
+  background: #14181f !important;
+}
+
+.framed-notice {
+  padding: 2rem;
+  font-family: var(--font-body, system-ui, sans-serif);
+  color: #e8e0d0;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.framed-notice p { margin: 0 0 0.75rem; font-size: 1.05rem; }
+
+.framed-notice a {
+  color: #a8c8e8;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+
+/* ----------------------------------------------------------------
    5. HERO SECTION
 ---------------------------------------------------------------- */
 
@@ -692,42 +735,6 @@ button {
 .hero__cta:active {
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
-}
-
-/* Two calls to action side by side: see the work, or take the résumé
-   away. They wrap rather than shrink on a narrow screen. */
-.hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  justify-content: center;
-}
-
-/* The secondary action is outlined rather than filled, so the eye
-   still lands on "View My Work" first. */
-.hero__cta--ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: transparent;
-  color: var(--clr-navy);
-  border: 2px solid rgba(26, 39, 68, 0.28);
-  box-shadow: none;
-}
-
-.hero__cta--ghost:hover {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: var(--clr-navy);
-  box-shadow: var(--shadow-sm);
-}
-
-[data-theme="dark"] .hero__cta--ghost {
-  color: var(--clr-bg);
-  border-color: rgba(232, 224, 208, 0.34);
-}
-[data-theme="dark"] .hero__cta--ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--clr-bg);
 }
 
 /* ---- HERO ENTRANCE: Gentle Dawn Rise ----

@@ -31,7 +31,7 @@
    visitor pinned to old assets.
 ================================================================ */
 
-const VERSION = 'v4.2.0';
+const VERSION = 'v5.0.0';
 const CACHE = `portfolio-${VERSION}`;
 
 /* The shell: everything needed to render the page offline.
@@ -51,6 +51,11 @@ const PRECACHE = [
   'css/os.css',
   'css/room.css',
   'css/demos.css',
+  'css/fonts.css',
+  /* The body face blocks first paint, so it is worth the install
+     cost. The rest are fetched on demand and cached by the
+     network-first handler. */
+  'assets/fonts/nunito-var-latin.woff2',
   'libs/typed.min.js',
   'js/theme-init.js',
   'js/main.js',
@@ -104,8 +109,6 @@ const PRECACHE = [
   'assets/icons/icon-512.png',
   'site.webmanifest',
 ];
-
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -172,10 +175,6 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request));
-    return;
-  }
-  if (FONT_HOSTS.includes(url.hostname)) {
-    event.respondWith(cacheFirst(request));
     return;
   }
   if (url.origin === self.location.origin) {

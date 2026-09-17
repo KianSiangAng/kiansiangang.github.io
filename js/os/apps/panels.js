@@ -198,21 +198,19 @@ export function buildProject(project, { onOpenDemo = null } = {}) {
 }
 
 /* ----------------------------------------------------------------
-   Résumé — built from the data model, with the real PDF attached
+   Résumé — built from the data model
 
    This used to end in a "Print / Save as PDF" button wired to
    window.print(). It produced an empty document, and it was never
    going to produce a good one: printing from here prints whatever
-   the print stylesheet makes of a windowed desktop, which is a
-   fight not worth having and a worse artefact than the résumé that
-   already exists.
+   the print stylesheet makes of a windowed desktop.
 
-   So the button is a download of the authored PDF instead. That
-   file is the thing recruiters actually receive, it is typeset the
-   way he wants it, and it cannot silently diverge from the layout
-   a print dialog happens to produce. This view stays as the
-   readable, linkable, screen-reader-friendly version of the same
-   facts.
+   It is not replaced by a PDF download either. Hosting the CV as a
+   file means publishing a phone number to anything that crawls the
+   site, for the sake of a document that is better sent directly to
+   the person who asked for it. So this view IS the résumé here:
+   readable, linkable, and screen-reader-friendly. Anyone who wants
+   the file can ask for it by email.
 ---------------------------------------------------------------- */
 
 export function buildResume() {
@@ -221,13 +219,6 @@ export function buildResume() {
       el('h1', { text: identity.name }),
       el('p.resume__role', { text: `${identity.role} · ${identity.location}` }),
       el('p.resume__contact', { text: `${identity.email} · ${identity.github}` }),
-      el('a.resume__download', {
-        href: identity.resume,
-        download: '',
-        /* Not target=_blank: a download is not a navigation, and a
-           blank tab that immediately closes itself is worse than no
-           tab at all. */
-      }, [icon('document', 16), el('span', { text: 'Download the PDF' })]),
     ]),
 
     el('section', {}, [
