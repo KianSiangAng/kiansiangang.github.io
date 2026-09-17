@@ -694,6 +694,42 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+/* Two calls to action side by side: see the work, or take the résumé
+   away. They wrap rather than shrink on a narrow screen. */
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+/* The secondary action is outlined rather than filled, so the eye
+   still lands on "View My Work" first. */
+.hero__cta--ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--clr-navy);
+  border: 2px solid rgba(26, 39, 68, 0.28);
+  box-shadow: none;
+}
+
+.hero__cta--ghost:hover {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: var(--clr-navy);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .hero__cta--ghost {
+  color: var(--clr-bg);
+  border-color: rgba(232, 224, 208, 0.34);
+}
+[data-theme="dark"] .hero__cta--ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--clr-bg);
+}
+
 /* ---- HERO ENTRANCE: Gentle Dawn Rise ----
    A warm Ghibli sunrise feel. A soft glow blooms first,
    then content elements fade in + rise with staggered delays.
@@ -746,6 +782,22 @@ button {
 .hero--revealed .hero__subtitle,
 .hero--revealed .hero__cta {
   animation: dawnRise 0.5s ease-out forwards;
+}
+
+/* Without JavaScript, .hero--revealed is never added and every one of
+   these stays at opacity 0 — a blank hero with an invisible download
+   button. The entrance is an enhancement, so it is withdrawn entirely
+   when there is no script to drive it. */
+@media (scripting: none) {
+  .hero__greeting,
+  .hero__name,
+  .hero__subtitle,
+  .hero__cta {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    animation: none;
+  }
 }
 
 /* Staggered delays — greeting first, then name, subtitle, CTA */

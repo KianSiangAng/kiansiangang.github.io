@@ -21,11 +21,15 @@
    then "types" each string in the array one by one.
 ================================================================ */
 const typed = new Typed('#typed-text', {
+  /* "a cybersecurity analyst" used to lead this list. It is not what
+     the degree says, so it does not get to be the first thing the
+     page claims — the ambition is stated as an ambition instead. */
   strings: [
-    'a cybersecurity analyst.',
+    'an ICT undergraduate.',
+    'a cybersecurity diploma holder.',
     'a problem solver.',
     'a builder.',
-    'an ICT student.',
+    'heading into security.',
   ],
   /* Typed.js normally injects a <style> element at runtime for its
      caret animation. Our CSP sets style-src 'self' with no

@@ -13,7 +13,9 @@
 
 import { el, clear } from '../dom.js';
 import { icon, objectIcon } from '../icons.js';
-import { projects, identity, skills, experience, education } from '../../data/portfolio.js';
+import {
+  projects, identity, skills, experience, education, achievements,
+} from '../../data/portfolio.js';
 import { demoForProject } from '../../data/demos.js';
 
 
@@ -196,7 +198,21 @@ export function buildProject(project, { onOpenDemo = null } = {}) {
 }
 
 /* ----------------------------------------------------------------
-   Résumé — built from the data model, printable
+   Résumé — built from the data model, with the real PDF attached
+
+   This used to end in a "Print / Save as PDF" button wired to
+   window.print(). It produced an empty document, and it was never
+   going to produce a good one: printing from here prints whatever
+   the print stylesheet makes of a windowed desktop, which is a
+   fight not worth having and a worse artefact than the résumé that
+   already exists.
+
+   So the button is a download of the authored PDF instead. That
+   file is the thing recruiters actually receive, it is typeset the
+   way he wants it, and it cannot silently diverge from the layout
+   a print dialog happens to produce. This view stays as the
+   readable, linkable, screen-reader-friendly version of the same
+   facts.
 ---------------------------------------------------------------- */
 
 export function buildResume() {
@@ -205,6 +221,13 @@ export function buildResume() {
       el('h1', { text: identity.name }),
       el('p.resume__role', { text: `${identity.role} · ${identity.location}` }),
       el('p.resume__contact', { text: `${identity.email} · ${identity.github}` }),
+      el('a.resume__download', {
+        href: identity.resume,
+        download: '',
+        /* Not target=_blank: a download is not a navigation, and a
+           blank tab that immediately closes itself is worse than no
+           tab at all. */
+      }, [icon('document', 16), el('span', { text: 'Download the PDF' })]),
     ]),
 
     el('section', {}, [
@@ -212,18 +235,28 @@ export function buildResume() {
       ...experience.map((job) =>
         el('div.resume__entry', {}, [
           el('h3', { text: `${job.title} — ${job.org}` }),
+          el('p.resume__period', { text: `${job.period} · ${job.location}` }),
           el('p', { text: job.summary }),
-          el('p.resume__tools', { text: job.tools.join(' · ') }),
+          job.points?.length
+            ? el('ul.resume__points', {}, job.points.map((point) => el('li', { text: point })))
+            : null,
+          job.tools?.length ? el('p.resume__tools', { text: job.tools.join(' · ') }) : null,
         ]),
       ),
     ]),
 
     el('section', {}, [
       el('h2.resume__heading', { text: 'Education' }),
-      el('div.resume__entry', {}, [
-        el('h3', { text: education.degree }),
-        el('p', { text: `${education.school} — ${education.focus} (${education.status})` }),
-      ]),
+      ...education.map((entry) =>
+        el('div.resume__entry', {}, [
+          el('h3', { text: entry.qualification }),
+          el('p.resume__period', { text: `${entry.school} · ${entry.period}` }),
+          entry.detail ? el('p', { text: entry.detail }) : null,
+          entry.points?.length
+            ? el('ul.resume__points', {}, entry.points.map((point) => el('li', { text: point })))
+            : null,
+        ]),
+      ),
     ]),
 
     el('section', {}, [
@@ -236,11 +269,12 @@ export function buildResume() {
       ),
     ]),
 
-    el('button.resume__print', {
-      type: 'button',
-      text: 'Print / Save as PDF',
-      onclick: () => window.print(),
-    }),
+    achievements.length
+      ? el('section', {}, [
+          el('h2.resume__heading', { text: 'Achievements' }),
+          el('ul.resume__points', {}, achievements.map((item) => el('li', { text: item }))),
+        ])
+      : null,
   ]);
 }
 

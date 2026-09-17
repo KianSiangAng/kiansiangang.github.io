@@ -108,18 +108,42 @@ export const demos = [
         action: 'reveal', target: '#previewPanel', hold: 2600,
       },
       {
-        caption: 'The .ics is generated in the browser. Nothing was uploaded '
+        caption: 'The .ics is generated in the browser. Nothing is uploaded '
           + 'anywhere — there is no server in this project at all.',
-        action: 'highlight', target: '#download', hold: 2400,
+        action: 'highlight', target: '#download', hold: 2200,
+      },
+      {
+        caption: 'Downloading it for real — that file is now in your downloads '
+          + 'folder, exactly as a visitor would get it.',
+        action: 'download', target: '#download', hold: 1200,
+      },
+      {
+        caption: 'And here is that file read back and drawn as a calendar. Import '
+          + 'it and this is the term that appears.',
+        action: 'calendar', hold: 3200,
       },
     ],
 
     notes: [
+      'The guided run ends by pressing Download for real, so a small .ics does land '
+      + 'in your downloads folder. The calendar underneath is that exact file parsed '
+      + 'back — not a re-derivation from the input, so if the download ever broke, '
+      + 'the calendar would break with it.',
+      'Actually importing into Google Calendar would mean signing you in and writing '
+      + 'to your account, which a portfolio has no business asking for. Rendering the '
+      + 'file is the honest end of the flow; the import itself is two clicks in your '
+      + 'own calendar settings.',
       'Vendored into this site so it keeps working offline and cannot break when '
       + 'the upstream repository moves. tools/vendor-demo.mjs does the copying and '
       + 'records which commit it took.',
       'The frame runs under its own content security policy: no network, no forms, '
       + 'no plugins. It could not phone home with your timetable if it wanted to.',
+      'After the download the tool also calls window.open on the same blob, as a '
+      + 'fallback for browsers that ignore the download attribute. The frame has no '
+      + 'allow-popups, so that is blocked and the browser says so in the console. '
+      + 'That is the sandbox working, not a failure: the file has already arrived, '
+      + 'and granting popups just to silence the message would trade a log line for '
+      + 'a stray tab.',
     ],
   },
 ];

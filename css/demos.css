@@ -254,6 +254,10 @@
 }
 .cast__screen:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
+/* Zero-width, zero-height marker the player measures to find where
+   each command begins. It must not affect layout at all. */
+.cast__anchor { display: inline; width: 0; height: 0; }
+
 .cast-shell { color: #7fc98b; }
 .cast-typed { color: #f4f7ff; }
 .cast-masked { color: rgba(215, 220, 234, 0.55); }
@@ -420,6 +424,100 @@
   width: 100%;
   height: clamp(380px, 52vh, 620px);
   border: 0;
+}
+
+
+/* --- the generated file, drawn back as a calendar --------------- */
+
+.live__calendar { margin-top: 0.3rem; }
+
+.ics {
+  padding: 0.85rem 0.9rem 0.95rem;
+  border: 1px solid rgba(26, 39, 68, 0.14);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.55);
+}
+[data-theme="dark"] .ics {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ics__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.ics__month { margin: 0; font-size: var(--fs-base); }
+.ics__file {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  opacity: 0.6;
+}
+
+.ics__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ics__dayname {
+  padding: 0.3rem 0.2rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-align: center;
+  opacity: 0.55;
+}
+
+.ics__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 60px;
+  padding: 0.25rem;
+  border-radius: 4px;
+  background: rgba(26, 39, 68, 0.04);
+}
+.ics__cell.is-empty { background: transparent; }
+.ics__cell[data-has="true"] { background: rgba(168, 200, 232, 0.2); }
+[data-theme="dark"] .ics__cell { background: rgba(255, 255, 255, 0.04); }
+[data-theme="dark"] .ics__cell[data-has="true"] { background: rgba(168, 200, 232, 0.16); }
+
+.ics__daynum { font-size: var(--fs-xs); opacity: 0.55; font-variant-numeric: tabular-nums; }
+
+.ics__chip {
+  display: block;
+  padding: 2px 4px;
+  border-left: 2px solid var(--clr-navy-light);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.62rem;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.ics__chip strong { display: block; font-size: 0.66rem; }
+.ics__chip-time { opacity: 0.62; font-variant-numeric: tabular-nums; }
+[data-theme="dark"] .ics__chip {
+  background: rgba(0, 0, 0, 0.28);
+  border-left-color: var(--clr-blue);
+}
+
+.ics__outside,
+.ics__note {
+  margin: 0.55rem 0 0;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  opacity: 0.68;
+}
+.ics__empty { padding: 1rem; font-size: var(--fs-sm); opacity: 0.7; }
+
+@media (max-width: 560px) {
+  .ics__cell { min-height: 48px; }
+  .ics__chip { font-size: 0.55rem; }
+  .ics__chip strong { font-size: 0.58rem; }
 }
 
 
@@ -597,4 +695,49 @@
   .live__run:hover,
   .project__demo:hover { transform: none; }
   .demo__spinner { animation: none; }
+}
+
+
+/* ================================================================
+   8. RÉSUMÉ DOWNLOAD
+
+   Lives here rather than in os.css because the résumé window and
+   the plain page both use it, same as the demo panel does.
+================================================================ */
+
+.resume__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-pill);
+  background: var(--clr-navy-light);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+.resume__download:hover { transform: translateY(-1px); }
+.resume__download:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-theme="dark"] .resume__download { background: var(--clr-blue); color: #101423; }
+
+.resume__period {
+  margin: 0.1rem 0 0.35rem;
+  font-size: var(--fs-xs);
+  opacity: 0.65;
+}
+
+.resume__points {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+.resume__points li + li { margin-top: 0.25rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .resume__download { transition: none; }
+  .resume__download:hover { transform: none; }
 }

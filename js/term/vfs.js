@@ -14,7 +14,9 @@
      { type: 'file', name, content: string, mode }
 ================================================================ */
 
-import { identity, projects, skills, experience, education } from '../data/portfolio.js';
+import {
+  identity, projects, skills, experience, education, achievements,
+} from '../data/portfolio.js';
 
 function dir(name, children = []) {
   return { type: 'dir', name, mode: 'drwxr-xr-x', children: new Map(children.map((c) => [c.name, c])) };
@@ -58,7 +60,14 @@ const aboutText = [
   `Location   ${identity.location}`,
   `School     ${identity.school}`,
   `Degree     ${identity.degree}`,
+  `Seeking    ${identity.seeking}`,
   `Status     ${identity.status}`,
+  '',
+  'The degree is general ICT — it is not a security specialisation, and this',
+  'file is not going to claim otherwise. The security grounding is a Diploma',
+  'in Cybersecurity and Digital Forensics, and an internship spent running',
+  'risk assessments with a CISO. Security is where I am headed rather than',
+  'what my current course is called.',
   '',
   'I enjoy building practical tools that solve real problems, and I approach',
   'every project with a security-first mindset and a genuine curiosity for',
@@ -68,19 +77,34 @@ const aboutText = [
 const resumeText = [
   '=== EXPERIENCE ===',
   '',
-  ...experience.map((job) =>
-    [`${job.title} — ${job.org}`, '', `  ${job.summary}`, '', `  Tools: ${job.tools.join(', ')}`].join('\n'),
-  ),
+  ...experience.map((job) => [
+    `${job.title} — ${job.org}`,
+    `  ${job.period} · ${job.location}`,
+    '',
+    `  ${job.summary}`,
+    ...(job.points || []).map((point) => `    - ${point}`),
+    '',
+    job.tools?.length ? `  Tools: ${job.tools.join(', ')}` : '',
+  ].join('\n')),
   '',
   '=== EDUCATION ===',
   '',
-  `${education.degree}`,
-  `${education.school}`,
-  `Focus: ${education.focus} (${education.status})`,
+  ...education.map((entry) => [
+    `${entry.qualification}`,
+    `  ${entry.school} · ${entry.period}`,
+    entry.detail ? `  ${entry.detail}` : '',
+    ...(entry.points || []).map((point) => `    - ${point}`),
+  ].join('\n')),
   '',
   '=== CERTIFICATIONS ===',
   '',
   ...skills.certifications.map((c) => `  * ${c}`),
+  '',
+  '=== ACHIEVEMENTS ===',
+  '',
+  ...achievements.map((a) => `  * ${a}`),
+  '',
+  `The typeset PDF: ${identity.resume}`,
 ].join('\n');
 
 const contactText = [

@@ -31,7 +31,7 @@
    visitor pinned to old assets.
 ================================================================ */
 
-const VERSION = 'v4.1.0';
+const VERSION = 'v4.2.0';
 const CACHE = `portfolio-${VERSION}`;
 
 /* The shell: everything needed to render the page offline.
@@ -66,6 +66,7 @@ const PRECACHE = [
   'js/demos/cast.js',
   'js/demos/live.js',
   'js/demos/media.js',
+  'js/demos/ics.js',
   'assets/demos/password-analyzer.cast.json',
   'js/gfx/gl.js',
   'js/gfx/shaders.js',

@@ -7,10 +7,10 @@
     <!-- ============================================================
          SEO & Page Identity
     ============================================================ -->
-    <title>Ang Kian Siang — Cybersecurity Analyst</title>
+    <title>Ang Kian Siang — ICT Undergraduate</title>
     <meta
       name="description"
-      content="Portfolio of Ang Kian Siang, ICT undergraduate at SUSS and aspiring Cybersecurity Analyst."
+      content="Portfolio of Ang Kian Siang — ICT undergraduate at SUSS, with a diploma in cybersecurity and digital forensics and an internship in security risk assessment."
     />
 
     <!-- ============================================================
@@ -20,12 +20,12 @@
          and preview image that appear.
     ============================================================ -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Ang Kian Siang — Cybersecurity Analyst" />
-    <meta property="og:description" content="Portfolio of Ang Kian Siang, ICT undergraduate at SUSS and aspiring Cybersecurity Analyst." />
+    <meta property="og:title" content="Ang Kian Siang — ICT Undergraduate" />
+    <meta property="og:description" content="Portfolio of Ang Kian Siang — ICT undergraduate at SUSS, with a diploma in cybersecurity and digital forensics and an internship in security risk assessment." />
     <meta property="og:url" content="https://kiansiangang.github.io/" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Ang Kian Siang — Cybersecurity Analyst" />
-    <meta name="twitter:description" content="Portfolio of Ang Kian Siang, ICT undergraduate at SUSS and aspiring Cybersecurity Analyst." />
+    <meta name="twitter:title" content="Ang Kian Siang — ICT Undergraduate" />
+    <meta name="twitter:description" content="Portfolio of Ang Kian Siang — ICT undergraduate at SUSS, with a diploma in cybersecurity and digital forensics and an internship in security risk assessment." />
 
     <!-- ============================================================
          Security Meta Tags (Phase 9 — Security Hardening)
@@ -267,12 +267,32 @@
              The text inside it ("cybersecurity analyst.") is a fallback
              shown if JS fails to load (progressive enhancement). -->
         <p class="hero__subtitle">
-          I'm <span id="typed-text" class="hero__typed">a cybersecurity analyst.</span>
+          I'm <span id="typed-text" class="hero__typed">an ICT undergraduate.</span>
         </p>
 
         <!-- CTA button — scrolls smoothly to the Projects section.
-             The <a> tag is styled as a button via CSS. -->
-        <a href="#projects" class="hero__cta">View My Work</a>
+             The <a> tag is styled as a button via CSS.
+
+             Beside it, the résumé. It is a direct download of the
+             typeset PDF rather than a print of this page: printing a
+             web page produces a worse document than the one that
+             already exists, and the print path used to produce an
+             empty one. -->
+        <div class="hero__actions">
+          <a href="#projects" class="hero__cta">View My Work</a>
+          <a
+            href="assets/resume/Ang-Kian-Siang-Resume.pdf"
+            class="hero__cta hero__cta--ghost"
+            download
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Résumé
+          </a>
+        </div>
 
       </div>
     </section>
@@ -295,18 +315,27 @@
           <!-- ---- LEFT COLUMN: bio ---- -->
           <div class="about__bio">
             <p>
-              I'm an ICT undergraduate at the Singapore University of Social Sciences
-              (SUSS), specialising in cybersecurity. I enjoy building practical tools
-              that solve real problems — from CLI password analysers to browser-based
-              timetable exporters. I approach every project with a security-first mindset
-              and a genuine curiosity for how things work under the hood.
+              I'm an ICT undergraduate at the <strong>Singapore University of Social
+              Sciences</strong>, reading for a general Bachelor of Information and
+              Communication Technology. It isn't a cybersecurity degree, and I'd rather
+              say so than imply otherwise — security is the direction I'm heading, not
+              the title on the course.
             </p>
             <p>
-              I interned as a <strong>Cybersecurity Analyst at DHL Supply Chain</strong>,
-              where I conducted risk assessments for APAC-region applications alongside
-              the CISO. That experience solidified my understanding of real-world threat
-              landscapes, vulnerability management, and the importance of clear
-              communication when presenting security findings to stakeholders.
+              The security grounding came earlier: a <strong>Diploma in Cybersecurity
+              and Digital Forensics</strong> at Temasek Polytechnic, and an internship as
+              a <strong>Cybersecurity Analyst at DHL Supply Chain</strong>, running
+              end-to-end risk assessments for APAC-region applications alongside the
+              CISO. That is where I learned what a real threat landscape looks like,
+              how vulnerability management actually gets done, and how much of security
+              is explaining findings clearly to people who would rather not hear them.
+            </p>
+            <p>
+              In the meantime I build practical tools that solve real problems — a CLI
+              password analyser, a timetable exporter SUSS students actually use — and
+              I teach Python and robotics to school students. Every project gets
+              approached with a security-first mindset and a genuine curiosity for how
+              things work under the hood.
             </p>
           </div>
 
@@ -316,28 +345,28 @@
             <div class="stat-card">
               <span class="stat-card__icon">🎓</span>
               <h3 class="stat-card__title">Degree</h3>
-              <p class="stat-card__value">BSc ICT (Cybersecurity)</p>
-              <p class="stat-card__detail">SUSS — Current Student</p>
+              <p class="stat-card__value">BSc Information &amp; Communication Technology</p>
+              <p class="stat-card__detail">SUSS · Aug 2025 – Jan 2029 (expected)</p>
             </div>
 
             <div class="stat-card">
-              <span class="stat-card__icon">📜</span>
-              <h3 class="stat-card__title">Certifications</h3>
-              <p class="stat-card__value">ITIL 4 Foundation</p>
-              <p class="stat-card__detail">Generative AI Specialization</p>
+              <span class="stat-card__icon">🛡️</span>
+              <h3 class="stat-card__title">Security Background</h3>
+              <p class="stat-card__value">Dip. Cybersecurity &amp; Digital Forensics</p>
+              <p class="stat-card__detail">Temasek Polytechnic · 2020–2023</p>
             </div>
 
             <div class="stat-card">
               <span class="stat-card__icon">💼</span>
               <h3 class="stat-card__title">Internship</h3>
               <p class="stat-card__value">DHL Supply Chain</p>
-              <p class="stat-card__detail">Cybersecurity Analyst Intern</p>
+              <p class="stat-card__detail">Cybersecurity Analyst Intern · 2022–2023</p>
             </div>
 
             <div class="stat-card">
               <span class="stat-card__icon">🔐</span>
-              <h3 class="stat-card__title">Focus Area</h3>
-              <p class="stat-card__value">Cybersecurity</p>
+              <h3 class="stat-card__title">Looking For</h3>
+              <p class="stat-card__value">Cybersecurity roles</p>
               <p class="stat-card__detail">Risk assessment & threat modelling</p>
             </div>
 

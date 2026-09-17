@@ -197,6 +197,10 @@ export function createCastPlayer(cast, { reducedMotion = false } = {}) {
   let playing = false;
   let finished = false;
 
+  /* One marker per command, so the view can be scrolled to the start
+     of the block being executed rather than to the last line drawn. */
+  let anchors = [];
+
   /* --- drawing --------------------------------------------------- */
 
   /** Draw forwards from wherever we are; rewind is a clear and redraw. */
@@ -204,16 +208,54 @@ export function createCastPlayer(cast, { reducedMotion = false } = {}) {
     if (index < cursorIndex) {
       clear(screen);
       cursorIndex = 0;
+      anchors = [];
     }
     const fragment = document.createDocumentFragment();
     for (let i = cursorIndex; i < index; i += 1) {
       const chunk = chunks[i];
+
+      /* The shell prompt is where a command's output begins. Mark it
+         with a zero-width element so its position can be measured
+         later; a text offset would not survive re-rendering. */
+      if (chunk.classes.includes('cast-shell')) {
+        const anchor = el('span.cast__anchor', { 'aria-hidden': 'true' });
+        anchors.push({ index: i, node: anchor });
+        fragment.appendChild(anchor);
+      }
+
       if (!chunk.classes.length) fragment.appendChild(document.createTextNode(chunk.text));
       else fragment.appendChild(el('span', { class: chunk.classes.join(' '), text: chunk.text }));
     }
     screen.appendChild(fragment);
     cursorIndex = index;
-    screen.scrollTop = screen.scrollHeight;
+    follow();
+  }
+
+  /* Scrolling to the bottom on every chunk is the obvious thing and
+     the wrong one: it pins the newest line to the bottom edge, so the
+     table a command just printed is always half off the top and the
+     viewer has to scroll back to read what they came to see.
+
+     Instead the view follows the COMMAND. The prompt of whichever
+     command is currently running is put at the top of the screen and
+     left there while its output fills the space below, so each block
+     is read whole and still. Only when a block is taller than the
+     screen does this fall back to trailing the newest line, because
+     then there is no single position that shows all of it. */
+  function follow() {
+    const max = screen.scrollHeight - screen.clientHeight;
+    if (max <= 0) return;
+
+    let top = 0;
+    for (const anchor of anchors) {
+      if (anchor.index < cursorIndex) top = anchor.node.offsetTop - screen.offsetTop;
+      else break;
+    }
+
+    // `top` is where the current command starts; `max` is as far down
+    // as the element can go. The smaller of the two keeps the prompt
+    // visible whenever that is possible at all.
+    screen.scrollTop = Math.max(0, Math.min(top, max));
   }
 
   function indexAt(time) {

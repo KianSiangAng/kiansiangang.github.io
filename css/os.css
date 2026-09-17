@@ -817,8 +817,7 @@
 
 .skills__button,
 .settings__toggle,
-.settings__reset,
-.resume__print {
+.settings__reset {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -847,7 +846,6 @@
 .resume__entry { margin-bottom: 0.8rem; }
 .resume__entry h3 { font-size: var(--fs-base); margin-bottom: 0.15rem; text-transform: capitalize; }
 .resume__tools { font-size: var(--fs-xs); opacity: 0.65; font-family: var(--font-mono); }
-.resume__print { margin-top: 1.2rem; }
 
 /* ---- Settings ---- */
 .settings__title { margin-bottom: 1rem; }

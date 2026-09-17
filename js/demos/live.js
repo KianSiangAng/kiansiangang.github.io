@@ -24,7 +24,7 @@
    says so, rather than failing silently in a way nobody notices.
 ================================================================ */
 
-import { el } from '../os/dom.js';
+import { el, clear } from '../os/dom.js';
 import { createLogger } from '../core/logger.js';
 
 const log = createLogger('demos');
@@ -35,6 +35,10 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
   let cancelled = false;
   let running = false;
   let sampleText = null;
+
+  /* The bytes the tool's own download handed over, kept so the last
+     step can read them back rather than regenerate them. */
+  let generated = null;
 
   const frame = el('iframe.live__frame', {
     src: demo.src,
@@ -57,6 +61,10 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
 
   const caption = el('p.live__caption', { text: '' });
   const status = el('p.live__status', { role: 'status', text: '' });
+
+  /* Where the generated file gets drawn back as a calendar. Hidden
+     until there is something real to put in it. */
+  const calendar = el('div.live__calendar', { hidden: true });
 
   /** The tool's document, or null if the browser will not hand it over. */
   function reach() {
@@ -130,6 +138,78 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
       await wait(reducedMotion ? 0 : (step.hold || 1800));
       target.classList.remove('demo-glow');
     },
+
+    /* Press the real Download button, and keep a copy of what came
+       out. The bytes are captured by watching URL.createObjectURL --
+       the tool hands its Blob to exactly that on its way to the
+       anchor it clicks -- rather than by rebuilding the file here.
+       A demo that re-derived the .ics could agree with itself while
+       the real download was broken; this one cannot. */
+    async download(doc, step) {
+      const button = doc.querySelector(step.target);
+      if (!button) throw new Error(`no ${step.target}`);
+      const win = doc.defaultView;
+
+      const nativeCreate = win.URL.createObjectURL.bind(win.URL);
+      let captured = null;
+      win.URL.createObjectURL = (obj) => {
+        if (obj instanceof win.Blob && !captured) captured = obj;
+        return nativeCreate(obj);
+      };
+
+      /* On a device with a share sheet the tool offers one before
+         falling back to a download. Mid-demo that hijacks the screen
+         with an OS dialog nobody asked for, so the share path is
+         stood down for the duration of this step and put back
+         immediately. The download path it falls through to is the
+         tool's own, unmodified. */
+      const nativeShare = win.navigator.share;
+      if (nativeShare) {
+        try {
+          Object.defineProperty(win.navigator, 'share', { configurable: true, value: undefined });
+        } catch { /* locked down: let the share sheet happen */ }
+      }
+
+      button.classList.add('demo-pressed');
+      await wait(reducedMotion ? 0 : 260);
+      button.click();
+      button.classList.remove('demo-pressed');
+
+      // saveICS is async; give it a moment to reach createObjectURL.
+      for (let i = 0; i < 40 && !captured; i += 1) await wait(50);
+
+      win.URL.createObjectURL = nativeCreate;
+      if (nativeShare) {
+        try {
+          Object.defineProperty(win.navigator, 'share', { configurable: true, value: nativeShare });
+        } catch { /* nothing to restore */ }
+      }
+
+      if (captured) {
+        generated = { text: await captured.text(), bytes: captured.size };
+      }
+      await wait(reducedMotion ? 0 : (step.hold || 900));
+    },
+
+    /* Read the downloaded file back and draw it as a month. */
+    async calendar(doc, step) {
+      if (!generated) {
+        throw new Error('nothing was generated to show');
+      }
+      const { parseICS, createCalendarPreview } = await import('./ics.js');
+      const { events, tzid } = parseICS(generated.text);
+      const now = new Date();
+      const filename = `suss-timetable-${now.getFullYear()}`
+        + `${String(now.getMonth() + 1).padStart(2, '0')}`
+        + `${String(now.getDate()).padStart(2, '0')}.ics`;
+
+      clear(calendar).appendChild(
+        createCalendarPreview({ events, tzid, filename, bytes: generated.bytes }),
+      );
+      calendar.hidden = false;
+      if (!reducedMotion) calendar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      await wait(reducedMotion ? 0 : (step.hold || 2600));
+    },
   };
 
   /* The classes the actions below toggle are defined in
@@ -149,6 +229,9 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
 
     running = true;
     cancelled = false;
+    generated = null;
+    clear(calendar);
+    calendar.hidden = true;
     runButton.textContent = 'Stop';
     runButton.dataset.state = 'running';
     status.textContent = '';
@@ -187,6 +270,9 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
       cancelled = true;
       caption.textContent = '';
       status.textContent = '';
+      generated = null;
+      clear(calendar);
+      calendar.hidden = true;
       frame.src = demo.src;
     },
     text: 'Reset',
@@ -201,6 +287,7 @@ export function createLiveDemo(demo, { reducedMotion = false } = {}) {
     el('div.live__caption-row', {}, [caption]),
     status,
     el('div.live__stage', {}, [frame]),
+    calendar,
   ]);
 
   return {
