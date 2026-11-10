@@ -34,7 +34,12 @@ export function createScheme({ bus, audio }) {
 
   function apply(next, { persist = true } = {}) {
     const scheme = next === 'dark' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = scheme;
+    const write = () => { document.documentElement.dataset.theme = scheme; };
+
+    /* theme-init.js owns how a change is presented (a circular reveal
+       where the browser can do it). Only animate a real change. */
+    if (current() !== scheme && window.portfolioTheme) window.portfolioTheme.swap(write);
+    else write();
 
     if (persist) {
       try { localStorage.setItem(STORAGE_KEY, scheme); } catch { /* best effort */ }

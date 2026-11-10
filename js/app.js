@@ -208,7 +208,7 @@ kernel.use({
 
     const hint = document.createElement('div');
     hint.className = 'room-hint';
-    hint.textContent = 'Click the screen';
+    hint.textContent = 'Click the screen to step in';
     document.body.appendChild(hint);
 
     const back = document.createElement('button');
@@ -259,9 +259,15 @@ kernel.use({
         if (reducedMotion) {
           scene.dock();
         } else {
+          /* The hint carries a bar that fills over the hold, so the
+             wait has a visible end instead of reading as a hang. */
+          const HOLD_MS = 5000;
+          hint.style.setProperty('--hold', `${HOLD_MS}ms`);
+          hint.classList.add('is-counting');
           setTimeout(() => {
+            hint.classList.remove('is-counting');
             if (scene.mode === 'room') scene.dock();
-          }, 5000);
+          }, HOLD_MS);
         }
       },
       stop: scene.dispose,
@@ -603,9 +609,26 @@ if (new URLSearchParams(location.search).get('debug') === '1') setLogLevel('trac
 
 const bootScreen = createBootScreen({ bus });
 
+/* The veil theme-init.js may have drawn over the page while the room
+   loaded. It comes off once the kernel has finished — by then the room
+   is either mounted or has failed and left the flat desktop, and
+   either way there is something real to look at. Two frames of delay
+   let the first room frame land before the fade starts. */
+function liftVeil() {
+  const root = document.documentElement;
+  if (!root.hasAttribute('data-veil')) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    root.setAttribute('data-veil', 'lifting');
+    setTimeout(() => root.removeAttribute('data-veil'), 700);
+  }));
+}
+// Never let a bug upstream leave the page covered.
+setTimeout(liftVeil, 9000);
+
 kernel
   .boot()
   .then((report) => {
+    liftVeil();
     if (shouldBoot(reducedMotion)) bootScreen.run(report);
 
     const failed = Object.entries(report).filter(([, state]) => state === 'failed');
@@ -655,5 +678,6 @@ kernel
     );
   })
   .catch((err) => {
+    liftVeil();
     log.error('boot failed', err);
   });

@@ -678,19 +678,107 @@ if (themeToggle) {
     const current = document.documentElement.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
 
-    /* Apply the new theme */
-    document.documentElement.setAttribute('data-theme', next);
+    /* Apply the new theme. theme-init.js decides how the change is
+       shown — a circular reveal from the button where the browser
+       supports view transitions, an instant swap where it does not. */
+    const write = () => document.documentElement.setAttribute('data-theme', next);
+    if (window.portfolioTheme) window.portfolioTheme.swap(write);
+    else write();
 
-    /* Persist to localStorage for future visits */
-    localStorage.setItem('theme', next);
-
-    /* Replay hero dawn animation if hero is currently in view */
-    const heroEl = document.getElementById('hero');
-    if (heroEl && heroEl.classList.contains('hero--revealed')) {
-      heroEl.classList.remove('hero--revealed');
-      /* Small delay so the browser registers the class removal
-         before re-adding it — triggers a fresh animation cycle. */
-      setTimeout(() => heroEl.classList.add('hero--revealed'), 50);
-    }
+    /* Persist for future visits. Wrapped: storage can throw in
+       private modes, and a theme preference is not worth an error. */
+    try { localStorage.setItem('theme', next); } catch (err) { /* best effort */ }
   });
 }
+
+
+/* ================================================================
+   7. NAVIGATION — knowing where you are
+
+   The bar's links double as a position indicator. Whichever section
+   is crossing the middle of the viewport gets aria-current, and a
+   single pill slides to sit under it.
+
+   An IntersectionObserver with a band one pixel tall at the middle
+   of the screen does the work: exactly one section can be crossing
+   that line at a time, so there is never a tie to break and nothing
+   to compute on scroll.
+================================================================ */
+(function () {
+  const list = document.querySelector('.navbar__links');
+  if (!list || !('IntersectionObserver' in window)) return;
+
+  const linkFor = new Map();
+  list.querySelectorAll('.navbar__link').forEach((link) => {
+    const id = (link.getAttribute('href') || '').replace('#', '');
+    const section = id && document.getElementById(id);
+    if (section) linkFor.set(section, link);
+  });
+
+  let currentLink = null;
+
+  function place() {
+    if (!currentLink) { list.classList.remove('has-current'); return; }
+    // offsetLeft is relative to the list, which is the indicator's
+    // containing block — no viewport maths, so it survives resizes.
+    list.style.setProperty('--ind-x', currentLink.offsetLeft + 'px');
+    list.style.setProperty('--ind-w', currentLink.offsetWidth + 'px');
+    list.classList.add('has-current');
+  }
+
+  function setCurrent(link) {
+    if (link === currentLink) return;
+    if (currentLink) currentLink.removeAttribute('aria-current');
+    currentLink = link;
+    if (currentLink) currentLink.setAttribute('aria-current', 'true');
+    place();
+  }
+
+  const spy = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      // The hero has no link: landing on it clears the indicator.
+      setCurrent(linkFor.get(entry.target) || null);
+    }
+  }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+
+  document.querySelectorAll('.section').forEach((section) => spy.observe(section));
+
+  // Link widths change when the web font arrives and on resize.
+  window.addEventListener('resize', place, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+})();
+
+
+/* ================================================================
+   8. COPY BUTTONS
+
+   Delegated from the document rather than bound to the button,
+   because the desktop presentation CLONES sections into windows and
+   a clone does not carry its listeners. One handler here covers the
+   original and every copy of it.
+================================================================ */
+document.addEventListener('click', (event) => {
+  const button = event.target.closest && event.target.closest('[data-copy]');
+  if (!button) return;
+
+  const text = button.getAttribute('data-copy');
+  const original = button.dataset.label || button.textContent;
+  button.dataset.label = original;
+
+  const done = (ok) => {
+    button.textContent = ok ? 'Copied' : 'Select & copy';
+    button.classList.toggle('is-done', ok);
+    clearTimeout(button._reset);
+    button._reset = setTimeout(() => {
+      button.textContent = original;
+      button.classList.remove('is-done');
+    }, 1800);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
+  } else {
+    done(false);
+  }
+});

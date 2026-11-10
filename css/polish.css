@@ -1,0 +1,395 @@
+/* ================================================================
+   POLISH.CSS — The layer that makes it feel finished
+
+   Everything in here is about how the site behaves between the
+   set pieces: getting in, getting around, and never wondering
+   whether something is loading or broken. Loaded last, so it can
+   refine the other sheets without editing them.
+
+   Contents:
+     1. Room veil — covering the wait for the 3D room
+     2. Navigation — a real bar on desktop, section-aware
+     3. Hero scroll cue
+     4. Project card actions
+     5. Contact — the address in the open
+     6. Section petals on small screens
+     7. Theme change — a reveal instead of a cut
+     8. Focus and reduced motion
+================================================================ */
+
+
+/* ================================================================
+   1. ROOM VEIL
+
+   theme-init.js sets data-veil before first paint when the opening
+   shot is going to be the 3D room. Without this the visitor watches
+   a flat desktop appear, get replaced by a room two seconds later,
+   and then get flown back into. The veil holds one calm frame until
+   the room exists, then dissolves into it.
+
+   It is drawn on <html>'s own pseudo-elements, so it needs no DOM
+   and exists before <body> has parsed.
+================================================================ */
+
+html[data-veil]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  /* The room's own wall and desk tones, so the dissolve is into
+     something that already looks like where it is going. */
+  background:
+    radial-gradient(ellipse at 50% 62%, rgba(232, 178, 112, 0.5), transparent 55%),
+    linear-gradient(180deg, #b9ab97 0%, #a99a86 58%, #8a6a4c 100%);
+  transition: opacity 600ms ease;
+}
+
+html[data-veil]::after {
+  content: 'Stepping into the room';
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  padding-bottom: 0.9rem;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(46, 36, 26, 0.72);
+  /* The underline is the progress indicator: a short bar sweeping
+     under the words. Indeterminate on purpose — the honest thing to
+     say about a module download is "working", not a made-up 40%. */
+  background:
+    linear-gradient(90deg, transparent, rgba(46, 36, 26, 0.55), transparent)
+    no-repeat 0 100% / 40% 2px;
+  animation: veil-sweep 1.3s ease-in-out infinite alternate;
+  transition: opacity 400ms ease;
+}
+
+html[data-veil="lifting"]::before,
+html[data-veil="lifting"]::after {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes veil-sweep {
+  from { background-position: 0 100%; }
+  to   { background-position: 100% 100%; }
+}
+
+/* The countdown under "Click the screen": the room holds for five
+   seconds before flying in on its own, and a wait with no visible
+   end reads as a hang. The bar says how long is left. */
+.room-hint { overflow: hidden; }
+
+.room-hint.is-counting::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(242, 236, 224, 0.75);
+  transform-origin: left center;
+  animation: hint-count var(--hold, 5000ms) linear forwards;
+}
+
+@keyframes hint-count {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+
+/* ================================================================
+   2. NAVIGATION
+
+   The bar had been a hamburger at every width — a note in style.css
+   records the desktop layout being removed — which on a 1440px
+   screen meant four controls huddled on the left and the site's
+   whole table of contents hidden behind a click. A menu button is a
+   compromise for small screens; where there is room, show the menu.
+
+   Above 900px the links sit in the bar. Below it, the dropdown the
+   other sheet defines is untouched.
+================================================================ */
+
+.navbar__wordmark { display: none; }
+.navbar__indicator { display: none; }
+
+@media (min-width: 900px) {
+  .navbar__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .navbar__logo {
+    gap: 0.6rem;
+    padding-inline: 0.6rem;
+    text-decoration: none;
+  }
+
+  .navbar__wordmark {
+    display: inline;
+    font-weight: 800;
+    font-size: var(--fs-base);
+    letter-spacing: 0.01em;
+    color: var(--clr-navy);
+    white-space: nowrap;
+  }
+
+  /* Undo the dropdown: back into the flow, in a row, always shown. */
+  .navbar__links {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: auto;
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.25rem;
+    list-style: none;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 0;
+    border-radius: var(--radius-pill);
+    box-shadow: none;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  [data-theme="dark"] .navbar__links { background: transparent; }
+
+  .navbar__link {
+    position: relative;
+    z-index: 1;
+    display: block;
+    padding: 0.42rem 0.95rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    white-space: nowrap;
+    transition: color var(--transition-fast), background var(--transition-fast);
+  }
+
+  .navbar__links li:last-child .navbar__link,
+  .navbar__link { border-bottom: 0; }
+
+  .navbar__link:hover { background: rgba(26, 39, 68, 0.06); padding-left: 0.95rem; }
+  [data-theme="dark"] .navbar__link:hover { background: rgba(255, 255, 255, 0.08); }
+
+  /* The pill that slides to the current section. One element moving
+     between links reads as "you are here, and you just came from
+     there"; five separate highlights switching on and off do not. */
+  .navbar__indicator {
+    display: block;
+    position: absolute;
+    z-index: 0;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    left: 0;
+    width: var(--ind-w, 0px);
+    border-radius: var(--radius-pill);
+    background: var(--clr-navy);
+    opacity: 0;
+    transform: translateX(var(--ind-x, 0px));
+    transition:
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      width 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 200ms ease;
+    pointer-events: none;
+  }
+
+  .navbar__links.has-current .navbar__indicator { opacity: 1; }
+
+  .navbar__link[aria-current="true"],
+  .navbar__link[aria-current="true"]:hover {
+    color: var(--clr-bg);
+    background: transparent;
+  }
+
+  .navbar__controls { margin-left: var(--space-xs); }
+  .nav-toggle-label { display: none; }
+}
+
+/* The dropdown on small screens: say where you are there too. */
+@media (max-width: 899.98px) {
+  .navbar__inner { justify-content: space-between; }
+  .navbar__controls { margin-left: auto; }
+  .navbar__link[aria-current="true"] {
+    background: rgba(168, 200, 232, 0.22);
+    font-weight: 800;
+  }
+}
+
+
+/* ================================================================
+   3. HERO SCROLL CUE
+================================================================ */
+
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.25rem, 5vh, 3rem);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  color: var(--clr-navy);
+  opacity: 0.55;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+  animation: scroll-nudge 2.4s ease-in-out infinite;
+}
+
+.hero__scroll:hover { opacity: 1; background: rgba(255, 255, 255, 0.35); }
+
+@keyframes scroll-nudge {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(7px); }
+}
+
+/* The hero needs to be a positioning context for the cue. */
+.hero { position: relative; }
+
+/* On the desktop shell the hero is not on screen at all. */
+[data-shell="os"] .hero__scroll { display: none; }
+
+
+/* ================================================================
+   4. PROJECT CARD ACTIONS
+
+   The demo link and the GitHub link were two blocks stacked with
+   `margin-top: auto` on each, so they sat at different heights in
+   different cards and, in the taller card, on top of one another.
+   One row, pinned to the bottom of the card, primary action first.
+================================================================ */
+
+.project-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: var(--space-sm);
+}
+
+.project-card__actions .project-card__btn { margin: 0; }
+
+.project-card__demo-link {
+  color: var(--clr-bg);
+  background: var(--clr-navy);
+  border-color: var(--clr-navy);
+}
+
+.project-card__demo-link:hover {
+  background: var(--clr-navy-light);
+  border-color: var(--clr-navy-light);
+}
+
+
+/* ================================================================
+   5. CONTACT
+================================================================ */
+
+.contact__address {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: var(--space-md) auto 0;
+  padding: 0.35rem 0.4rem 0.35rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--clr-card-bg);
+  border: 1px solid rgba(26, 39, 68, 0.1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+
+[data-theme="dark"] .contact__address { border-color: rgba(255, 255, 255, 0.14); }
+
+.contact__address-text { user-select: all; }
+
+.contact__copy {
+  min-width: 4.6rem;
+  padding: 0.3rem 0.8rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--clr-navy);
+  color: var(--clr-bg);
+  font: inherit;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.contact__copy:hover { transform: translateY(-1px); }
+.contact__copy.is-done { background: #4f8f63; color: #fff; }
+.contact__copy:focus-visible { outline: 2.5px solid var(--clr-peach); outline-offset: 3px; }
+
+
+/* ================================================================
+   6. SECTION PETALS ON SMALL SCREENS
+
+   The wipe's petals are sized for a 1400px canvas — up to 130px
+   across. On a 390px phone that is a third of the screen each, and
+   a wave of them lands on the text as pink blobs. Scaled down they
+   read as petals again.
+================================================================ */
+
+@media (max-width: 720px) {
+  .bloom-petal { scale: 0.42; opacity: 0.8; }
+}
+
+
+/* ================================================================
+   7. THEME CHANGE
+
+   Where the browser supports view transitions, switching between
+   light and dark is a circle of the new scheme opening out from the
+   button that was pressed, rather than every colour on the page
+   snapping at once. Elsewhere it is the old instant swap.
+================================================================ */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 0%)); }
+  to   { clip-path: circle(150vmax at var(--reveal-x, 50%) var(--reveal-y, 0%)); }
+}
+
+
+/* ================================================================
+   8. FOCUS AND REDUCED MOTION
+================================================================ */
+
+.hero__scroll:focus-visible {
+  outline: 2.5px solid var(--clr-peach);
+  outline-offset: 3px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-veil]::after { animation: none; }
+  .hero__scroll { animation: none; }
+  .navbar__indicator { transition: opacity 200ms ease; }
+  .room-hint.is-counting::after { animation: none; display: none; }
+  ::view-transition-new(root) { animation: none; }
+}
