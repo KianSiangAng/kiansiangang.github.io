@@ -36,7 +36,9 @@ export function buildWelcome({ onOpen, onDismiss }) {
   function action(title, description, appId, objectName) {
     return el('button.welcome__action', {
       type: 'button',
-      onclick: () => { onDismiss(); onOpen(appId); },
+      // Choosing somewhere to go is also the answer to "are you done
+      // with this window" — it steps aside, and lives in the dock.
+      onclick: () => { onDismiss(true); onOpen(appId); },
     }, [
       el('span.welcome__action-icon', { dataset: { app: appId } }, objectIcon(objectName, 42)),
       el('span.welcome__action-text', {}, [
@@ -58,7 +60,8 @@ export function buildWelcome({ onOpen, onDismiss }) {
 
     el('div.welcome__actions', {}, [
       action('See my projects', 'Three things I have built', 'projects', 'books'),
-      action('Open the terminal', 'It is a real shell, not a screenshot', 'terminal', 'crt'),
+      action('Watch them run', 'Live demos, not screenshots', 'demos', 'projector'),
+      action('Open the terminal', 'It is a real shell — try `help`', 'terminal', 'crt'),
       action('Read my résumé', 'The one-page version', 'resume', 'letter'),
     ]),
 

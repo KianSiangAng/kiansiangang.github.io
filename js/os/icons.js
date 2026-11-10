@@ -90,6 +90,15 @@ const SHAPES = {
     svg('circle', { fill: 'currentColor', cx: 5.6, cy: 6.5, r: 0.8 }),
     svg('circle', { fill: 'currentColor', cx: 8, cy: 6.5, r: 0.8 }),
   ],
+  home: () => [
+    svg('path', { ...stroke, d: 'M3.5 10.5L12 3.5l8.5 7V19a1.8 1.8 0 0 1-1.8 1.8H5.3A1.8 1.8 0 0 1 3.5 19z' }),
+    svg('path', { ...stroke, d: 'M9.5 20.8v-6.3h5v6.3' }),
+  ],
+  trophy: () => [
+    svg('path', { ...stroke, d: 'M7.5 4h9v5.2a4.5 4.5 0 0 1-9 0z' }),
+    svg('path', { ...stroke, d: 'M7.5 5.5H4.6v1.2a3 3 0 0 0 3 3M16.5 5.5h2.9v1.2a3 3 0 0 1-3 3' }),
+    svg('path', { ...stroke, d: 'M12 13.7v3.6M8.5 20h7M9.6 17.3h4.8' }),
+  ],
   play: () => [
     svg('circle', { ...stroke, cx: 12, cy: 12, r: 8.8 }),
     svg('path', { ...stroke, d: 'M10 8.4l5.4 3.6L10 15.6z' }),

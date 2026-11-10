@@ -91,14 +91,16 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
     {
       id: 'welcome',
       title: `Welcome`,
-      icon: 'star',
+      icon: 'home',
       kind: 'app',
+      pinned: true,
       description: 'Start here',
-      window: { width: 486, height: 648, minWidth: 380 },
+      window: { width: 486, height: 690, minWidth: 380 },
       build: (win) => buildWelcome({
         onOpen,
         onDismiss: (explicit) => {
-          try { localStorage.setItem('portfolio:welcomed', '1'); } catch { /* ignore */ }
+          // Per visit, not forever — see enterOS() in shell.js.
+          try { sessionStorage.setItem('portfolio:welcomed', '1'); } catch { /* ignore */ }
           if (explicit) win.close();
         },
       }),
@@ -214,7 +216,7 @@ export function createRegistry({ bus, wm, shell, services, onOpen }) {
     {
       id: 'achievements',
       title: 'Achievements',
-      icon: 'star',
+      icon: 'trophy',
       kind: 'app',
       pinned: true,
       description: 'Twelve things to find',

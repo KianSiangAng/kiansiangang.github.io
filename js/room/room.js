@@ -224,7 +224,7 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
     const height = window.innerHeight;
     const aspect = width / Math.max(height, 1);
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_DPR));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_STEPS[dprStep]));
     renderer.setSize(width, height, false);
 
     camera.aspect = aspect;
@@ -292,6 +292,41 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
   let statWindow = 0;
   let statFrames = 0;
 
+  /* ---- adaptive resolution ----
+     The same idea as the flat wallpaper's renderer: judge the machine
+     by whether frames arrive on time, and give away resolution — the
+     thing least missed in a soft, flat-shaded scene — until they do.
+     The room is only on screen for a few seconds at a time, so this
+     moves quickly and only ever downward within a visit: the flight
+     into the screen is the one animation that has to be smooth, and
+     it would be a poor moment to experiment with turning quality
+     back up. */
+  const DPR_STEPS = [MAX_DPR, 1.25, 1, 0.75];
+  let dprStep = 0;
+  let slowSum = 0;
+  let slowFrames = 0;
+
+  function judgeQuality(now, dt) {
+    if (dt <= 0 || dt > 0.25) return;           // tab switch, not evidence
+    slowSum += dt * 1000;
+    slowFrames += 1;
+    if (slowFrames < 24) return;
+
+    const average = slowSum / slowFrames;
+    slowSum = 0;
+    slowFrames = 0;
+    if (average <= 24) return;                  // ~40fps or better: leave it
+
+    const device = window.devicePixelRatio || 1;
+    while (dprStep < DPR_STEPS.length - 1) {
+      dprStep += 1;
+      // Skip rungs that would not actually lower anything on this display.
+      if (DPR_STEPS[dprStep] < Math.min(device, DPR_STEPS[dprStep - 1])) break;
+    }
+    renderer.setPixelRatio(Math.min(device, DPR_STEPS[dprStep]));
+    renderer.setSize(canvas.clientWidth || window.innerWidth, canvas.clientHeight || window.innerHeight, false);
+  }
+
   function tick(now) {
     if (!running) return;
     frame = requestAnimationFrame(tick);
@@ -311,17 +346,32 @@ export function createRoomScene({ bus, desktopElement, reducedMotion }) {
     rig.update();
     camera.updateMatrixWorld(true);
 
+    /* Once the camera has landed on the screen, the desktop covers
+       the viewport edge to edge and not one pixel of the room can be
+       seen. Rendering it anyway — shadows, antialiasing and all,
+       sixty times a second, behind an opaque element — was the single
+       most expensive thing the site did, and it was doing it for the
+       entire time anyone actually used the desktop. Dragging a
+       window was competing with a 3D scene nobody was looking at.
+
+       So the room is drawn only while it can be seen: out in the
+       room, and during a flight in either direction. */
+    const roomVisible = rig.mode !== 'screen' || rig.flying;
+
     /* Nothing that moves for its own sake should move when the
        visitor has asked for stillness. The camera already obeys
        this; the curtains and the petals have to as well. */
     if (!reducedMotion) {
-      curtains.userData.animate(now / 1000);
+      if (roomVisible) curtains.userData.animate(now / 1000);
       desktopPetals.update(dt, now / 1000);
     }
     desktopPetals.clearFrame();
     desktopPetals.draw();
 
-    renderer.render(scene, camera);
+    if (roomVisible) {
+      renderer.render(scene, camera);
+      judgeQuality(now, dt);
+    }
 
     /* Flatten the moment the flight lands, un-flatten the moment one
        starts. The swap is invisible because at that instant the 3D

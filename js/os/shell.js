@@ -207,10 +207,19 @@ export function createShell({ bus, services }) {
       return built;
     }
 
-    /* No deep link and never been here before: offer a starting point.
-       Once is enough — a welcome screen that reappears is an obstacle. */
-    let welcomed = true;
-    try { welcomed = Boolean(localStorage.getItem('portfolio:welcomed')); } catch { /* ignore */ }
+    /* No deep link: offer a starting point, once per visit.
+
+       This used to be once EVER, remembered in localStorage, on the
+       theory that a welcome which reappears is an obstacle. In
+       practice it meant the second visit — a recruiter coming back a
+       week later, or the owner checking their own site — opened onto
+       a bare wallpaper and a row of icons with nothing to say where
+       to begin. An empty desktop is a worse obstacle than a window
+       with a close button. It is also pinned in the dock now, so
+       closing it is never the last chance to see it. */
+    try { localStorage.removeItem('portfolio:welcomed'); } catch { /* ignore */ }
+    let welcomed = false;
+    try { welcomed = Boolean(sessionStorage.getItem('portfolio:welcomed')); } catch { /* ignore */ }
     if (!welcomed && !welcomeShown) {
       welcomeShown = true;
       built.open('welcome');

@@ -216,6 +216,7 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
       {
         label: 'Help',
         items: [
+          { label: 'Welcome', action: () => onOpen('welcome') },
           { label: 'Keyboard shortcuts', action: () => onOpen('help') },
           { label: 'Achievements', action: () => onOpen('achievements') },
         ],
