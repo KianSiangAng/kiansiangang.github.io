@@ -261,6 +261,11 @@ html[data-veil="lifting"]::after {
 /* The hero needs to be a positioning context for the cue. */
 .hero { position: relative; }
 
+/* The demo panel carries its own one-line introduction for when it
+   lives in a desktop window. On the page the section already says
+   it, directly above, so the panel's copy would be an echo. */
+.demos__mount .demos__intro { display: none; }
+
 /* On the desktop shell the hero is not on screen at all. */
 [data-shell="os"] .hero__scroll { display: none; }
 

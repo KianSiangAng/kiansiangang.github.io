@@ -31,7 +31,7 @@
    visitor pinned to old assets.
 ================================================================ */
 
-const VERSION = 'v5.2.0';
+const VERSION = 'v6.0.0';
 const CACHE = `portfolio-${VERSION}`;
 
 /* The shell: everything needed to render the page offline.
@@ -52,6 +52,7 @@ const PRECACHE = [
   'css/room.css',
   'css/demos.css',
   'css/fonts.css',
+  'css/polish.css',
   /* The body face blocks first paint, so it is worth the install
      cost. The rest are fetched on demand and cached by the
      network-first handler. */

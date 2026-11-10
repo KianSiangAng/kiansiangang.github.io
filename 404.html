@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 — No such file or directory</title>
+    <meta name="robots" content="noindex" />
+    <!-- Same posture as the rest of the site: nothing from anywhere
+         but this origin, and no script at all on this page. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!-- Root-relative on purpose: GitHub Pages serves this file for
+         ANY missing path, however deep, so relative URLs would break. -->
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <link rel="stylesheet" href="/css/404.css" />
+  </head>
+  <body>
+    <main class="lost">
+      <div class="lost__term" role="img" aria-label="A terminal showing that the requested page does not exist">
+        <div class="lost__bar"><i></i><i></i><i></i><span>kian@portfolio: ~</span></div>
+        <pre class="lost__screen"><span class="p">kian@portfolio:~$</span> cd ./that-page
+<span class="e">ksh: cd: ./that-page: No such file or directory</span>
+<span class="p">kian@portfolio:~$</span> ls
+<span class="d">about.txt  projects/  demos/  skills/  resume.txt  contact.txt</span>
+<span class="p">kian@portfolio:~$</span> <span class="c"></span></pre>
+      </div>
+
+      <h1 class="lost__title">That page isn't here.</h1>
+      <p class="lost__text">
+        The link may be old, or mistyped. Everything that does exist is one step away.
+      </p>
+      <p class="lost__actions">
+        <a class="lost__btn lost__btn--primary" href="/">Take me home</a>
+        <a class="lost__btn" href="/#projects">Projects</a>
+        <a class="lost__btn" href="/#demos">Demos</a>
+        <a class="lost__btn" href="/#contact">Contact</a>
+      </p>
+    </main>
+  </body>
+</html>
