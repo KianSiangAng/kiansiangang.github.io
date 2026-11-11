@@ -8,7 +8,7 @@
      - click to select, ⌘/Ctrl-click to add, drag a marquee to
        select a region
      - drag icons anywhere; positions snap to a grid and persist
-     - double-click, Enter or Space to open
+     - click, Enter or Space to open
      - arrow keys move the selection, so it is fully keyboard usable
      - right-click on an icon or on empty space for a context menu
      - the whole surface is a listbox with roving tabindex, so
@@ -198,6 +198,24 @@ export function createDesktop({ bus, root, apps, onOpen, contextMenu }) {
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
         node.classList.remove('is-dragging');
+
+        /* A plain click opens the app.
+
+           Real desktops want a double-click, and this one used to. But
+           nobody arrives at a web page expecting to double-click
+           anything: the web's convention is that one click does the
+           thing, and a visitor who clicks an icon once and sees it
+           merely highlight concludes it is broken. Fidelity to the
+           metaphor is not worth losing them.
+
+           A click is a press that did not turn into a drag and was not
+           a modifier-click (which still builds a selection). The
+           dblclick handler stays, harmlessly: the second click of a
+           double finds the window already open and just focuses it. */
+        if (!dragged && !additive) {
+          retireHint();
+          onOpen(app.id);
+        }
         if (!dragged) return;
 
         for (const origin of origins) {

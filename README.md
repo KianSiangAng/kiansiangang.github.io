@@ -172,6 +172,38 @@ js/
 The terminal parses quotes, pipes and globs, completes with Tab, and walks
 history with the arrow keys. There is a flag hidden in the filesystem.
 
+## Getting around
+
+The set pieces only work if moving between them is effortless, so a fair
+amount of the engineering is in things nobody is meant to notice:
+
+- **The wait for the room is covered.** The room is 700KB of Three.js that
+  arrives after first paint. A veil in the room's own colours holds one calm
+  frame until it exists, the room's files start downloading the instant the
+  page knows it will need them, and the "click the screen" hint carries a bar
+  that fills over the five-second hold so the wait has a visible end.
+- **The room stops rendering when you cannot see it.** Once the camera lands
+  on the monitor, the desktop is opaque and edge to edge — so the 3D scene
+  behind it is no longer drawn at all. Both renderers also judge themselves
+  by whether frames arrive on time and give away resolution first when they
+  do not.
+- **One click opens things.** The desktop is a metaphor, not a re-enactment:
+  icons open on a single click, because that is what the web has taught
+  everyone to expect.
+- **The plain page has a real navigation bar** on desktop widths, with a
+  single pill that slides to whichever section is on screen. Sections snap
+  into place, and are revealed while you scroll rather than after you stop.
+- **Theme and presentation changes open out from the button you pressed**
+  (View Transitions), instead of the whole screen cutting at once.
+- **Shortcut labels name keys you have** — `Ctrl K` on Windows and Linux,
+  `⌘K` on a Mac.
+- **The module graph is declared up front** with `modulepreload`
+  (`tools/preload.mjs` generates it), so fifty-odd ES modules load in one
+  round trip instead of one per level of imports — without a bundler.
+- A self-contained [`404.html`](404.html), a link-preview image generated
+  from the real room, a skip link, and a copyable email address for anyone
+  on a machine with no mail client.
+
 ## Security practices
 
 As a cybersecurity student, I practise what I learn:

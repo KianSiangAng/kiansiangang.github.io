@@ -782,3 +782,20 @@ document.addEventListener('click', (event) => {
     done(false);
   }
 });
+
+
+/* ================================================================
+   9. SHORTCUT LABELS — the right key for the machine
+
+   The palette opens with ⌘K on a Mac and Ctrl K everywhere else, and
+   the handler accepts both. The LABELS only ever said ⌘, which on a
+   Windows keyboard names a key that does not exist. Anything marked
+   data-modkey is rewritten to match the platform.
+================================================================ */
+(function () {
+  const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+  const isApple = /mac|iphone|ipad|ipod/i.test(platform);
+  document.documentElement.dataset.platform = isApple ? 'apple' : 'other';
+  if (isApple) return;
+  document.querySelectorAll('[data-modkey]').forEach((key) => { key.textContent = 'Ctrl'; });
+})();

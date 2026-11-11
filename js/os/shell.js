@@ -239,13 +239,21 @@ export function createShell({ bus, services }) {
 
     setMode(next, { persist = true } = {}) {
       if (next === mode) return mode;
+      const previous = mode;
       mode = next;
       if (persist) {
         // Session-scoped on purpose — see preferredMode().
         try { sessionStorage.setItem(STORAGE_KEY, next); } catch { /* ignore */ }
       }
-      if (next === 'os') enterOS();
-      else enterPage();
+      /* Switching presentation swaps the entire screen, which as an
+         instant cut reads as a page reload — or a crash. Where the
+         browser can do it, the new presentation opens out from the
+         button that was pressed, using the same reveal as a theme
+         change. The very first call (boot) has no "before" to
+         transition from, so it is applied directly. */
+      const enter = next === 'os' ? enterOS : enterPage;
+      if (previous && window.portfolioTheme) window.portfolioTheme.swap(enter);
+      else enter();
       log.info(`shell → ${next}`);
       return mode;
     },

@@ -237,6 +237,10 @@
 
   <body>
 
+    <!-- First stop for a keyboard: jump past the navigation straight
+         to the content. Invisible until it has focus. -->
+    <a class="skip-link" href="#about">Skip to content</a>
+
     <!-- ============================================================
          LANDSCAPE LAYER
          The mountain artwork used to be painted directly on <body>,
@@ -867,7 +871,7 @@ Suggestions:
     <!-- Keyboard hint — the palette is the fastest way around the
          site, so say so once. It hides itself after first use. -->
     <div class="kbd-hint" id="kbd-hint">
-      <kbd>&#8984;</kbd><kbd>K</kbd>
+      <kbd data-modkey>&#8984;</kbd><kbd>K</kbd>
       <span>command palette</span>
     </div>
 

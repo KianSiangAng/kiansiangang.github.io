@@ -14,6 +14,15 @@
 import { el, clear } from './dom.js';
 import { icon } from './icons.js';
 
+/* Shortcut labels have to name keys the visitor actually has. ⌘ and ⌥
+   are Apple glyphs; on any other keyboard the same shortcuts are Ctrl
+   and Alt, and a menu advertising ⌘K to a Windows user is advertising
+   a key that is not there. */
+const APPLE = /mac|iphone|ipad|ipod/i.test(
+  (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '',
+);
+const keys = (label) => (APPLE ? label : label.replace('⌘', 'Ctrl ').replace('⌥', 'Alt '));
+
 export function createMenuBar({ bus, root, wm, onOpen, shell }) {
   const appName = el('strong.menubar__app', { text: 'Finder' });
   const menuList = el('nav.menubar__menus', { 'aria-label': 'Application menus' });
@@ -144,13 +153,13 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
   const systemMenu = [
     { label: 'About this portfolio', action: () => onOpen('about') },
     'separator',
-    { label: 'Open command palette', shortcut: '⌘K', action: () => bus.emit('palette.request') },
+    { label: 'Open command palette', shortcut: keys('⌘K'), action: () => bus.emit('palette.request') },
     { label: 'Performance HUD', shortcut: '`', action: () => bus.emit('hud.toggle') },
     'separator',
-    { label: 'Toggle dark mode', shortcut: '⌥D', action: () => bus.emit('theme.set', { theme: 'toggle' }) },
+    { label: 'Toggle dark mode', shortcut: keys('⌥D'), action: () => bus.emit('theme.set', { theme: 'toggle' }) },
     { label: 'Summon petals', action: () => bus.emit('petals.storm', { intensity: 1.8 }) },
     'separator',
-    { label: 'Step back into the room', shortcut: '⌥R', action: () => bus.emit('room.toggle') },
+    { label: 'Step back into the room', shortcut: keys('⌥R'), action: () => bus.emit('room.toggle') },
     'separator',
     { label: 'Close all windows', action: () => wm.closeAll() },
     { label: 'View as a plain page', action: () => shell.setMode('page') },
@@ -190,7 +199,7 @@ export function createMenuBar({ bus, root, wm, onOpen, shell }) {
       {
         label: 'File',
         items: [
-          { label: 'New Terminal', shortcut: '⌘T', action: () => onOpen('terminal') },
+          { label: 'New Terminal', shortcut: keys('⌘T'), action: () => onOpen('terminal') },
           { label: 'Open Projects', action: () => onOpen('projects') },
           'separator',
           { label: 'Close all windows', action: () => wm.closeAll() },

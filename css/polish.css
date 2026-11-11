@@ -15,6 +15,7 @@
      6. Section petals on small screens
      7. Theme change — a reveal instead of a cut
      8. Focus and reduced motion
+     9. Skip link
 ================================================================ */
 
 
@@ -398,3 +399,28 @@ html[data-veil="lifting"]::after {
   .room-hint.is-counting::after { animation: none; display: none; }
   ::view-transition-new(root) { animation: none; }
 }
+
+
+/* ================================================================
+   9. SKIP LINK
+================================================================ */
+
+.skip-link {
+  position: fixed;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 10000;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--clr-navy);
+  color: var(--clr-bg);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  transform: translateY(-200%);
+  transition: transform var(--transition-fast);
+}
+
+.skip-link:focus { transform: none; outline: 2.5px solid var(--clr-peach); outline-offset: 3px; }
+
+/* The desktop shell has its own keyboard model and no page to skip. */
+[data-shell="os"] .skip-link { display: none; }
